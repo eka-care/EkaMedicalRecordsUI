@@ -35,7 +35,7 @@ func registerFont(named name: String) throws {
   }
 }
 
-struct Fonts {
+public struct Fonts {
   enum CustomFontNames: String, CaseIterable {
     case italic = "Lato-Italic"
     case lightItalic = "Lato-LightItalic"
@@ -49,7 +49,7 @@ struct Fonts {
     case thinItalic = "Lato-ThinItalic"
   }
   
-  static func registerAllFonts() throws {
+  public static func registerAllFonts() throws {
     try CustomFontNames.allCases.forEach {
       try registerFont(named: $0.rawValue)
     }
