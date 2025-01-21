@@ -21,6 +21,8 @@ public struct RecordsGridListView: View {
   let items = Array(1...100) // Sample data for the grid (infinite rows possible)
   @State private var isUploadBottomSheetPresented = false // State to control sheet presentation
 
+  public init() {}
+  
   // MARK: - View
   
   public var body: some View {
