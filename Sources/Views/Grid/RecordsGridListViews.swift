@@ -8,7 +8,7 @@
 import SwiftUI
 import PhotosUI
 
-struct RecordsGridListView: View {
+public struct RecordsGridListView: View {
   // MARK: - Properties
   
   let title = "All"
@@ -23,7 +23,7 @@ struct RecordsGridListView: View {
 
   // MARK: - View
   
-  var body: some View {
+  public var body: some View {
     NavigationView { // Wrap the content in a NavigationView
       ZStack(alignment: .bottomTrailing) {
         /// Grid
