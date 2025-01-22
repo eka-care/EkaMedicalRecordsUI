@@ -7,18 +7,22 @@
 
 import SwiftUI
 import PhotosUI
+import CoreData
+import EkaMedicalRecordsCore
 
 public struct RecordsGridListView: View {
   // MARK: - Properties
   
   let title = "All"
-  // Define grid columns
   let columns = [
     GridItem(.flexible()), // First column
     GridItem(.flexible())  // Second column
   ]
-  
-  let items = Array(1...100) // Sample data for the grid (infinite rows possible)
+  @Environment(\.managedObjectContext) private var viewContext
+  @FetchRequest(
+    sortDescriptors: [NSSortDescriptor(keyPath: \Record.updatedAt, ascending: true)],
+    animation: .default
+  ) private var records: FetchedResults<Record>
   @State private var isUploadBottomSheetPresented = false // State to control sheet presentation
 
   public init() {}
@@ -31,7 +35,7 @@ public struct RecordsGridListView: View {
         /// Grid
         ScrollView { // Enable vertical scrolling
           LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) { // Vertical grid layout
-            ForEach(items, id: \.self) { item in
+            ForEach(records) { item in
               RecordItemView(itemData: RecordItemViewData.formRecordItemPreviewData())
             }
           }

@@ -15,7 +15,8 @@ let package = Package(
       targets: ["EkaMedicalRecordsUI"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1"))
+    .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1")),
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore", branch: "main")
   ],
   targets: [
     .target(
