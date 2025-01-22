@@ -18,7 +18,7 @@ enum FontError: Swift.Error {
 /// - Throws: Throws an error if the font registration fails
 func registerFont(named name: String) throws {
   // Attempt to load the font asset from the .xcassets
-  guard let asset = NSDataAsset(name: "Fonts/\(name)") else {
+  guard let asset = NSDataAsset(name: "Fonts/\(name)", bundle: Bundle.module) else {
     throw FontError.failedToRegisterFont
   }
   
