@@ -16,13 +16,14 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1")),
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore", branch: "main")
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", branch: "main")
   ],
   targets: [
     .target(
       name: "EkaMedicalRecordsUI",
       dependencies: [
-        .product(name: "SnapKit", package: "SnapKit")
+        .product(name: "SnapKit", package: "SnapKit"),
+        .product(name: "EkaMedicalRecordsCore", package: "EkaMedicalRecordsCore")
       ],
       resources: [
         .process("Resources")
