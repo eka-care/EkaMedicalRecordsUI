@@ -16,7 +16,7 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1")),
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", branch: "main")
+    .package(path: "Sources/EkaMedicalRecordsCore")
   ],
   targets: [
     .target(
@@ -25,6 +25,7 @@ let package = Package(
         .product(name: "SnapKit", package: "SnapKit"),
         .product(name: "EkaMedicalRecordsCore", package: "EkaMedicalRecordsCore")
       ],
+      path: "Sources/EkaMedicalRecordsCore",
       resources: [
         .process("Resources")
       ]

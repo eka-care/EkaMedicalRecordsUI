@@ -1,0 +1,3 @@
+[submodule "Sources/EkaMedicalRecordsCore"]
+	path = Sources/EkaMedicalRecordsCore
+	url = https://github.com/eka-care/EkaMedicalRecordsCore.git

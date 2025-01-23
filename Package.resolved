@@ -1,5 +1,5 @@
 {
-  "originHash" : "9b2b652b675e2c3677f6800eccd7ca7d36b2d13dbfbcbd3921f37febfc96000c",
+  "originHash" : "f74047fbdf973629a9af3f00fd785b0212e51522cc8d6775003563689ba6d45d",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -8,15 +8,6 @@
       "state" : {
         "revision" : "513364f870f6bfc468f9d2ff0a95caccc10044c5",
         "version" : "5.10.2"
-      }
-    },
-    {
-      "identity" : "ekamedicalrecordscore",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/eka-care/EkaMedicalRecordsCore.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "3a0c64df891639d741678d316881f250545df1d9"
       }
     },
     {
