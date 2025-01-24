@@ -6,24 +6,27 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct RecordItemView: View {
+  
+  enum RecordsDocumentThumbnailSize {
+    static let height: CGFloat = 104
+  }
+  
   let itemWidth: CGFloat = 160
   let itemData: RecordItemViewData
   
   var body: some View {
     VStack(spacing: 0) {
-      /// Document Image View
-      ZStack {
-        /// Thumbnail Image
-        Image(.recordSample)
-          .resizable()
-          .scaledToFill()
-          .cornerRadius(8)
-          .padding([.horizontal, .top], EkaSpacing.spacingXs)
+      /// Thumbnail Image
+      if let documentImage = itemData.documentImage {
+        ThumbnailImageView(thumbnailImageUrl: documentImage)
+      } else {
+        ThumbnailImageLoadingView()
       }
       
-      /// Bottom Meta Data View
+      /// Bottom Meta Data View 
       BottomMetaDataView()
     }
     .frame(width: itemWidth)
@@ -43,6 +46,25 @@ extension RecordItemView {
       }
     }
     .frame(width: itemWidth, height: 30)
+  }
+  
+  /// Thumbnail
+  private func ThumbnailImageView(thumbnailImageUrl: URL) -> some View {
+    ZStack {
+      WebImage(url: thumbnailImageUrl)
+        .resizable()
+        .scaledToFill()
+        .frame(maxWidth: .infinity)
+      Color.black.opacity(0.2).layoutPriority(-1)
+    }
+    .frame(height: RecordsDocumentThumbnailSize.height, alignment: .top)
+    .cornerRadius(12, corners: .topLeft.union(.topRight))
+  }
+  
+  private func ThumbnailImageLoadingView() -> some View {
+    Color.black.opacity(0.6)
+      .frame(height: RecordsDocumentThumbnailSize.height, alignment: .top)
+      .cornerRadius(12, corners: .topLeft.union(.topRight))
   }
 }
 

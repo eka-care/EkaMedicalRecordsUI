@@ -7,16 +7,17 @@
 
 import Foundation
 import UIKit
+import EkaMedicalRecordsCore
 
 struct RecordItemViewData {
   var isSmart: Bool
   var uploadedDate: String?
-  let documentImage: UIImage?
+  let documentImage: URL?
   
   init(
     isSmart: Bool,
     uploadedDate: String? = nil,
-    documentImage: UIImage? = nil
+    documentImage: URL? = nil
   ) {
     self.isSmart = isSmart
     self.uploadedDate = uploadedDate
@@ -29,7 +30,15 @@ extension RecordItemViewData {
     RecordItemViewData(
       isSmart: true,
       uploadedDate: "24 July 2024 ",
-      documentImage: UIImage(resource: .recordSample)
+      documentImage: URL(string: "")
+    )
+  }
+  
+  static func formRecordItemViewData(from model: Record) -> RecordItemViewData {
+    RecordItemViewData(
+      isSmart: model.isSmart,
+      uploadedDate: model.uploadDate?.formatted(as: "MMM d, yyyy"),
+      documentImage: FileHelper.getDocumentDirectoryURL().appendingPathComponent(model.thumbnail ?? "")
     )
   }
 }

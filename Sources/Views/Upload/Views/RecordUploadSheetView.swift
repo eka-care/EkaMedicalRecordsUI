@@ -172,7 +172,6 @@ extension RecordUploadSheetView {
         .frame(width: 10, height: 10)
         .foregroundColor(Color(.blue))
     }
-//    .frame(height: 70)
     .padding([.horizontal, .vertical], EkaSpacing.spacingM)
     .background(Color(.sunYellow100))
     .cornerRadius(16)

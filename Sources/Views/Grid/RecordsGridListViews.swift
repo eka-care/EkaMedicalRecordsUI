@@ -14,6 +14,7 @@ public struct RecordsGridListView: View {
   // MARK: - Properties
   
   let title = "All"
+  let recordsRepo = RecordsRepo()
   let columns = [
     GridItem(.flexible()), // First column
     GridItem(.flexible())  // Second column
@@ -21,8 +22,9 @@ public struct RecordsGridListView: View {
   @Environment(\.managedObjectContext) private var viewContext
   @FetchRequest(
     sortDescriptors: [NSSortDescriptor(keyPath: \Record.updatedAt, ascending: true)],
-    animation: .default
-  ) private var records: FetchedResults<Record>
+    animation: .easeIn
+  )
+  var records: FetchedResults<Record>
   @State private var isUploadBottomSheetPresented = false // State to control sheet presentation
 
   public init() {}
@@ -30,13 +32,13 @@ public struct RecordsGridListView: View {
   // MARK: - View
   
   public var body: some View {
-    NavigationView { // Wrap the content in a NavigationView
+    NavigationView {
       ZStack(alignment: .bottomTrailing) {
         /// Grid
-        ScrollView { // Enable vertical scrolling
-          LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) { // Vertical grid layout
-            ForEach(records) { item in
-              RecordItemView(itemData: RecordItemViewData.formRecordItemPreviewData())
+        ScrollView {
+          LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
+            ForEach(records, id: \.id) { item in
+              RecordItemView(itemData: RecordItemViewData.formRecordItemViewData(from: item))
             }
           }
           .padding()
@@ -65,6 +67,10 @@ public struct RecordsGridListView: View {
         .presentationDetents([.medium]) // Set medium detent
         .presentationBackground(Color(.neutrals100)) // Set background
         .presentationDragIndicator(.visible)
+      }
+      .onAppear {
+        recordsRepo.fetchRecordsFromServer {
+        }
       }
     }
   }
