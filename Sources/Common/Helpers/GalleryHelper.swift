@@ -9,6 +9,12 @@ import Foundation
 import PhotosUI
 
 final class GalleryHelper {
+  static func convertImagesToData(images: [UIImage], compressionQuality: CGFloat = 1.0) -> [Data] {
+    return images.compactMap { image in
+      image.jpegData(compressionQuality: compressionQuality)
+    }
+  }
+  
   static func fetchUserPhotos(completion: @escaping ([RecordUploadImageData]?) -> Void) {
     // Request authorization to access photo library
     let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)

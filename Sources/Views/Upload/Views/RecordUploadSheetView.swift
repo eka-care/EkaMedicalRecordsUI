@@ -14,15 +14,19 @@ struct RecordUploadSheetView: View {
   @State private var galleryPhotos: [RecordUploadImageData] = []
   @Binding var isUploadBottomSheetPresented: Bool
   @State var selectedUploadOption: RecordUploadItemType?
-  @State private var images: [UIImage] = []
-  @State private var selectedPDFData: Data? = nil
+  @Binding private var images: [UIImage]
+  @Binding private var selectedPDFData: Data?
   @State var photoAccessStatus: PHAuthorizationStatus = PHPhotoLibrary.authorizationStatus()
   @State private var showSettingsAlert = false
     
   init(
+    images: Binding<[UIImage]>,
+    selectedPDFData: Binding<Data?>,
     hasUserGalleryPermission: Bool,
     isUploadBottomSheetPresented: Binding<Bool>
   ) {
+    _images = images
+    _selectedPDFData = selectedPDFData
     self.hasUserGalleryPermission = hasUserGalleryPermission
     _isUploadBottomSheetPresented = isUploadBottomSheetPresented
     _recordUploadSheetData = State(initialValue: RecordUploadSheetData.formRecordUploadSheetItems(hasUserGalleryPermission: hasUserGalleryPermission))
@@ -118,9 +122,6 @@ struct RecordUploadSheetView: View {
         DocumentPickerView(selectedPDFData: $selectedPDFData)
       }
     }
-    //    .onChange(of: viewModel.photoAccessStatus) { _ in
-    //      fetchUserPhotos()
-    //    }
   }
 }
 
@@ -136,10 +137,7 @@ extension RecordUploadSheetView {
       RecordsUserGalleryView(
         currentlySelectedImageNumber: $currentlySelectedImageNumber,
         galleryPhotos: $galleryPhotos,
-        shouldShowSelectionLimitMessage: $shouldShowSelectionLimitMessage) {
-          /// On tap camera view
-          //          delegate?.onTapRecordOption(option: .camera, isViewGalleryTap: false)
-        }
+        shouldShowSelectionLimitMessage: $shouldShowSelectionLimitMessage) {}
       
       if shouldShowSelectionLimitMessage {
         Text(NSLocalizedString("Maximum 6 photos can be uploaded at once!", comment: ""))
@@ -264,6 +262,8 @@ extension RecordUploadSheetView {
 
 #Preview {
   RecordUploadSheetView(
+    images: .constant([]),
+    selectedPDFData: .constant(nil),
     hasUserGalleryPermission: true,
     isUploadBottomSheetPresented: .constant(true)
   )

@@ -21,11 +21,13 @@ public struct RecordsGridListView: View {
   ]
   @Environment(\.managedObjectContext) private var viewContext
   @FetchRequest(
-    sortDescriptors: [NSSortDescriptor(keyPath: \Record.updatedAt, ascending: true)],
+    sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
     animation: .easeIn
   )
   var records: FetchedResults<Record>
   @State private var isUploadBottomSheetPresented = false // State to control sheet presentation
+  @State private var images: [UIImage] = []
+  @State private var selectedPDFData: Data?
 
   public init() {}
   
@@ -61,6 +63,8 @@ public struct RecordsGridListView: View {
       .navigationTitle(title) // Add a navigation title
       .sheet(isPresented: $isUploadBottomSheetPresented) {
         RecordUploadSheetView(
+          images: $images,
+          selectedPDFData: $selectedPDFData,
           hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
           isUploadBottomSheetPresented: $isUploadBottomSheetPresented
         ) // The content of the sheet
@@ -69,8 +73,13 @@ public struct RecordsGridListView: View {
         .presentationDragIndicator(.visible)
       }
       .onAppear {
-        recordsRepo.fetchRecordsFromServer {
-        }
+        recordsRepo.fetchRecordsFromServer {}
+      }
+      /// On selection of images add a record to the storage
+      .onChange(of: images) { oldValue, newValue in
+        let data = GalleryHelper.convertImagesToData(images: newValue)
+        let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
+        recordsRepo.addSingleRecord(record: recordModel)
       }
     }
   }
