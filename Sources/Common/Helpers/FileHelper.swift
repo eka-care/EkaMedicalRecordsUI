@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 final class FileHelper {
   /// Used to get the URL of the document directory
@@ -24,6 +25,23 @@ final class FileHelper {
     } catch {
       /// Handle any errors that occur during loading
       completion(nil, error)
+    }
+  }
+  
+  static func getImageFromLocalPath(fileURL: URL?) -> UIImage? {
+    guard let fileURL else { return nil }
+    // Check if the file exists at the given path
+    if FileManager.default.fileExists(atPath: fileURL.path) {
+      // Try to load the image from the URL
+      if let image = UIImage(contentsOfFile: fileURL.path) {
+        return image
+      } else {
+        print("Error: Unable to create UIImage from file.")
+        return nil
+      }
+    } else {
+      print("Error: File does not exist at the specified path.")
+      return nil
     }
   }
 }

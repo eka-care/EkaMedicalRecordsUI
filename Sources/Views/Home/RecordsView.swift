@@ -29,7 +29,7 @@ public struct RecordsView: View {
   
   // MARK: - Properties
   
-  let recordPresentationState: RecordPresentationState
+  public let recordPresentationState: RecordPresentationState
   let recordsRepo = RecordsRepo()
   @Environment(\.managedObjectContext) private var viewContext
   
