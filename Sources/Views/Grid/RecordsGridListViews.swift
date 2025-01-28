@@ -13,23 +13,34 @@ import EkaMedicalRecordsCore
 public struct RecordsGridListView: View {
   // MARK: - Properties
   
-  let title = "All"
-  let recordsRepo = RecordsRepo()
+  let recordsRepo: RecordsRepo
   let columns = [
     GridItem(.flexible()), // First column
     GridItem(.flexible())  // Second column
   ]
+  let recordPresentationState: RecordPresentationState
   @Environment(\.managedObjectContext) private var viewContext
   @FetchRequest(
     sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
     animation: .easeIn
-  )
-  var records: FetchedResults<Record>
+  ) var records: FetchedResults<Record>
   @State private var isUploadBottomSheetPresented = false // State to control sheet presentation
-  @State private var images: [UIImage] = []
+  /// Images that are selected for upload
+  @State private var uploadedImages: [UIImage] = []
+  /// PDF data that is selected for upload
   @State private var selectedPDFData: Data?
+  /// Images that are selected in records picker state
+  @State private var pickerSelectedRecords: [RecordItemViewData] = []
 
-  public init() {}
+  // MARK: - Init
+  
+  public init(
+    recordsRepo: RecordsRepo = RecordsRepo(),
+    recordPresentationState: RecordPresentationState
+  ) {
+    self.recordsRepo = recordsRepo
+    self.recordPresentationState = recordPresentationState
+  }
   
   // MARK: - View
   
@@ -40,7 +51,19 @@ public struct RecordsGridListView: View {
         ScrollView {
           LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
             ForEach(records, id: \.id) { item in
-              RecordItemView(itemData: RecordItemViewData.formRecordItemViewData(from: item))
+              RecordItemView(
+                itemData: RecordItemViewData.formRecordItemViewData(from: item),
+                recordPresentationState: recordPresentationState,
+                pickerSelectedRecords: $pickerSelectedRecords
+              )
+              .frame(width: 160)
+              .contextMenu {
+                Button(role: .destructive) {
+                  deleteItem(record: item)
+                } label: {
+                  Text("Delete")
+                }
+              }
             }
           }
           .padding()
@@ -60,10 +83,20 @@ public struct RecordsGridListView: View {
         .padding(.trailing, EkaSpacing.spacingM)
       }
       .background(Color(.neutrals50))
-      .navigationTitle(title) // Add a navigation title
+      .navigationTitle(recordPresentationState.title) // Add a navigation title
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar { /// Toolbaar item
+        ToolbarItem(placement: .topBarTrailing) {
+          if pickerSelectedRecords.count > 0 {
+            Button("Done") {
+              onDoneButtonPressed()
+            }
+          }
+        }
+      }
       .sheet(isPresented: $isUploadBottomSheetPresented) {
         RecordUploadSheetView(
-          images: $images,
+          images: $uploadedImages,
           selectedPDFData: $selectedPDFData,
           hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
           isUploadBottomSheetPresented: $isUploadBottomSheetPresented
@@ -76,7 +109,7 @@ public struct RecordsGridListView: View {
         recordsRepo.fetchRecordsFromServer {}
       }
       /// On selection of images add a record to the storage
-      .onChange(of: images) { oldValue, newValue in
+      .onChange(of: uploadedImages) { oldValue, newValue in
         let data = GalleryHelper.convertImagesToData(images: newValue)
         let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
         recordsRepo.addSingleRecord(record: recordModel)
@@ -85,6 +118,19 @@ public struct RecordsGridListView: View {
   }
 }
 
+// MARK: - Helper Functions
+
+extension RecordsGridListView {
+  /// Used to delete a grid item
+  private func deleteItem(record: Record) {
+    recordsRepo.deleteRecord(record: record)
+  }
+  
+  private func onDoneButtonPressed() {
+    print("Done button pressed")
+  }
+}
+
 #Preview {
-  RecordsGridListView()
+  RecordsGridListView(recordPresentationState: .displayAll)
 }
