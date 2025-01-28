@@ -11,7 +11,7 @@ import UIKit
 @Observable public final class RecordsCommunicator {
   public var pickerSelectedImages: [UIImage] = []
   
-  public static let shared = RecordsCommunicator()
+  public static var shared = RecordsCommunicator()
   
   func setPickerSelectedImagesFromRecords(selectedRecords: [RecordItemViewData]) {
     selectedRecords.forEach { record in
