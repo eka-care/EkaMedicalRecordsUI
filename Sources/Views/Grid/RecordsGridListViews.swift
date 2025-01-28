@@ -127,7 +127,7 @@ extension RecordsGridListView {
   }
   
   private func onDoneButtonPressed() {
-    RecordsCommunicator().setPickerSelectedImagesFromRecords(selectedRecords: pickerSelectedRecords)
+    RecordsCommunicator.shared.setPickerSelectedImagesFromRecords(selectedRecords: pickerSelectedRecords)
   }
 }
 

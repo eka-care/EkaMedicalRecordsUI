@@ -8,8 +8,10 @@
 import EkaMedicalRecordsCore
 import UIKit
 
-public final class RecordsCommunicator: ObservableObject {
-  @Published public var pickerSelectedImages: [UIImage] = []
+@Observable public final class RecordsCommunicator: ObservableObject {
+  public var pickerSelectedImages: [UIImage] = []
+  
+  public static var shared = RecordsCommunicator()
   
   public init() {}
   
