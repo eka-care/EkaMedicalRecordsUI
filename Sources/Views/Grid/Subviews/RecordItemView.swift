@@ -89,13 +89,13 @@ extension RecordItemView {
       Color.black.opacity(0.2).layoutPriority(-1)
     }
     .frame(width: itemWidth, height: RecordsDocumentThumbnailSize.height, alignment: .top)
-    .cornerRadius(12, corners: .topLeft.union(.topRight))
+    .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
   private func ThumbnailImageLoadingView() -> some View {
     Color.black.opacity(0.6)
       .frame(width: itemWidth, height: RecordsDocumentThumbnailSize.height, alignment: .top)
-      .cornerRadius(12, corners: .topLeft.union(.topRight))
+      .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
   private func SelectionTickView() -> some View {

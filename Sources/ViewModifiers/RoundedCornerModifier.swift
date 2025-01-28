@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 extension View {
-  public func cornerRadius(
+  public func cornerRadiusModifier(
     _ radius: CGFloat,
     corners: UIRectCorner,
     viewHasKeyboard: Bool = false
