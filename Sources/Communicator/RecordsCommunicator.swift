@@ -8,12 +8,8 @@
 import EkaMedicalRecordsCore
 import UIKit
 
-public final class RecordsCommunicator {
+@Observable public final class RecordsCommunicator {
   public var pickerSelectedImages: [UIImage] = []
-  
-  public static let shared = RecordsCommunicator()
-  
-  public init() {}
   
   func setPickerSelectedImagesFromRecords(selectedRecords: [RecordItemViewData]) {
     selectedRecords.forEach { record in
