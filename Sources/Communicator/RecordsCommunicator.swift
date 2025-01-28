@@ -13,6 +13,8 @@ import UIKit
   
   public static var shared = RecordsCommunicator()
   
+  public init() {}
+  
   func setPickerSelectedImagesFromRecords(selectedRecords: [RecordItemViewData]) {
     selectedRecords.forEach { record in
       if let image = FileHelper.getImageFromLocalPath(fileURL: record.documentImage) {
