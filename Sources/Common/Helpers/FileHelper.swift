@@ -30,9 +30,9 @@ final class FileHelper {
   
   static func getImageFromLocalPath(fileURL: URL?) -> UIImage? {
     guard let fileURL else { return nil }
-    // Check if the file exists at the given path
+    /// Check if the file exists at the given path
     if FileManager.default.fileExists(atPath: fileURL.path) {
-      // Try to load the image from the URL
+      /// Try to load the image from the URL
       if let image = UIImage(contentsOfFile: fileURL.path) {
         return image
       } else {

@@ -5,11 +5,10 @@
 //  Created by Arya Vashisht on 28/01/25.
 //
 
-import Observation
 import EkaMedicalRecordsCore
 import UIKit
 
-public final class RecordsCommunicator: Observable {
+@Observable public final class RecordsCommunicator {
   public var pickerSelectedImages: [UIImage] = []
   
   public static let shared = RecordsCommunicator()
