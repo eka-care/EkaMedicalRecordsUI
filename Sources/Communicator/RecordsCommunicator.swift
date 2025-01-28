@@ -9,7 +9,7 @@ import EkaMedicalRecordsCore
 import UIKit
 
 public final class RecordsCommunicator: ObservableObject {
-  @Published var pickerSelectedImages: [UIImage] = []
+  @Published public var pickerSelectedImages: [UIImage] = []
   
   public init() {}
   
