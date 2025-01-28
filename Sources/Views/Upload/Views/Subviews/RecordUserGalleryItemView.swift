@@ -39,7 +39,7 @@ struct RecordUserGalleryItemView: View {
           .aspectRatio(contentMode: .fill)
           .frame(width: 100, height: 100)
           .cornerRadius(16)
-          .addBorderWithCornerRadius(
+          .addBorderWithCornerRadiusModifier(
             cornerRadius: 16,
             borderColor: UIColor(resource: .primary500),
             strokeWidth: 2
@@ -52,7 +52,7 @@ struct RecordUserGalleryItemView: View {
           .frame(width: 100, height: 100)
           .cornerRadius(16)
           .padding(2)
-          .addBorderWithCornerRadius(
+          .addBorderWithCornerRadiusModifier(
             cornerRadius: 16,
             borderColor: UIColor(resource: .grey200),
             strokeWidth: 2

@@ -26,7 +26,7 @@ struct BorderWithCornerRadius: ViewModifier {
 }
 
 extension View {
-  public func addBorderWithCornerRadius(
+  public func addBorderWithCornerRadiusModifier(
     cornerRadius: CGFloat,
     borderColor: UIColor,
     strokeWidth: CGFloat = 1
