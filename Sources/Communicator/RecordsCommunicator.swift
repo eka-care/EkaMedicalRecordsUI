@@ -11,6 +11,8 @@ import UIKit
 @Observable public final class RecordsCommunicator {
   public var pickerSelectedImages: [UIImage] = []
   
+  public init() {}
+  
   func setPickerSelectedImagesFromRecords(selectedRecords: [RecordItemViewData]) {
     selectedRecords.forEach { record in
       if let image = FileHelper.getImageFromLocalPath(fileURL: record.documentImage) {
