@@ -141,14 +141,12 @@ extension RecordsGridListView {
   ) -> [RecordPickerDataModel] {
     var pickerObjects: [RecordPickerDataModel] = []
     selectedRecords.forEach { record in
-      if let image = FileHelper.getImageFromLocalPath(fileURL: record.documentImage) {
-        pickerObjects.append(
-          RecordPickerDataModel(
-            image: image,
-            documentID: record.documentID
-          )
+      pickerObjects.append(
+        RecordPickerDataModel(
+          image: record.documentImage,
+          documentID: record.documentID
         )
-      }
+      )
     }
     return pickerObjects
   }
