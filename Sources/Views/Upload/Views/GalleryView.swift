@@ -40,18 +40,28 @@ struct GalleryView: UIViewControllerRepresentable {
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
       picker.dismiss(animated: true)
       
+      var images = [UIImage]()
+      let dispatchGroup = DispatchGroup()  /// Track async operations
+      
       for result in results {
         if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+          dispatchGroup.enter()  /// Enter group before async operation
+          
           result.itemProvider.loadObject(ofClass: UIImage.self) { object, error in
+            defer { dispatchGroup.leave() }  /// Leave group after completion
+            
             if let image = object as? UIImage {
-              DispatchQueue.main.async {
-                self.parent.selectedImages.append(image)
-              }
+              images.append(image)
             } else if let error = error {
               print("Error loading image: \(error.localizedDescription)")
             }
           }
         }
+      }
+      
+      dispatchGroup.notify(queue: .main) { [weak self] in
+        guard let self else { return }
+        parent.selectedImages = images  /// Update only after all images are loaded
       }
     }
   }
