@@ -88,8 +88,7 @@ public struct RecordsGridListView: View {
       }
       .background(Color(.neutrals50))
       .navigationTitle(recordPresentationState.title) // Add a navigation title
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar { /// Toolbaar item
+      .toolbar { /// Toolbar item
         ToolbarItem(placement: .topBarTrailing) {
           if pickerSelectedRecords.count > 0 {
             Button("Done") {
@@ -130,11 +129,13 @@ extension RecordsGridListView {
     recordsRepo.deleteRecord(record: record)
   }
   
+  /// On press of done button in picker state
   private func onDoneButtonPressed() {
     let pickerImages = setPickerSelectedImagesFromRecords(selectedRecords: pickerSelectedRecords)
     didSelectPickerImages?(pickerImages)
   }
   
+  /// Get picker selected images from records
   private func setPickerSelectedImagesFromRecords(
     selectedRecords: [RecordItemViewData]
   ) -> [UIImage] {

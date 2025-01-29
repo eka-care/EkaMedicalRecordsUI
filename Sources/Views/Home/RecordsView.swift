@@ -18,7 +18,7 @@ public enum RecordPresentationState {
     case .dashboard:
       return ""
     case .displayAll:
-      return ""
+      return "All"
     case .picker:
       return "Select"
     }

@@ -42,15 +42,18 @@ struct RecordItemView: View {
         } else {
           ThumbnailImageLoadingView()
         }
-        /// Selection Tick View at Top-Right
-        VStack {
-          HStack {
-            Spacer() // Pushes to the right
-            SelectionTickView().foregroundStyle(Color.yellow)
-              .padding(.top, EkaSpacing.spacingM)
-              .padding(.trailing, EkaSpacing.spacingM)
+        
+        if recordPresentationState == .picker {
+          /// Selection Tick View at Top-Right
+          VStack {
+            HStack {
+              Spacer() // Pushes to the right
+              SelectionTickView().foregroundStyle(Color.yellow)
+                .padding(.top, EkaSpacing.spacingM)
+                .padding(.trailing, EkaSpacing.spacingM)
+            }
+            Spacer() // Pushes to the top
           }
-          Spacer() // Pushes to the top
         }
       }
       
