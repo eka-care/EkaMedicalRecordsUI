@@ -31,15 +31,19 @@ public struct RecordsGridListView: View {
   @State private var selectedPDFData: Data?
   /// Images that are selected in records picker state
   @State private var pickerSelectedRecords: [RecordItemViewData] = []
+  /// Used for callback when picker does select images
+  var didSelectPickerImages: PickerImagesCallback
 
   // MARK: - Init
   
   public init(
     recordsRepo: RecordsRepo = RecordsRepo(),
-    recordPresentationState: RecordPresentationState
+    recordPresentationState: RecordPresentationState,
+    didSelectPickerImages: PickerImagesCallback = nil
   ) {
     self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
+    self.didSelectPickerImages = didSelectPickerImages
   }
   
   // MARK: - View
@@ -127,7 +131,20 @@ extension RecordsGridListView {
   }
   
   private func onDoneButtonPressed() {
-    RecordsCommunicator.shared.setPickerSelectedImagesFromRecords(selectedRecords: pickerSelectedRecords)
+    let pickerImages = setPickerSelectedImagesFromRecords(selectedRecords: pickerSelectedRecords)
+    didSelectPickerImages?(pickerImages)
+  }
+  
+  private func setPickerSelectedImagesFromRecords(
+    selectedRecords: [RecordItemViewData]
+  ) -> [UIImage] {
+    var pickerSelectedImages: [UIImage] = []
+    selectedRecords.forEach { record in
+      if let image = FileHelper.getImageFromLocalPath(fileURL: record.documentImage) {
+        pickerSelectedImages.append(image)
+      }
+    }
+    return pickerSelectedImages
   }
 }
 

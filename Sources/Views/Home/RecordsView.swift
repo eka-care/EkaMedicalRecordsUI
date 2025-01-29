@@ -25,6 +25,8 @@ public enum RecordPresentationState {
   }
 }
 
+public typealias PickerImagesCallback = (([UIImage]) -> Void)?
+
 public struct RecordsView: View {
   
   // MARK: - Properties
@@ -32,13 +34,17 @@ public struct RecordsView: View {
   public let recordPresentationState: RecordPresentationState
   let recordsRepo = RecordsRepo()
   @Environment(\.managedObjectContext) private var viewContext
+  /// Used for callback when picker does select images
+  var didSelectPickerImages: PickerImagesCallback
   
   // MARK: - Init
   
   public init(
-    recordPresentationState: RecordPresentationState = .displayAll
+    recordPresentationState: RecordPresentationState = .displayAll,
+    didSelectPickerImages: PickerImagesCallback = nil
   ) {
     self.recordPresentationState = recordPresentationState
+    self.didSelectPickerImages = didSelectPickerImages
   }
   
   // MARK: - Body
@@ -48,8 +54,10 @@ public struct RecordsView: View {
     case .dashboard:
       EmptyView()
     case .displayAll, .picker:
-      RecordsGridListView(recordPresentationState: recordPresentationState)
-        .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+      RecordsGridListView(
+        recordPresentationState: recordPresentationState
+      )
+      .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     }
   }
 }
