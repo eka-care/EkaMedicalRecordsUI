@@ -55,7 +55,8 @@ public struct RecordsView: View {
       EmptyView()
     case .displayAll, .picker:
       RecordsGridListView(
-        recordPresentationState: recordPresentationState
+        recordPresentationState: recordPresentationState,
+        didSelectPickerImages: didSelectPickerImages
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     }
