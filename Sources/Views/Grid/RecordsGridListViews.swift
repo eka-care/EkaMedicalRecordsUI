@@ -32,18 +32,18 @@ public struct RecordsGridListView: View {
   /// Images that are selected in records picker state
   @State private var pickerSelectedRecords: [RecordItemViewData] = []
   /// Used for callback when picker does select images
-  var didSelectPickerImages: PickerImagesCallback
+  var didSelectPickerDataObjects: PickerImagesCallback
 
   // MARK: - Init
   
   public init(
     recordsRepo: RecordsRepo = RecordsRepo(),
     recordPresentationState: RecordPresentationState,
-    didSelectPickerImages: PickerImagesCallback = nil
+    didSelectPickerDataObjects: PickerImagesCallback = nil
   ) {
     self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
-    self.didSelectPickerImages = didSelectPickerImages
+    self.didSelectPickerDataObjects = didSelectPickerDataObjects
   }
   
   // MARK: - View
@@ -131,21 +131,26 @@ extension RecordsGridListView {
   
   /// On press of done button in picker state
   private func onDoneButtonPressed() {
-    let pickerImages = setPickerSelectedImagesFromRecords(selectedRecords: pickerSelectedRecords)
-    didSelectPickerImages?(pickerImages)
+    let pickerDataObjects = setPickerSelectedObjects(selectedRecords: pickerSelectedRecords)
+    didSelectPickerDataObjects?(pickerDataObjects)
   }
   
   /// Get picker selected images from records
-  private func setPickerSelectedImagesFromRecords(
+  private func setPickerSelectedObjects(
     selectedRecords: [RecordItemViewData]
-  ) -> [UIImage] {
-    var pickerSelectedImages: [UIImage] = []
+  ) -> [RecordPickerDataModel] {
+    var pickerObjects: [RecordPickerDataModel] = []
     selectedRecords.forEach { record in
       if let image = FileHelper.getImageFromLocalPath(fileURL: record.documentImage) {
-        pickerSelectedImages.append(image)
+        pickerObjects.append(
+          RecordPickerDataModel(
+            image: image,
+            documentID: record.documentID
+          )
+        )
       }
     }
-    return pickerSelectedImages
+    return pickerObjects
   }
 }
 
