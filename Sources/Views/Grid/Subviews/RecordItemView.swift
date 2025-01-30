@@ -43,13 +43,13 @@ struct RecordItemView: View {
           ThumbnailImageLoadingView()
         }
         
+        /// Show smart tag
         if itemData.isSmart {
-          /// Show smart tag
           VStack {
             HStack {
               SmartReportView()
             }
-            Spacer() /// Pushes to the top
+            Spacer()
           }
         }
         
@@ -58,12 +58,12 @@ struct RecordItemView: View {
           /// Selection Tick View at Top-Right
           VStack {
             HStack {
-              Spacer() // Pushes to the right
+              Spacer()
               SelectionTickView().foregroundStyle(Color.yellow)
                 .padding(.top, EkaSpacing.spacingM)
                 .padding(.trailing, EkaSpacing.spacingM)
             }
-            Spacer() // Pushes to the top
+            Spacer()
           }
         }
       }
@@ -155,12 +155,19 @@ extension RecordItemView {
     case .dashboard:
       print("Click on record in dashboard state")
     case .displayAll:
-      print("Click on record in display all state")
+      onTapDocument()
     case .picker:
       updateItemDataOnPickerSelection()
     }
   }
   
+  
+  /// On tap of document we open document viewer
+  private func onTapDocument() {
+    
+  }
+  
+  /// Update item data on picker selection
   private func updateItemDataOnPickerSelection() {
     itemData.isSelected.toggle()
     /// If item is selected add it in picker selected records
