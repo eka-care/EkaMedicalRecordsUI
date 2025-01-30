@@ -13,7 +13,7 @@ import EkaMedicalRecordsCore
 public struct RecordsGridListView: View {
   // MARK: - Properties
   
-  @StateObject var recordsRepo: RecordsRepo
+  let recordsRepo: RecordsRepo
   let columns = [
     GridItem(.flexible()), // First column
     GridItem(.flexible())  // Second column

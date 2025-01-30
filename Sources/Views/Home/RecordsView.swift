@@ -32,6 +32,7 @@ public struct RecordsView: View {
   // MARK: - Properties
   
   public let recordPresentationState: RecordPresentationState
+  let recordsRepo: RecordsRepo
   @Environment(\.managedObjectContext) private var viewContext
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: PickerImagesCallback
@@ -39,9 +40,11 @@ public struct RecordsView: View {
   // MARK: - Init
   
   public init(
+    recordsRepo: RecordsRepo,
     recordPresentationState: RecordPresentationState = .displayAll,
     didSelectPickerDataObjects: PickerImagesCallback = nil
   ) {
+    self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
   }
@@ -54,6 +57,7 @@ public struct RecordsView: View {
       EmptyView()
     case .displayAll, .picker:
       RecordsGridListView(
+        recordsRepo: recordsRepo,
         recordPresentationState: recordPresentationState,
         didSelectPickerDataObjects: didSelectPickerDataObjects
       )
@@ -63,5 +67,5 @@ public struct RecordsView: View {
 }
 
 #Preview {
-  RecordsView()
+  RecordsView(recordsRepo: RecordsRepo())
 }
