@@ -50,73 +50,75 @@ public struct RecordsGridListView: View {
   // MARK: - View
   
   public var body: some View {
-    ZStack(alignment: .bottomTrailing) {
-      /// Grid
-      ScrollView {
-        LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
-          ForEach(records, id: \.id) { item in
-            switch recordPresentationState {
-            case .dashboard, .displayAll:
-              /// Put navigation in this case
-              NavigationLink(
-                destination: DocumentViewer(
-                  documents: FileHelper.createDocumentTypes(from: [])
-                )
-              ) {
+    NavigationStack {
+      ZStack(alignment: .bottomTrailing) {
+        /// Grid
+        ScrollView {
+          LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
+            ForEach(records, id: \.id) { item in
+              switch recordPresentationState {
+              case .dashboard, .displayAll:
+                /// Put navigation in this case
+                NavigationLink(
+                  destination: DocumentViewer(
+                    documents: FileHelper.createDocumentTypes(from: [])
+                  )
+                ) {
+                  ItemView(item: item)
+                }
+              case .picker:
+                /// Put picker tap in this case
                 ItemView(item: item)
               }
-            case .picker:
-              /// Put picker tap in this case
-              ItemView(item: item)
+            }
+          }
+          .padding()
+        }
+        
+        /// Button
+        ButtonView(
+          title: "Add record",
+          imageName: UIImage(systemName: "plus"),
+          size: .large,
+          imagePosition: .leading,
+          style: .outline,
+          isFullWidth: false
+        ) {
+          isUploadBottomSheetPresented = true
+        }
+        .padding(.trailing, EkaSpacing.spacingM)
+      }
+      .background(Color(.neutrals50))
+      .navigationTitle(recordPresentationState.title) // Add a navigation title
+      .toolbar { /// Toolbar item
+        ToolbarItem(placement: .topBarTrailing) {
+          if pickerSelectedRecords.count > 0 {
+            Button("Done") {
+              onDoneButtonPressed()
             }
           }
         }
-        .padding()
       }
-      
-      /// Button
-      ButtonView(
-        title: "Add record",
-        imageName: UIImage(systemName: "plus"),
-        size: .large,
-        imagePosition: .leading,
-        style: .outline,
-        isFullWidth: false
-      ) {
-        isUploadBottomSheetPresented = true
+      .sheet(isPresented: $isUploadBottomSheetPresented) {
+        RecordUploadSheetView(
+          images: $uploadedImages,
+          selectedPDFData: $selectedPDFData,
+          hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
+          isUploadBottomSheetPresented: $isUploadBottomSheetPresented
+        ) // The content of the sheet
+        .presentationDetents([.medium]) // Set medium detent
+        .presentationBackground(Color(.neutrals100)) // Set background
+        .presentationDragIndicator(.visible)
       }
-      .padding(.trailing, EkaSpacing.spacingM)
-    }
-    .background(Color(.neutrals50))
-    .navigationTitle(recordPresentationState.title) // Add a navigation title
-    .toolbar { /// Toolbar item
-      ToolbarItem(placement: .topBarTrailing) {
-        if pickerSelectedRecords.count > 0 {
-          Button("Done") {
-            onDoneButtonPressed()
-          }
-        }
+      .onAppear {
+        recordsRepo.fetchRecordsFromServer {}
       }
-    }
-    .sheet(isPresented: $isUploadBottomSheetPresented) {
-      RecordUploadSheetView(
-        images: $uploadedImages,
-        selectedPDFData: $selectedPDFData,
-        hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
-        isUploadBottomSheetPresented: $isUploadBottomSheetPresented
-      ) // The content of the sheet
-      .presentationDetents([.medium]) // Set medium detent
-      .presentationBackground(Color(.neutrals100)) // Set background
-      .presentationDragIndicator(.visible)
-    }
-    .onAppear {
-      recordsRepo.fetchRecordsFromServer {}
-    }
-    /// On selection of images add a record to the storage
-    .onChange(of: uploadedImages) { oldValue, newValue in
-      let data = GalleryHelper.convertImagesToData(images: newValue)
-      let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
-      recordsRepo.addSingleRecord(record: recordModel)
+      /// On selection of images add a record to the storage
+      .onChange(of: uploadedImages) { oldValue, newValue in
+        let data = GalleryHelper.convertImagesToData(images: newValue)
+        let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
+        recordsRepo.addSingleRecord(record: recordModel)
+      }
     }
   }
 }

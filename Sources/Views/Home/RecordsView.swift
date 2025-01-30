@@ -52,17 +52,17 @@ public struct RecordsView: View {
   // MARK: - Body
   
   public var body: some View {
-    switch recordPresentationState {
-    case .dashboard:
-      EmptyView()
-    case .displayAll, .picker:
-      RecordsGridListView(
-        recordsRepo: recordsRepo,
-        recordPresentationState: recordPresentationState,
-        didSelectPickerDataObjects: didSelectPickerDataObjects
-      )
-      .environment(\.managedObjectContext, viewContext)
-    }
+      switch recordPresentationState {
+      case .dashboard:
+        EmptyView()
+      case .displayAll, .picker:
+        RecordsGridListView(
+          recordsRepo: recordsRepo,
+          recordPresentationState: recordPresentationState,
+          didSelectPickerDataObjects: didSelectPickerDataObjects
+        )
+        .environment(\.managedObjectContext, viewContext)
+      }
   }
 }
 
