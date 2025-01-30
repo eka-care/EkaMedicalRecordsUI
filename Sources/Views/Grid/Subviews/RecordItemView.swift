@@ -43,6 +43,17 @@ struct RecordItemView: View {
           ThumbnailImageLoadingView()
         }
         
+        if itemData.isSmart {
+          /// Show smart tag
+          VStack {
+            HStack {
+              SmartReportView()
+            }
+            Spacer() /// Pushes to the top
+          }
+        }
+        
+        /// Show tick view only in picker state
         if recordPresentationState == .picker {
           /// Selection Tick View at Top-Right
           VStack {
@@ -121,6 +132,19 @@ extension RecordItemView {
           .stroke(Color.white, lineWidth: 2) // Customize the border color and width
           .frame(width: 18, height: 18)
       }
+    }
+  }
+  
+  private func SmartReportView() -> some View {
+    HStack {
+      Image(systemName: "star.fill")
+        .resizable()
+        .scaledToFit()
+        .frame(width: 16, height: 16)
+        .foregroundStyle(Color(.primary500))
+      
+      Text("Smart")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
     }
   }
 }

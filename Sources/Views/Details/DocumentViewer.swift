@@ -8,6 +8,11 @@
 import SwiftUI
 import PDFKit
 //import EkaMedicalRecordsCore
+ 
+/**
+ Used to display only the contents of the document.
+ Dont expose any API here or make decisions of smart report
+ */
 
 enum DocumentType: Hashable {
   case image(uiImage: UIImage)
