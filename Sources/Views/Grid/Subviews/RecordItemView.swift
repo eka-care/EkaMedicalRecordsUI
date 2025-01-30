@@ -21,6 +21,8 @@ struct RecordItemView: View {
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [RecordItemViewData]
   
+  // MARK: - Init
+  
   init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
@@ -75,9 +77,9 @@ struct RecordItemView: View {
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
-    .onTapGesture {
+    .simultaneousGesture(TapGesture().onEnded {
       onTapRecord()
-    }
+    })
   }
 }
 
