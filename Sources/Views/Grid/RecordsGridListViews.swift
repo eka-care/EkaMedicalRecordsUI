@@ -58,7 +58,11 @@ public struct RecordsGridListView: View {
             switch recordPresentationState {
             case .dashboard, .displayAll:
               /// Put navigation in this case
-              NavigationLink(destination: DocumentViewer()) {
+              NavigationLink(
+                destination: DocumentViewer(
+                  documents: FileHelper.createDocumentTypes(from: [])
+                )
+              ) {
                 ItemView(item: item)
               }
             case .picker:

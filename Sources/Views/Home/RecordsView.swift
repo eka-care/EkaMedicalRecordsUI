@@ -32,7 +32,6 @@ public struct RecordsView: View {
   // MARK: - Properties
   
   public let recordPresentationState: RecordPresentationState
-  let recordsRepo = RecordsRepo()
   @Environment(\.managedObjectContext) private var viewContext
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: PickerImagesCallback
@@ -58,7 +57,7 @@ public struct RecordsView: View {
         recordPresentationState: recordPresentationState,
         didSelectPickerDataObjects: didSelectPickerDataObjects
       )
-      .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+      .environment(\.managedObjectContext, viewContext)
     }
   }
 }

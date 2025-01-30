@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import EkaMedicalRecordsCore
 
 final class FileHelper {
   /// Used to get the URL of the document directory
@@ -43,5 +44,26 @@ final class FileHelper {
       print("Error: File does not exist at the specified path.")
       return nil
     }
+  }
+  
+  static func createDocumentTypes(from paths: [String]) -> [DocumentType] {
+    var documentTypes: [DocumentType] = []
+    
+    for path in paths {
+      let url = URL(fileURLWithPath: path)
+      
+      // Check if the file is a PDF or image based on its file extension
+      if path.lowercased().hasSuffix(FileType.pdf.fileExtension) {
+        if let pdfData = try? Data(contentsOf: url) {
+          documentTypes.append(.pdf(data: pdfData))
+        }
+      } else if path.lowercased().hasSuffix(".jpg") || path.lowercased().hasSuffix(".jpeg") || path.lowercased().hasSuffix(".png") {
+        if let image = UIImage(contentsOfFile: path) {
+          documentTypes.append(.image(uiImage: image))
+        }
+      }
+    }
+    
+    return documentTypes
   }
 }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 import PDFKit
-//import EkaMedicalRecordsCore
+import EkaMedicalRecordsCore
  
 /**
  Used to display only the contents of the document.
