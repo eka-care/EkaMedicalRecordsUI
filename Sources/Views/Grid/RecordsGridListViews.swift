@@ -22,7 +22,7 @@ public struct RecordsGridListView: View {
   @Environment(\.managedObjectContext) private var viewContext
   @FetchRequest(
     sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
-    predicate: PredicateHelper.equals("oid", value: CoreInitConfigurations.shared.oid),
+    predicate: PredicateHelper.equals("oid", value: CoreInitConfigurations.shared.filterID),
     animation: .easeIn
   ) var records: FetchedResults<Record>
   @State private var isUploadBottomSheetPresented = false // State to control sheet presentation
