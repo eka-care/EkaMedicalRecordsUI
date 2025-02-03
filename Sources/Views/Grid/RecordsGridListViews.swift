@@ -111,7 +111,7 @@ public struct RecordsGridListView: View {
         .presentationDragIndicator(.visible)
       }
       .onAppear {
-        recordsRepo.fetchRecordsFromServer {}
+        recordsRepo.getUpdatedAtAndStartFetchRecords()
       }
       /// On selection of images add a record to the storage
       .onChange(of: uploadedImages) { oldValue, newValue in
