@@ -86,6 +86,7 @@ public struct RecordsGridListView: View {
         ) {
           isUploadBottomSheetPresented = true
         }
+        .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
         .padding(.trailing, EkaSpacing.spacingM)
       }
       .background(Color(.neutrals50))

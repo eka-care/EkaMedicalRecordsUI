@@ -63,7 +63,6 @@ final class FileHelper {
         }
       }
     }
-    
     return documentTypes
   }
 }

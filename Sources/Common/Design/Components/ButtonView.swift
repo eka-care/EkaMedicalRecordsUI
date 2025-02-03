@@ -60,9 +60,9 @@ struct ButtonView: View {
       .frame(maxWidth: isFullWidth ? .infinity : nil) // Full width or compact
       .foregroundColor(foregroundColor)
       .background(backgroundColor)
-      .cornerRadius(8)
+      .cornerRadius(12)
       .overlay(
-        RoundedRectangle(cornerRadius: 8)
+        RoundedRectangle(cornerRadius: 12)
           .stroke(borderColor, lineWidth: borderWidth)
       )
       .buttonStyle(PlainButtonStyle())
