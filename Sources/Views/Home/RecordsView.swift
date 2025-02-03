@@ -1,5 +1,5 @@
 //
-//  SwiftUIView.swift
+//  RecordView.swift
 //  EkaMedicalRecordsUI
 //
 //  Created by Arya Vashisht on 28/01/25.

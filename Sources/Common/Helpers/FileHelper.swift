@@ -50,6 +50,7 @@ final class FileHelper {
     var documentTypes: [DocumentType] = []
     
     for path in paths {
+      let fullPath = FileHelper.getDocumentDirectoryURL().appendingPathComponent(path).path
       let url = URL(fileURLWithPath: path)
       
       // Check if the file is a PDF or image based on its file extension
@@ -58,7 +59,7 @@ final class FileHelper {
           documentTypes.append(.pdf(data: pdfData))
         }
       } else if path.lowercased().hasSuffix(".jpg") || path.lowercased().hasSuffix(".jpeg") || path.lowercased().hasSuffix(".png") {
-        if let image = UIImage(contentsOfFile: path) {
+        if let image = UIImage(contentsOfFile: fullPath) {
           documentTypes.append(.image(uiImage: image))
         }
       }

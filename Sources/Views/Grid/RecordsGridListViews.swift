@@ -60,8 +60,8 @@ public struct RecordsGridListView: View {
               case .dashboard, .displayAll:
                 /// Put navigation in this case
                 NavigationLink(
-                  destination: DocumentViewer(
-                    documents: FileHelper.createDocumentTypes(from: [])
+                  destination: RecordView(
+                    documents: FileHelper.createDocumentTypes(from: item.getLocalPathsOfFile())
                   )
                 ) {
                   ItemView(item: item)
