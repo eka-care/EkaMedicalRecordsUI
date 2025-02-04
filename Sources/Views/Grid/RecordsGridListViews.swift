@@ -52,7 +52,6 @@ public struct RecordsGridListView: View {
   // MARK: - View
   
   public var body: some View {
-//    NavigationStack {
       ZStack(alignment: .bottomTrailing) {
         /// Grid
         ScrollView {
@@ -119,24 +118,14 @@ public struct RecordsGridListView: View {
       }
     /// On selection of PDF add a record to the storage
       .onChange(of: selectedPDFData) { oldValue, newValue in
-        isUploading = true /// Show uploading loader
-        isUploadBottomSheetPresented = false /// Dismiss the sheet
         if let newValue {
-          let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: [newValue], contentType: .pdf)
-          recordsRepo.addSingleRecord(record: recordModel) {
-            isUploading = false
-          }
+          addRecord(data: [newValue])
         }
       }
     /// On selection of images add a record to the storage
       .onChange(of: uploadedImages) { oldValue, newValue in
-        isUploading = true /// Show uploading loader
-        isUploadBottomSheetPresented = false /// Dismiss the sheet
         let data = GalleryHelper.convertImagesToData(images: newValue)
-        let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
-        recordsRepo.addSingleRecord(record: recordModel) {
-          isUploading = false
-        }
+        addRecord(data: data)
       }
   }
 }
@@ -164,6 +153,17 @@ extension RecordsGridListView {
 // MARK: - Helper Functions
 
 extension RecordsGridListView {
+  
+  /// Used to add record in database and upload
+  private func addRecord(data: [Data]) {
+    isUploading = true /// Show uploading loader
+    isUploadBottomSheetPresented = false /// Dismiss the sheet
+    let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
+    recordsRepo.addSingleRecord(record: recordModel) {
+      isUploading = false
+    }
+  }
+  
   /// Used to delete a grid item
   private func deleteItem(record: Record) {
     recordsRepo.deleteRecord(record: record)
