@@ -39,7 +39,7 @@ struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        if let documentImage = itemData.documentImage {
+        if let documentImage = itemData.thumbnailImage {
           ThumbnailImageView(thumbnailImageUrl: documentImage)
         } else {
           ThumbnailImageLoadingView()

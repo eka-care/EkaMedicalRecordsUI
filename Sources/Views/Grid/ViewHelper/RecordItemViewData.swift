@@ -14,7 +14,7 @@ struct RecordItemViewData {
   let id: NSManagedObjectID
   var isSmart: Bool
   var uploadedDate: String?
-  let documentImage: URL?
+  let thumbnailImage: URL?
   var isSelected: Bool
   let documentID: String?
   
@@ -22,14 +22,14 @@ struct RecordItemViewData {
     id: NSManagedObjectID,
     isSmart: Bool,
     uploadedDate: String? = nil,
-    documentImage: URL? = nil,
+    thumbnailImage: URL? = nil,
     isSelected: Bool = false,
     documentID: String?
   ) {
     self.id = id
     self.isSmart = isSmart
     self.uploadedDate = uploadedDate
-    self.documentImage = documentImage
+    self.thumbnailImage = thumbnailImage
     self.isSelected = isSelected
     self.documentID = documentID
   }
@@ -41,7 +41,7 @@ extension RecordItemViewData {
       id: NSManagedObjectID(),
       isSmart: true,
       uploadedDate: "24 July 2024 ",
-      documentImage: URL(string: ""),
+      thumbnailImage: URL(string: ""),
       documentID: ""
     )
   }
@@ -51,7 +51,7 @@ extension RecordItemViewData {
       id: model.objectID,
       isSmart: model.isSmart,
       uploadedDate: model.uploadDate?.formatted(as: "MMM d, yyyy"),
-      documentImage: FileHelper.getDocumentDirectoryURL().appendingPathComponent(model.thumbnail ?? ""),
+      thumbnailImage: FileHelper.getDocumentDirectoryURL().appendingPathComponent(model.thumbnail ?? ""),
       documentID: model.documentID
     )
   }

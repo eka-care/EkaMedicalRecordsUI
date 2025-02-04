@@ -33,14 +33,14 @@ public struct RecordsGridListView: View {
   /// Images that are selected in records picker state
   @State private var pickerSelectedRecords: [RecordItemViewData] = []
   /// Used for callback when picker does select images
-  var didSelectPickerDataObjects: PickerImagesCallback
+  var didSelectPickerDataObjects: RecordItemsCallback
   
   // MARK: - Init
   
   public init(
     recordsRepo: RecordsRepo = RecordsRepo(),
     recordPresentationState: RecordPresentationState,
-    didSelectPickerDataObjects: PickerImagesCallback = nil
+    didSelectPickerDataObjects: RecordItemsCallback = nil
   ) {
     self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
@@ -114,13 +114,19 @@ public struct RecordsGridListView: View {
       .onAppear {
         recordsRepo.getUpdatedAtAndStartFetchRecords()
       }
-      /// On selection of images add a record to the storage
+    /// On selection of PDF add a record to the storage
+      .onChange(of: selectedPDFData) { oldValue, newValue in
+        if let newValue {
+          let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: [newValue], contentType: .pdf)
+          recordsRepo.addSingleRecord(record: recordModel)
+        }
+      }
+    /// On selection of images add a record to the storage
       .onChange(of: uploadedImages) { oldValue, newValue in
         let data = GalleryHelper.convertImagesToData(images: newValue)
         let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
         recordsRepo.addSingleRecord(record: recordModel)
       }
-//    }
   }
 }
 
@@ -166,7 +172,7 @@ extension RecordsGridListView {
     selectedRecords.forEach { record in
       pickerObjects.append(
         RecordPickerDataModel(
-          image: record.documentImage,
+          image: record.thumbnailImage,
           documentID: record.documentID
         )
       )
