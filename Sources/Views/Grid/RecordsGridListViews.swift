@@ -119,13 +119,19 @@ public struct RecordsGridListView: View {
     /// On selection of PDF add a record to the storage
       .onChange(of: selectedPDFData) { oldValue, newValue in
         if let newValue {
-          addRecord(data: [newValue])
+          addRecord(
+            data: [newValue],
+            contentType: .pdf
+          )
         }
       }
     /// On selection of images add a record to the storage
       .onChange(of: uploadedImages) { oldValue, newValue in
         let data = GalleryHelper.convertImagesToData(images: newValue)
-        addRecord(data: data)
+        addRecord(
+          data: data,
+          contentType: .image
+        )
       }
   }
 }
@@ -155,10 +161,13 @@ extension RecordsGridListView {
 extension RecordsGridListView {
   
   /// Used to add record in database and upload
-  private func addRecord(data: [Data]) {
+  private func addRecord(
+    data: [Data],
+    contentType: FileType
+  ) {
     isUploading = true /// Show uploading loader
     isUploadBottomSheetPresented = false /// Dismiss the sheet
-    let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
+    let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
     recordsRepo.addSingleRecord(record: recordModel) {
       isUploading = false
     }
