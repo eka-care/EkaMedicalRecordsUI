@@ -50,7 +50,7 @@ public struct RecordsGridListView: View {
   // MARK: - View
   
   public var body: some View {
-    NavigationStack {
+//    NavigationStack {
       ZStack(alignment: .bottomTrailing) {
         /// Grid
         ScrollView {
@@ -120,7 +120,7 @@ public struct RecordsGridListView: View {
         let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
         recordsRepo.addSingleRecord(record: recordModel)
       }
-    }
+//    }
   }
 }
 
