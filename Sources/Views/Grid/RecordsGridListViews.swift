@@ -30,8 +30,10 @@ public struct RecordsGridListView: View {
   @State private var uploadedImages: [UIImage] = []
   /// PDF data that is selected for upload
   @State private var selectedPDFData: Data?
-  /// Images that are selected in records picker state
-  @State private var pickerSelectedRecords: [RecordItemViewData] = []
+  /// Records that are selected in records picker state
+  @State private var pickerSelectedRecords: [Record] = []
+  /// Used to display uploading loader in view
+  @State private var isUploading: Bool = false
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -100,6 +102,7 @@ public struct RecordsGridListView: View {
           }
         }
       }
+      .uploadingOverlay(isUploading: $isUploading)
       .sheet(isPresented: $isUploadBottomSheetPresented) {
         RecordUploadSheetView(
           images: $uploadedImages,
@@ -116,16 +119,24 @@ public struct RecordsGridListView: View {
       }
     /// On selection of PDF add a record to the storage
       .onChange(of: selectedPDFData) { oldValue, newValue in
+        isUploading = true /// Show uploading loader
+        isUploadBottomSheetPresented = false /// Dismiss the sheet
         if let newValue {
           let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: [newValue], contentType: .pdf)
-          recordsRepo.addSingleRecord(record: recordModel)
+          recordsRepo.addSingleRecord(record: recordModel) {
+            isUploading = false
+          }
         }
       }
     /// On selection of images add a record to the storage
       .onChange(of: uploadedImages) { oldValue, newValue in
+        isUploading = true /// Show uploading loader
+        isUploadBottomSheetPresented = false /// Dismiss the sheet
         let data = GalleryHelper.convertImagesToData(images: newValue)
         let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: .image)
-        recordsRepo.addSingleRecord(record: recordModel)
+        recordsRepo.addSingleRecord(record: recordModel) {
+          isUploading = false
+        }
       }
   }
 }
@@ -160,19 +171,19 @@ extension RecordsGridListView {
   
   /// On press of done button in picker state
   private func onDoneButtonPressed() {
-    let pickerDataObjects = setPickerSelectedObjects(selectedRecords: pickerSelectedRecords)
-    didSelectPickerDataObjects?(pickerDataObjects)
+    let pickedRecords = setPickerSelectedObjects(selectedRecords: pickerSelectedRecords)
+    didSelectPickerDataObjects?(pickedRecords)
   }
   
   /// Get picker selected images from records
   private func setPickerSelectedObjects(
-    selectedRecords: [RecordItemViewData]
+    selectedRecords: [Record]
   ) -> [RecordPickerDataModel] {
     var pickerObjects: [RecordPickerDataModel] = []
     selectedRecords.forEach { record in
       pickerObjects.append(
         RecordPickerDataModel(
-          image: record.thumbnailImage,
+          image: record.thumbnail,
           documentID: record.documentID
         )
       )

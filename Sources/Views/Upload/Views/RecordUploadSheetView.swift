@@ -84,14 +84,8 @@ struct RecordUploadSheetView: View {
           title: "Upload (\(currentlySelectedImageNumber))",
           size: .medium
         ) {
-//          delegate?.onTapAttachGalleryItems(imagesData: galleryPhotos)
+          setImagesOnUploadButtonTap()
         }
-        //        ButtonView(
-        //          buttonSize: .medium,
-        //          buttonText: "Upload (\(currentlySelectedImageNumber))"
-        //        ) {
-        //          delegate?.onTapAttachGalleryItems(imagesData: galleryPhotos)
-        //        }
         .padding(.horizontal, EkaSpacing.spacingM)
         .padding(.bottom, EkaSpacing.spacingL)
         .transition(.move(edge: .bottom))
@@ -218,15 +212,15 @@ extension RecordUploadSheetView {
     }
   }
   
-  private func onTapRecordOption(option: RecordUploadItemType) {
-    //    switch option {
-    //    case .camera:
-    //      <#code#>
-    //    case .gallery:
-    //      <#code#>
-    //    case .pdf:
-    //      <#code#>
-    //    }
+  /// Used to set images on tap of upload button
+  private func setImagesOnUploadButtonTap() {
+    let selectedImages: [UIImage] = galleryPhotos.compactMap { data in
+      guard data.selectedImageNumber != nil else {
+        return nil
+      }
+      return data.image
+    }
+    images = selectedImages
   }
 }
 

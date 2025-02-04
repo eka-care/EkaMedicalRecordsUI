@@ -19,14 +19,14 @@ struct RecordItemView: View {
   let itemWidth: CGFloat = 160
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
-  @Binding var pickerSelectedRecords: [RecordItemViewData]
+  @Binding var pickerSelectedRecords: [Record]
   
   // MARK: - Init
   
   init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
-    pickerSelectedRecords: Binding<[RecordItemViewData]>
+    pickerSelectedRecords: Binding<[Record]>
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -39,14 +39,14 @@ struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        if let documentImage = itemData.thumbnailImage {
-          ThumbnailImageView(thumbnailImageUrl: documentImage)
+        if let documentImage = itemData.record?.thumbnail {
+          ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(documentImage))
         } else {
           ThumbnailImageLoadingView()
         }
         
         /// Show smart tag
-        if itemData.isSmart {
+        if let record = itemData.record, record.isSmart {
           VStack {
             HStack {
               SmartReportView()
@@ -88,7 +88,8 @@ struct RecordItemView: View {
 extension RecordItemView {
   private func BottomMetaDataView() -> some View {
     HStack {
-      if let uploadedDate = itemData.uploadedDate {
+      if let record = itemData.record,
+         let uploadedDate = record.uploadDate {
         Text("Uploaded \(uploadedDate)")
           .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
       }
@@ -165,19 +166,18 @@ extension RecordItemView {
   
   
   /// On tap of document we open document viewer
-  private func onTapDocument() {
-    
-  }
+  private func onTapDocument() {}
   
   /// Update item data on picker selection
   private func updateItemDataOnPickerSelection() {
+    guard let record = itemData.record else { return }
     itemData.isSelected.toggle()
     /// If item is selected add it in picker selected records
     if itemData.isSelected {
-      pickerSelectedRecords.append(itemData)
+        pickerSelectedRecords.append(record)
     } else {
       /// If item is unselected remove it from picker selected records
-      if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.id == itemData.id}) {
+      if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.objectID == record.objectID}) {
         pickerSelectedRecords.remove(at: itemIndex)
       }
     }

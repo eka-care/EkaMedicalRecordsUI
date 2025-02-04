@@ -9,6 +9,6 @@ import UIKit
 
 /// Model for record picker data
 public struct RecordPickerDataModel {
-  public let image: URL?
+  public let image: String?
   public let documentID: String?
 }

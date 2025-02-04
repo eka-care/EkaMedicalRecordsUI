@@ -11,48 +11,26 @@ import EkaMedicalRecordsCore
 import CoreData
 
 struct RecordItemViewData {
-  let id: NSManagedObjectID
-  var isSmart: Bool
-  var uploadedDate: String?
-  let thumbnailImage: URL?
+  let record: Record?
   var isSelected: Bool
-  let documentID: String?
   
   init(
-    id: NSManagedObjectID,
-    isSmart: Bool,
-    uploadedDate: String? = nil,
-    thumbnailImage: URL? = nil,
-    isSelected: Bool = false,
-    documentID: String?
+    record: Record?,
+    isSelected: Bool = false
   ) {
-    self.id = id
-    self.isSmart = isSmart
-    self.uploadedDate = uploadedDate
-    self.thumbnailImage = thumbnailImage
+    self.record = record
     self.isSelected = isSelected
-    self.documentID = documentID
   }
 }
 
 extension RecordItemViewData {
   static func formRecordItemPreviewData() -> RecordItemViewData {
     RecordItemViewData(
-      id: NSManagedObjectID(),
-      isSmart: true,
-      uploadedDate: "24 July 2024 ",
-      thumbnailImage: URL(string: ""),
-      documentID: ""
+      record: nil
     )
   }
   
   static func formRecordItemViewData(from model: Record) -> RecordItemViewData {
-    RecordItemViewData(
-      id: model.objectID,
-      isSmart: model.isSmart,
-      uploadedDate: model.uploadDate?.formatted(as: "MMM d, yyyy"),
-      thumbnailImage: FileHelper.getDocumentDirectoryURL().appendingPathComponent(model.thumbnail ?? ""),
-      documentID: model.documentID
-    )
+    RecordItemViewData(record: model)
   }
 }
