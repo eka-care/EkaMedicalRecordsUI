@@ -91,6 +91,9 @@ public struct RecordsGridListView: View {
         .padding(.trailing, EkaSpacing.spacingM)
       }
       .background(Color(.neutrals50))
+      .refreshable {
+        refreshRecords()
+      }
       .navigationTitle(recordPresentationState.title) // Add a navigation title
       .toolbar { /// Toolbar item
         ToolbarItem(placement: .topBarTrailing) {
@@ -114,7 +117,7 @@ public struct RecordsGridListView: View {
         .presentationDragIndicator(.visible)
       }
       .onAppear {
-        recordsRepo.getUpdatedAtAndStartFetchRecords()
+        refreshRecords()
       }
     /// On selection of PDF add a record to the storage
       .onChange(of: selectedPDFData) { oldValue, newValue in
@@ -171,6 +174,11 @@ extension RecordsGridListView {
     recordsRepo.addSingleRecord(record: recordModel) {
       isUploading = false
     }
+  }
+  
+  /// Used to refresh records
+  private func refreshRecords() {
+    recordsRepo.getUpdatedAtAndStartFetchRecords()
   }
   
   /// Used to delete a grid item
