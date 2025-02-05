@@ -25,7 +25,8 @@ public struct RecordsGridListView: View {
     predicate: PredicateHelper.equals("oid", value: CoreInitConfigurations.shared.filterID),
     animation: .easeIn
   ) var records: FetchedResults<Record>
-  @State private var isUploadBottomSheetPresented = false // State to control sheet presentation
+  /// Upload bottom sheet bool
+  @State private var isUploadBottomSheetPresented = false
   /// Images that are selected for upload
   @State private var uploadedImages: [UIImage] = []
   /// PDF data that is selected for upload
@@ -34,6 +35,8 @@ public struct RecordsGridListView: View {
   @State private var pickerSelectedRecords: [Record] = []
   /// Used to display uploading loader in view
   @State private var isUploading: Bool = false
+  /// Edit bottom sheet bool
+  @State private var isEditBottomSheetPresented: Bool = false
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -116,6 +119,12 @@ public struct RecordsGridListView: View {
         .presentationBackground(Color(.neutrals100)) // Set background
         .presentationDragIndicator(.visible)
       }
+      .sheet(isPresented: $isEditBottomSheetPresented) {
+        NavigationStack {
+          EditBottomSheetView()
+            .presentationDragIndicator(.visible)
+        }
+      }
       .onAppear {
         refreshRecords()
       }
@@ -172,6 +181,7 @@ extension RecordsGridListView {
     isUploadBottomSheetPresented = false /// Dismiss the sheet
     let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
     recordsRepo.addSingleRecord(record: recordModel) {
+      isEditBottomSheetPresented = true /// Show edit bottom sheet
       isUploading = false
     }
   }

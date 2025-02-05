@@ -15,7 +15,7 @@ struct RecordView: View {
   private let record: Record
   private let recordsRepo = RecordsRepo()
   @State private var selectedTab: Tab = .smartReport
-  @State private var documents: [DocumentType] = []
+  @State private var documents: [DocumentMimeType] = []
   @State private var smartReportInfo: SmartReportInfo?
   @State private var isLoading: Bool = false
   

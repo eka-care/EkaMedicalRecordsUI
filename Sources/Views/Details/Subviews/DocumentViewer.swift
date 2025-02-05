@@ -14,7 +14,7 @@ import EkaMedicalRecordsCore
  Dont expose any API here or make decisions of smart report
  */
 
-enum DocumentType: Hashable {
+enum DocumentMimeType: Hashable {
   case image(uiImage: UIImage)
   case pdf(data: Data)
 }
@@ -23,11 +23,11 @@ struct DocumentViewer: View {
   
   // MARK: - Properties
   
-  @Binding var documents: [DocumentType]
+  @Binding var documents: [DocumentMimeType]
 
   // MARK: - Init
   
-  init(documents: Binding<[DocumentType]>) {
+  init(documents: Binding<[DocumentMimeType]>) {
     _documents = documents // Assigning initial value to @State
     setupPageIndicatorColor()
   }

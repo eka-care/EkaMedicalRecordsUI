@@ -47,8 +47,8 @@ final class FileHelper {
   }
   
   // TODO: - Improve this method to not do extension check
-  static func createDocumentTypes(from paths: [String]) -> [DocumentType] {
-    var documentTypes: [DocumentType] = []
+  static func createDocumentTypes(from paths: [String]) -> [DocumentMimeType] {
+    var documentTypes: [DocumentMimeType] = []
     
     for path in paths {
       let fullPath = FileHelper.getDocumentDirectoryURL().appendingPathComponent(path).path
