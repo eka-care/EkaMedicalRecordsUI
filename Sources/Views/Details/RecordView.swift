@@ -6,12 +6,18 @@
 //
 
 import SwiftUI
+import EkaMedicalRecordsCore
 
 struct RecordView: View {
+  
   // MARK: - Properties
   
-  var documents: [DocumentType]
+  private let record: Record
+  private let recordsRepo = RecordsRepo()
   @State private var selectedTab: Tab = .smartReport
+  @State private var documents: [DocumentType] = []
+  @State private var smartReportInfo: SmartReportInfo?
+  @State private var isLoading: Bool = false
   
   enum Tab: Int {
     case smartReport = 0
@@ -29,37 +35,56 @@ struct RecordView: View {
   
   // MARK: - Init
   
-  init(documents: [DocumentType]) {
-    self.documents = documents
+  init(
+    record: Record
+  ) {
+    self.record = record
   }
   
   // MARK: - Body
   
   var body: some View {
     VStack {
-      // Segmented Picker
-      Picker("Select View", selection: $selectedTab) {
-        Text(Tab.smartReport.title).tag(Tab.smartReport)
-        Text(Tab.documents.title).tag(Tab.documents)
-      }
-      .pickerStyle(SegmentedPickerStyle())
-      .padding()
-      
-      // Conditional View Switching
-      Group {
-        switch selectedTab {
-        case .smartReport:
-          SmartReportView()
-        case .documents:
-          DocumentViewer(documents: documents)
+      if smartReportInfo != nil {
+        // Segmented Picker
+        Picker("Select View", selection: $selectedTab) {
+          Text(Tab.smartReport.title).tag(Tab.smartReport)
+          Text(Tab.documents.title).tag(Tab.documents)
         }
+        .pickerStyle(SegmentedPickerStyle())
+        .padding()
+        
+        // Conditional View Switching
+        Group {
+          switch selectedTab {
+          case .smartReport:
+            SmartReportView()
+          case .documents:
+            DocumentViewer(documents: $documents)
+          }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity) // Smooth transition effect
+      } else {
+        DocumentViewer(documents: $documents)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .transition(.opacity) // Smooth transition effect
+    }
+    .opacity(isLoading ? 0 : 1)
+    .matteProgressOverlay(isLoading: $isLoading)
+    .onAppear {
+      isLoading = true
+      /// Fetch record meta data
+      recordsRepo.fetchRecordMetaData(for: record) { documentURIs, reportInfo in
+        documents = FileHelper.createDocumentTypes(from: documentURIs)
+        smartReportInfo = reportInfo
+        isLoading = false
+      }
     }
   }
 }
 
-#Preview {
-  RecordView(documents: [])
-}
+// TODO: - Preview to be handled as database model cannot be init
+//#Preview {
+//  RecordView(record: )
+//}

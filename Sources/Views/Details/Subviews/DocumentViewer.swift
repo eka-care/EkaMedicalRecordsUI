@@ -23,12 +23,12 @@ struct DocumentViewer: View {
   
   // MARK: - Properties
   
-  @State var documents: [DocumentType] = []
+  @Binding var documents: [DocumentType]
 
   // MARK: - Init
   
-  init(documents: [DocumentType]) {
-    _documents = State(initialValue: documents) // Assigning initial value to @State
+  init(documents: Binding<[DocumentType]>) {
+    _documents = documents // Assigning initial value to @State
     setupPageIndicatorColor()
   }
   
@@ -47,7 +47,7 @@ struct DocumentViewer: View {
           
         case .pdf(let data):
           PDFDocumentView(pdfData: data)
-            .frame(height: 400) // Adjust height for PDF rendering
+            .frame(maxHeight: .infinity) // Adjust height for PDF rendering
             .padding()
             .tag(document)
         }

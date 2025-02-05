@@ -62,7 +62,7 @@ public struct RecordsGridListView: View {
                 /// Put navigation in this case
                 NavigationLink(
                   destination: RecordView(
-                    documents: FileHelper.createDocumentTypes(from: item.getLocalPathsOfFile())
+                    record: item
                   )
                 ) {
                   ItemView(item: item)

@@ -46,12 +46,13 @@ final class FileHelper {
     }
   }
   
+  // TODO: - Improve this method to not do extension check
   static func createDocumentTypes(from paths: [String]) -> [DocumentType] {
     var documentTypes: [DocumentType] = []
     
     for path in paths {
       let fullPath = FileHelper.getDocumentDirectoryURL().appendingPathComponent(path).path
-      let url = URL(fileURLWithPath: path)
+      let url = URL(fileURLWithPath: fullPath)
       
       // Check if the file is a PDF or image based on its file extension
       if path.lowercased().hasSuffix(FileType.pdf.fileExtension) {
