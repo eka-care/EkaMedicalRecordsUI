@@ -10,12 +10,19 @@ enum DocumentFilterType: String, CaseIterable, Identifiable {
 }
 
 struct EditBottomSheetView: View {
-  
+
   // MARK: - Properties
   
   @State private var selectedDocumentType: DocumentFilterType?
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
+  @Binding var isEditBottomSheetPresented: Bool
+  
+  // MARK: - Init
+  
+  init(isEditBottomSheetPresented: Binding<Bool>) {
+    _isEditBottomSheetPresented = isEditBottomSheetPresented
+  }
   
   // MARK: - Body
   
@@ -95,5 +102,5 @@ extension EditBottomSheetView {
 }
 
 #Preview {
-  EditBottomSheetView()
+  EditBottomSheetView(isEditBottomSheetPresented: .constant(true))
 }
