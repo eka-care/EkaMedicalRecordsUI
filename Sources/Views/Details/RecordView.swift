@@ -58,7 +58,7 @@ struct RecordView: View {
         Group {
           switch selectedTab {
           case .smartReport:
-            SmartReportView()
+            SmartReportView(smartReportInfo: $smartReportInfo)
           case .documents:
             DocumentViewer(documents: $documents)
           }
