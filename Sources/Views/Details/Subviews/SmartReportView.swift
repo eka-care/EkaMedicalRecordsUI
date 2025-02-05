@@ -25,7 +25,7 @@ struct SmartReportView: View {
   // MARK: - Body
   
   var body: some View {
-    ScrollView(showsIndicators: false) {
+    ScrollView {
       VStack {
         if let verified = smartReportInfo?.verified, verified.isEmpty {
           HStack {
@@ -33,7 +33,6 @@ struct SmartReportView: View {
             SmartReportVitalListEmptyView()
             Spacer() /// For aligning towards center horizontally
           }
-          .padding(.top, 100)
         } else {
           if let verified = smartReportInfo?.verified {
             SmartReportVitalListView(vitalsData: verified)
@@ -41,6 +40,7 @@ struct SmartReportView: View {
           }
         }
       }
+      .frame(maxHeight: .infinity)
     }
   }
 }
