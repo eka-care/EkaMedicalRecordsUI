@@ -56,6 +56,7 @@ struct RecordItemView: View {
           VStack {
             HStack {
               SmartReportView()
+              Spacer()
             }
             Spacer()
           }
@@ -150,16 +151,20 @@ extension RecordItemView {
   }
   
   private func SmartReportView() -> some View {
-    HStack {
-      Image(systemName: "star.fill")
+    HStack(spacing: EkaSpacing.spacingXxs) {
+      Image(systemName: "sparkle")
         .resizable()
         .scaledToFit()
-        .frame(width: 16, height: 16)
+        .frame(width: 12, height: 12)
         .foregroundStyle(Color(.primary500))
       
       Text("Smart")
         .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
     }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadiusModifier(6, corners: [.bottomRight])
   }
   
   private func MenuView() -> some View {
