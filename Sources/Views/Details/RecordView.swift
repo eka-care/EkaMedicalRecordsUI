@@ -64,21 +64,22 @@ struct RecordView: View {
           }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .transition(.opacity) // Smooth transition effect
+        .animation(.default, value: selectedTab)
       } else {
         DocumentViewer(documents: $documents)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
     }
-    .opacity(isLoading ? 0 : 1)
     .matteProgressOverlay(isLoading: $isLoading)
     .onAppear {
       isLoading = true
       /// Fetch record meta data
       recordsRepo.fetchRecordMetaData(for: record) { documentURIs, reportInfo in
-        documents = FileHelper.createDocumentTypes(from: documentURIs)
-        smartReportInfo = reportInfo
-        isLoading = false
+        DispatchQueue.main.async {
+          documents = FileHelper.createDocumentTypes(from: documentURIs)
+          smartReportInfo = reportInfo
+          isLoading = false
+        }
       }
     }
   }
