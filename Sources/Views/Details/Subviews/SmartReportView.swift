@@ -12,33 +12,35 @@ struct SmartReportView: View {
   
   // MARK: - Properties
   
-  @State var smartReportInfo: SmartReportInfo?
+  @Binding var smartReportInfo: SmartReportInfo?
   
   // MARK: - Init
   
   init(
-    smartReportInfo: SmartReportInfo? = nil
+    smartReportInfo: Binding<SmartReportInfo?>
   ) {
-    _smartReportInfo = State(initialValue: smartReportInfo)
+    _smartReportInfo = smartReportInfo
   }
   
   // MARK: - Body
   
   var body: some View {
-    VStack {
-      if let verified = smartReportInfo?.verified, verified.isEmpty {
-        HStack {
-          Spacer() /// For aligning towards center horizontally
-          SmartReportVitalListEmptyView()
-          Spacer() /// For aligning towards center horizontally
-        }
-        .padding(.top, 100)
-      } else {
-        if let verified = smartReportInfo?.verified {
-          SmartReportVitalListView(vitalsData: verified)
-            .padding(.top, EkaSpacing.spacingM)
+    ScrollView {
+      VStack {
+        if let verified = smartReportInfo?.verified, verified.isEmpty {
+          HStack {
+            Spacer() /// For aligning towards center horizontally
+            SmartReportVitalListEmptyView()
+            Spacer() /// For aligning towards center horizontally
+          }
+        } else {
+          if let verified = smartReportInfo?.verified {
+            SmartReportVitalListView(vitalsData: verified)
+              .padding(.top, EkaSpacing.spacingM)
+          }
         }
       }
+      .frame(maxHeight: .infinity)
     }
   }
 }
@@ -66,5 +68,5 @@ extension SmartReportView {
 }
 
 #Preview {
-  SmartReportView()
+  SmartReportView(smartReportInfo: .constant(nil))
 }
