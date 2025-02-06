@@ -18,9 +18,9 @@ public enum RecordPresentationState {
     case .dashboard:
       return ""
     case .displayAll:
-      return "All"
+      return InitConfiguration.shared.recordsTitle ?? "All"
     case .picker:
-      return "Select"
+      return InitConfiguration.shared.recordsTitle ?? "Select"
     }
   }
 }
