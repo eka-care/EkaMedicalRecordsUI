@@ -210,7 +210,7 @@ extension RecordsGridListView {
   
   /// Used to refresh records
   private func refreshRecords() {
-    recordsRepo.getUpdatedAtAndStartFetchRecords()
+    recordsRepo.getUpdatedAtAndStartFetchRecords {}
   }
   
   /// Used to delete a grid item
