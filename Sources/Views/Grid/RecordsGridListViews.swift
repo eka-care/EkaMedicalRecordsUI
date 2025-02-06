@@ -79,6 +79,7 @@ public struct RecordsGridListView: View {
             }
           }
           .padding()
+          .padding(.bottom, 140)
         }
         
         /// Button
@@ -160,8 +161,11 @@ extension RecordsGridListView {
     RecordItemView(
       itemData: RecordItemViewData.formRecordItemViewData(from: item),
       recordPresentationState: recordPresentationState,
-      pickerSelectedRecords: $pickerSelectedRecords
+      pickerSelectedRecords: $pickerSelectedRecords,
+      onTapEdit: editItem(record:),
+      onTapDelete: deleteItem(record:)
     )
+    // TODO: - Put these in common modifers
     .contextMenu {
       Button {
         editItem(record: item)

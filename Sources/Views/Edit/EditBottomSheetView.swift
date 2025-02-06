@@ -12,13 +12,7 @@ struct EditBottomSheetView: View {
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
   @Binding var isEditBottomSheetPresented: Bool
-  @Binding var record: Record? {
-    /// On selection of record set the data
-    didSet {
-      setupSelectedDocumentType()
-      setupDocumentDate()
-    }
-  }
+  @Binding var record: Record?
   private let recordsRepo = RecordsRepo()
   
   // MARK: - Init
@@ -29,7 +23,6 @@ struct EditBottomSheetView: View {
   ) {
     _isEditBottomSheetPresented = isEditBottomSheetPresented
     _record = record
-    print("record document type \(record.wrappedValue?.documentType)")
   }
   
   // MARK: - Body
@@ -45,6 +38,12 @@ struct EditBottomSheetView: View {
     .background(.white)
     .navigationTitle("Edit Document Details")
     .navigationBarTitleDisplayMode(.inline)
+    .onAppear {
+      updateData()
+    }
+    .onChange(of: record) { _, _ in
+      updateData()
+    }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button("Save") {
@@ -106,6 +105,13 @@ extension EditBottomSheetView {
 // MARK: - Functions
 
 extension EditBottomSheetView {
+  
+  /// Used to update data in the sheet
+  private func updateData() {
+    setupSelectedDocumentType()
+    setupDocumentDate()
+  }
+  
   /// Save document details
   private func saveDocumentDetails() {
     guard let record else {

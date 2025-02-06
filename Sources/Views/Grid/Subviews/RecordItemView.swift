@@ -14,23 +14,29 @@ struct RecordItemView: View {
   // MARK: - Properties
   
   enum RecordsDocumentThumbnailSize {
-    static let height: CGFloat = 104
+    static let height: CGFloat = 110
   }
   let itemWidth: CGFloat = 160
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
+  var onTapEdit: (Record) -> Void
+  var onTapDelete: (Record) -> Void
   
   // MARK: - Init
   
   init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
-    pickerSelectedRecords: Binding<[Record]>
+    pickerSelectedRecords: Binding<[Record]>,
+    onTapEdit: @escaping (Record) -> Void,
+    onTapDelete: @escaping (Record) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
     self._pickerSelectedRecords = pickerSelectedRecords
+    self.onTapEdit = onTapEdit
+    self.onTapDelete = onTapDelete
   }
   
   // MARK: - Body
@@ -90,13 +96,16 @@ extension RecordItemView {
     HStack {
       if let record = itemData.record,
          let uploadedDate = record.uploadDate {
-        Text("Uploaded \(uploadedDate.formatted(as: "dd MMM ‘yy"))")
+        Text("Added \(uploadedDate.formatted(as: "dd MMM ‘yy"))")
           .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
       }
       
+      Spacer()
       
+      MenuView()
     }
-    .frame(width: itemWidth, height: 30)
+    .padding(.horizontal, EkaSpacing.spacingXs)
+    .frame(width: itemWidth, height: 35)
   }
   
   /// Thumbnail
@@ -152,6 +161,30 @@ extension RecordItemView {
         .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
     }
   }
+  
+  private func MenuView() -> some View {
+    // Menu that opens on tap (instead of long press)
+    Menu {
+      Button {
+        if let record = itemData.record {
+          onTapEdit(record)
+        }
+      } label: {
+        Text("Edit")
+      }
+      Button(role: .destructive) {
+        if let record = itemData.record {
+          onTapDelete(record)
+        }
+      } label: {
+        Text("Delete")
+      }
+    } label: {
+      Image(systemName: "ellipsis")
+        .foregroundColor(.gray)
+        .padding(.vertical, EkaSpacing.spacingS)
+    }
+  }
 }
 
 extension RecordItemView {
@@ -190,6 +223,8 @@ extension RecordItemView {
   RecordItemView(
     itemData: RecordItemViewData.formRecordItemPreviewData(),
     recordPresentationState: .displayAll,
-    pickerSelectedRecords: .constant([])
+    pickerSelectedRecords: .constant([]),
+    onTapEdit: {_ in},
+    onTapDelete: {_ in}
   )
 }
