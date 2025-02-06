@@ -90,9 +90,11 @@ extension RecordItemView {
     HStack {
       if let record = itemData.record,
          let uploadedDate = record.uploadDate {
-        Text("Uploaded \(uploadedDate)")
+        Text("Uploaded \(uploadedDate.formatted(as: "dd MMM ‘yy"))")
           .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
       }
+      
+      
     }
     .frame(width: itemWidth, height: 30)
   }
