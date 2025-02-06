@@ -58,28 +58,36 @@ public struct RecordsGridListView: View {
   
   public var body: some View {
       ZStack(alignment: .bottomTrailing) {
-        /// Grid
-        ScrollView {
-          LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
-            ForEach(records, id: \.id) { item in
-              switch recordPresentationState {
-              case .dashboard, .displayAll:
-                /// Put navigation in this case
-                NavigationLink(
-                  destination: RecordView(
-                    record: item
-                  )
-                ) {
+        if records.isEmpty {
+          ContentUnavailableView(
+            "No documents found",
+            systemImage: "doc",
+            description: Text("Upload documents to see them here")
+          )
+        } else {
+          /// Grid
+          ScrollView {
+            LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
+              ForEach(records, id: \.id) { item in
+                switch recordPresentationState {
+                case .dashboard, .displayAll:
+                  /// Put navigation in this case
+                  NavigationLink(
+                    destination: RecordView(
+                      record: item
+                    )
+                  ) {
+                    ItemView(item: item)
+                  }
+                case .picker:
+                  /// Put picker tap in this case
                   ItemView(item: item)
                 }
-              case .picker:
-                /// Put picker tap in this case
-                ItemView(item: item)
               }
             }
+            .padding()
+            .padding(.bottom, 140)
           }
-          .padding()
-          .padding(.bottom, 140)
         }
         
         /// Button
