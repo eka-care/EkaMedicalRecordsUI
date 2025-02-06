@@ -12,17 +12,24 @@ struct EditBottomSheetView: View {
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
   @Binding var isEditBottomSheetPresented: Bool
-  private let record: Record?
+  @Binding var record: Record? {
+    /// On selection of record set the data
+    didSet {
+      setupSelectedDocumentType()
+      setupDocumentDate()
+    }
+  }
   private let recordsRepo = RecordsRepo()
   
   // MARK: - Init
   
   init(
     isEditBottomSheetPresented: Binding<Bool>,
-    record: Record?
+    record: Binding<Record?>
   ) {
     _isEditBottomSheetPresented = isEditBottomSheetPresented
-    self.record = record
+    _record = record
+    print("record document type \(record.wrappedValue?.documentType)")
   }
   
   // MARK: - Body
@@ -99,6 +106,7 @@ extension EditBottomSheetView {
 // MARK: - Functions
 
 extension EditBottomSheetView {
+  /// Save document details
   private func saveDocumentDetails() {
     guard let record else {
       debugPrint("Record being uploaded not found for edit")
@@ -113,6 +121,19 @@ extension EditBottomSheetView {
     )
     /// Close edit bottom sheet
     isEditBottomSheetPresented = false
+  }
+  
+  /// Setup document type of document if available
+  private func setupSelectedDocumentType() {
+    guard let documentType = record?.documentType,
+    let documentTypeFilter = DocumentFilterType(rawValue: Int(documentType)) else { return }
+    selectedDocumentType = documentTypeFilter
+  }
+  
+  /// Setup document date of document if available
+  private func setupDocumentDate() {
+    guard let recordDate = record?.documentDate else { return }
+    documentDate = recordDate
   }
 }
 
