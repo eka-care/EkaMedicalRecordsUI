@@ -28,7 +28,7 @@ struct DocumentViewer: View {
   // MARK: - Init
   
   init(documents: Binding<[DocumentMimeType]>) {
-    _documents = documents // Assigning initial value to @State
+    _documents = documents
     setupPageIndicatorColor()
   }
   
@@ -39,12 +39,8 @@ struct DocumentViewer: View {
       ForEach(documents, id: \.self) { document in
         switch document {
         case .image(let uiImage):
-          Image(uiImage: uiImage)
-            .resizable()
-            .scaledToFit()
+          ZoomableImageView(image: uiImage)
             .padding()
-            .tag(document)
-          
         case .pdf(let data):
           PDFDocumentView(pdfData: data)
             .frame(maxHeight: .infinity) // Adjust height for PDF rendering
