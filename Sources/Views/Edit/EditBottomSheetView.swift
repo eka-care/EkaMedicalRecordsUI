@@ -78,7 +78,7 @@ extension EditBottomSheetView {
       
       Picker("", selection: $selectedDocumentType) {
         Text("Select").tag(nil as DocumentFilterType?) // Empty selection
-        ForEach(DocumentFilterType.allCases, id: \.self) { type in
+        ForEach(DocumentFilterType.allCases.filter { $0 != .typeUnspecified}, id: \.self) { type in
           Text(type.title).tag(type as DocumentFilterType?)
             .font(.footnote)
         }
