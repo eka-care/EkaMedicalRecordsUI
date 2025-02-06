@@ -48,7 +48,7 @@ struct SmartReportView: View {
     ScrollView {
       VStack(spacing: 0) {
         ChipsView()
-        if let verified = smartReportInfo?.verified, verified.isEmpty {
+        if listData.isEmpty {
           HStack {
             Spacer() /// For aligning towards center horizontally
             SmartReportVitalListEmptyView()
