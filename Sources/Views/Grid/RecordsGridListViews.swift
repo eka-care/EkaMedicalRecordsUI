@@ -38,7 +38,7 @@ public struct RecordsGridListView: View {
   /// Edit bottom sheet bool
   @State private var isEditBottomSheetPresented: Bool = false
   /// Currently uploaded record
-  @State private var recordBeingUploaded: Record?
+  @State private var recordSelectedForEdit: Record?
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -125,7 +125,7 @@ public struct RecordsGridListView: View {
         NavigationStack {
           EditBottomSheetView(
             isEditBottomSheetPresented: $isEditBottomSheetPresented,
-            record: recordBeingUploaded
+            record: $recordSelectedForEdit
           )
           .presentationDragIndicator(.visible)
         }
@@ -162,8 +162,12 @@ extension RecordsGridListView {
       recordPresentationState: recordPresentationState,
       pickerSelectedRecords: $pickerSelectedRecords
     )
-    .frame(width: 160)
     .contextMenu {
+      Button {
+        editItem(record: item)
+      } label: {
+        Text("Edit")
+      }
       Button(role: .destructive) {
         deleteItem(record: item)
       } label: {
@@ -186,7 +190,7 @@ extension RecordsGridListView {
     isUploadBottomSheetPresented = false /// Dismiss the sheet
     let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
     recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
-      recordBeingUploaded = uploadedRecord
+      recordSelectedForEdit = uploadedRecord
       isEditBottomSheetPresented = true /// Show edit bottom sheet
       isUploading = false
     }
@@ -200,6 +204,12 @@ extension RecordsGridListView {
   /// Used to delete a grid item
   private func deleteItem(record: Record) {
     recordsRepo.deleteRecord(record: record)
+  }
+  
+  /// Used to edit an item
+  private func editItem(record: Record) {
+    recordSelectedForEdit = record
+    isEditBottomSheetPresented = true
   }
   
   /// On press of done button in picker state

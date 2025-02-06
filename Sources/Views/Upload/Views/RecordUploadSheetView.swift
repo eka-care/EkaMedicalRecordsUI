@@ -73,7 +73,6 @@ struct RecordUploadSheetView: View {
           }
         }
         .scrollContentBackground(.hidden)
-        .scrollDisabled(true)
         
         Spacer()
       }
