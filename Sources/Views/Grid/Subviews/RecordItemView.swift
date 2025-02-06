@@ -14,23 +14,29 @@ struct RecordItemView: View {
   // MARK: - Properties
   
   enum RecordsDocumentThumbnailSize {
-    static let height: CGFloat = 104
+    static let height: CGFloat = 110
   }
   let itemWidth: CGFloat = 160
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
+  var onTapEdit: (Record) -> Void
+  var onTapDelete: (Record) -> Void
   
   // MARK: - Init
   
   init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
-    pickerSelectedRecords: Binding<[Record]>
+    pickerSelectedRecords: Binding<[Record]>,
+    onTapEdit: @escaping (Record) -> Void,
+    onTapDelete: @escaping (Record) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
     self._pickerSelectedRecords = pickerSelectedRecords
+    self.onTapEdit = onTapEdit
+    self.onTapDelete = onTapDelete
   }
   
   // MARK: - Body
@@ -50,6 +56,7 @@ struct RecordItemView: View {
           VStack {
             HStack {
               SmartReportView()
+              Spacer()
             }
             Spacer()
           }
@@ -90,11 +97,16 @@ extension RecordItemView {
     HStack {
       if let record = itemData.record,
          let uploadedDate = record.uploadDate {
-        Text("Uploaded \(uploadedDate)")
+        Text("Added \(uploadedDate.formatted(as: "dd MMM ‘yy"))")
           .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
       }
+      
+      Spacer()
+      
+      MenuView()
     }
-    .frame(width: itemWidth, height: 30)
+    .padding(.horizontal, EkaSpacing.spacingXs)
+    .frame(width: itemWidth, height: 35)
   }
   
   /// Thumbnail
@@ -139,15 +151,43 @@ extension RecordItemView {
   }
   
   private func SmartReportView() -> some View {
-    HStack {
-      Image(systemName: "star.fill")
+    HStack(spacing: EkaSpacing.spacingXxs) {
+      Image(systemName: "sparkle")
         .resizable()
         .scaledToFit()
-        .frame(width: 16, height: 16)
+        .frame(width: 12, height: 12)
         .foregroundStyle(Color(.primary500))
       
       Text("Smart")
         .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadiusModifier(6, corners: [.bottomRight])
+  }
+  
+  private func MenuView() -> some View {
+    // Menu that opens on tap (instead of long press)
+    Menu {
+      Button {
+        if let record = itemData.record {
+          onTapEdit(record)
+        }
+      } label: {
+        Text("Edit")
+      }
+      Button(role: .destructive) {
+        if let record = itemData.record {
+          onTapDelete(record)
+        }
+      } label: {
+        Text("Delete")
+      }
+    } label: {
+      Image(systemName: "ellipsis")
+        .foregroundColor(.gray)
+        .padding(.vertical, EkaSpacing.spacingS)
     }
   }
 }
@@ -188,6 +228,8 @@ extension RecordItemView {
   RecordItemView(
     itemData: RecordItemViewData.formRecordItemPreviewData(),
     recordPresentationState: .displayAll,
-    pickerSelectedRecords: .constant([])
+    pickerSelectedRecords: .constant([]),
+    onTapEdit: {_ in},
+    onTapDelete: {_ in}
   )
 }

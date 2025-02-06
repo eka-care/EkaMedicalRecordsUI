@@ -8,10 +8,30 @@
 import SwiftUI
 import EkaMedicalRecordsCore
 
+enum ChipType: Int, CaseIterable {
+  case all
+  case outOfRange
+
+  func formChipTitle(count: Int) -> String {
+    switch self {
+    case .all:
+      return "All lab vital (\(count))"
+    case .outOfRange:
+      return "Out of range (\(count))"
+    }
+  }
+}
+
 struct SmartReportView: View {
   
   // MARK: - Properties
   
+  @State private var selectedChip: ChipType = .all {
+    didSet {
+      formSmartReportListData(verifiedData: smartReportInfo?.verified)
+    }
+  }
+  @State private var listData: [Verified] = []
   @Binding var smartReportInfo: SmartReportInfo?
   
   // MARK: - Init
@@ -26,22 +46,24 @@ struct SmartReportView: View {
   
   var body: some View {
     ScrollView {
-      VStack {
-        if let verified = smartReportInfo?.verified, verified.isEmpty {
+      VStack(spacing: 0) {
+        ChipsView()
+        if listData.isEmpty {
           HStack {
             Spacer() /// For aligning towards center horizontally
             SmartReportVitalListEmptyView()
             Spacer() /// For aligning towards center horizontally
           }
         } else {
-          if let verified = smartReportInfo?.verified {
-            SmartReportVitalListView(vitalsData: verified)
-              .padding(.top, EkaSpacing.spacingM)
-          }
+          SmartReportVitalListView(vitalsData: listData)
         }
       }
       .frame(maxHeight: .infinity)
+      .onAppear {
+        formSmartReportListData(verifiedData: smartReportInfo?.verified)
+      }
     }
+    .background(Color(.neutrals50))
   }
 }
 
@@ -60,9 +82,64 @@ extension SmartReportView {
     VStack(alignment: .leading, spacing: 0) {
       ForEach(vitalsData) { data in
         VitalReadingRowView(itemData: data)
-          .animation(.easeInOut, value: vitalsData)
-          .transition(.opacity.animation(.easeInOut).combined(with: .move(edge: .bottom)))
       }
+    }
+  }
+}
+
+extension SmartReportView {
+  private func ChipsView() -> some View {
+    HStack {
+      ForEach(ChipType.allCases, id: \.self) { chip in
+        ChipView(
+          selectionId: chip.rawValue,
+          title: chip.formChipTitle(count: getCount(chip: chip)),
+          isSelected: selectedChip == chip
+        ) { id in
+          if let chipType = ChipType(rawValue: id) {
+            selectedChip = chipType
+          }
+        }
+      }
+      Spacer()
+    }
+    .padding()
+  }
+}
+
+extension SmartReportView {
+  /// Used to form smart report list data
+  func formSmartReportListData(verifiedData: [Verified]?) {
+    guard let verifiedData else { return }
+    switch selectedChip {
+    case .all:
+      listData = verifiedData
+    case .outOfRange:
+      listData = verifiedData.filter { data in
+        if let resultID = data.resultID,
+           let interpretationType = LabParameterResultType(rawValue: resultID) {
+          return interpretationType != .normal && interpretationType != .undetermined
+        }
+        return false
+      }
+    }
+  }
+  
+  /// Used to form smart report list count
+  func getCount(chip: ChipType) -> Int {
+    switch chip {
+    case .all:
+      return smartReportInfo?.verified?.count ?? 0
+    case .outOfRange:
+      /// Out of range is one which is neither normal nor undetermined
+      let outOfRangeCount = smartReportInfo?.verified?.filter { data in
+        if let resultID = data.resultID,
+           let interpretationType = LabParameterResultType(rawValue: resultID) {
+          return interpretationType != .normal && interpretationType != .undetermined
+        }
+        return false
+      }.count ?? 0
+      return outOfRangeCount
     }
   }
 }
