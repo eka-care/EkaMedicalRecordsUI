@@ -37,6 +37,8 @@ public struct RecordsGridListView: View {
   @State private var isUploading: Bool = false
   /// Edit bottom sheet bool
   @State private var isEditBottomSheetPresented: Bool = false
+  /// Currently uploaded record
+  @State private var recordBeingUploaded: Record?
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -121,8 +123,11 @@ public struct RecordsGridListView: View {
       }
       .sheet(isPresented: $isEditBottomSheetPresented) {
         NavigationStack {
-          EditBottomSheetView()
-            .presentationDragIndicator(.visible)
+          EditBottomSheetView(
+            isEditBottomSheetPresented: $isEditBottomSheetPresented,
+            record: recordBeingUploaded
+          )
+          .presentationDragIndicator(.visible)
         }
       }
       .onAppear {
@@ -180,7 +185,8 @@ extension RecordsGridListView {
     isUploading = true /// Show uploading loader
     isUploadBottomSheetPresented = false /// Dismiss the sheet
     let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
-    recordsRepo.addSingleRecord(record: recordModel) {
+    recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
+      recordBeingUploaded = uploadedRecord
       isEditBottomSheetPresented = true /// Show edit bottom sheet
       isUploading = false
     }

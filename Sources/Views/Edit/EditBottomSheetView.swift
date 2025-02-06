@@ -1,13 +1,8 @@
 import SwiftUI
+import SwiftProtoContracts
+import EkaMedicalRecordsCore
 
-enum DocumentFilterType: String, CaseIterable, Identifiable {
-  case labReport = "Lab report"
-  case prescription = "Prescription"
-  case insurance = "Insurance"
-  case vaccines = "Vaccines"
-  
-  var id: String { self.rawValue }
-}
+typealias DocumentFilterType = Vault_Records_DocumentType
 
 struct EditBottomSheetView: View {
 
@@ -17,11 +12,17 @@ struct EditBottomSheetView: View {
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
   @Binding var isEditBottomSheetPresented: Bool
+  private let record: Record?
+  private let recordsRepo = RecordsRepo()
   
   // MARK: - Init
   
-  init(isEditBottomSheetPresented: Binding<Bool>) {
+  init(
+    isEditBottomSheetPresented: Binding<Bool>,
+    record: Record?
+  ) {
     _isEditBottomSheetPresented = isEditBottomSheetPresented
+    self.record = record
   }
   
   // MARK: - Body
@@ -54,12 +55,6 @@ struct EditBottomSheetView: View {
       Text("Document type is mandatory.")
     }
   }
-  
-  // MARK: - Functions
-  
-  private func saveDocumentDetails() {
-    // Handle save logic
-  }
 }
 
 // MARK: - Subviews
@@ -78,7 +73,7 @@ extension EditBottomSheetView {
       Picker("", selection: $selectedDocumentType) {
         Text("Select").tag(nil as DocumentFilterType?) // Empty selection
         ForEach(DocumentFilterType.allCases, id: \.self) { type in
-          Text(type.rawValue).tag(type as DocumentFilterType?)
+          Text(type.title).tag(type as DocumentFilterType?)
             .font(.footnote)
         }
       }
@@ -101,6 +96,27 @@ extension EditBottomSheetView {
   }
 }
 
-#Preview {
-  EditBottomSheetView(isEditBottomSheetPresented: .constant(true))
+// MARK: - Functions
+
+extension EditBottomSheetView {
+  private func saveDocumentDetails() {
+    guard let record else {
+      debugPrint("Record being uploaded not found for edit")
+      return
+    }
+    /// Update record in database
+    recordsRepo.updateRecord(
+      recordID: record.objectID,
+      documentID: record.documentID,
+      documentDate: documentDate,
+      documentType: selectedDocumentType?.rawValue
+    )
+    /// Close edit bottom sheet
+    isEditBottomSheetPresented = false
+  }
 }
+
+// TODO: - Fix preview for record database model init
+//#Preview {
+//  EditBottomSheetView(isEditBottomSheetPresented: .constant(true))
+//}
