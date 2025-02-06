@@ -39,6 +39,8 @@ public struct RecordsGridListView: View {
   @State private var isEditBottomSheetPresented: Bool = false
   /// Currently uploaded record
   @State private var recordSelectedForEdit: Record?
+  /// Bool to check if records is loading data from server
+  @State private var isLoadingRecordsFromServer: Bool = false
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -58,7 +60,7 @@ public struct RecordsGridListView: View {
   
   public var body: some View {
       ZStack(alignment: .bottomTrailing) {
-        if records.isEmpty {
+        if records.isEmpty && !isLoadingRecordsFromServer {
           ContentUnavailableView(
             "No documents found",
             systemImage: "doc",
@@ -210,7 +212,10 @@ extension RecordsGridListView {
   
   /// Used to refresh records
   private func refreshRecords() {
-    recordsRepo.getUpdatedAtAndStartFetchRecords {}
+    isLoadingRecordsFromServer = true
+    recordsRepo.getUpdatedAtAndStartFetchRecords {
+      isLoadingRecordsFromServer = false
+    }
   }
   
   /// Used to delete a grid item
