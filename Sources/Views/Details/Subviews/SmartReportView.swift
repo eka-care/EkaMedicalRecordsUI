@@ -32,14 +32,14 @@ struct SmartReportView: View {
     }
   }
   @State private var listData: [Verified] = []
-  @Binding var smartReportInfo: SmartReportInfo?
+  var smartReportInfo: SmartReportInfo?
   
   // MARK: - Init
   
   init(
-    smartReportInfo: Binding<SmartReportInfo?>
+    smartReportInfo: SmartReportInfo?
   ) {
-    _smartReportInfo = smartReportInfo
+    self.smartReportInfo = smartReportInfo
   }
   
   // MARK: - Body
@@ -72,7 +72,7 @@ struct SmartReportView: View {
 extension SmartReportView {
   private func SmartReportVitalListEmptyView() -> some View {
     ContentUnavailableView {
-      Label("No out of range vitals found", image: "healthyPerson")
+      Text("No out of range vitals found")
     } description: {
       Text("Take care of your health and stay healthly")
     }
@@ -145,5 +145,5 @@ extension SmartReportView {
 }
 
 #Preview {
-  SmartReportView(smartReportInfo: .constant(nil))
+  SmartReportView(smartReportInfo: nil)
 }

@@ -58,7 +58,7 @@ struct RecordView: View {
         Group {
           switch selectedTab {
           case .smartReport:
-            SmartReportView(smartReportInfo: $smartReportInfo)
+            SmartReportView(smartReportInfo: smartReportInfo)
           case .documents:
             DocumentViewer(documents: $documents)
           }
@@ -76,6 +76,7 @@ struct RecordView: View {
       /// Fetch record meta data
       recordsRepo.fetchRecordMetaData(for: record) { documentURIs, reportInfo in
         DispatchQueue.main.async {
+          print("Received record meta data")
           documents = FileHelper.createDocumentTypes(from: documentURIs)
           smartReportInfo = reportInfo
           isLoading = false
