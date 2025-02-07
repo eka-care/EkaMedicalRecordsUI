@@ -14,7 +14,7 @@ import EkaMedicalRecordsCore
  Dont expose any API here or make decisions of smart report
  */
 
-enum DocumentMimeType: Hashable {
+enum DocumentMimeType: Hashable, Equatable {
   case image(uiImage: UIImage)
   case pdf(data: Data)
 }
@@ -42,10 +42,9 @@ struct DocumentViewer: View {
           ZoomableImageView(image: uiImage)
             .padding()
         case .pdf(let data):
-          PDFDocumentView(pdfData: data)
-            .frame(maxHeight: .infinity) // Adjust height for PDF rendering
-            .padding()
-            .tag(document)
+          if let document = PDFDocument(data: data) {
+            PDFKitView(pdfDocument: document)
+          }
         }
       }
     }
@@ -55,20 +54,24 @@ struct DocumentViewer: View {
   }
 }
 
-struct PDFDocumentView: UIViewRepresentable {
-  let pdfData: Data
+// A simple wrapper for PDFKit's PDFView
+struct PDFKitView: UIViewRepresentable {
+  let pdfDocument: PDFDocument
+  
+  init(pdfDocument: PDFDocument) {
+    self.pdfDocument = pdfDocument
+  }
   
   func makeUIView(context: Context) -> PDFView {
-    let pdfView = PDFView()
-    if let document = PDFDocument(data: pdfData) {
-      pdfView.document = document
-    }
-    pdfView.autoScales = true // Automatically scale the PDF to fit
-    return pdfView
+      let pdfView = PDFView()
+      pdfView.autoScales = true
+      return pdfView
   }
   
   func updateUIView(_ uiView: PDFView, context: Context) {
-    // No updates needed
+    DispatchQueue.main.async {
+      uiView.document = pdfDocument
+    }
   }
 }
 

@@ -35,9 +35,7 @@ struct RecordView: View {
   
   // MARK: - Init
   
-  init(
-    record: Record
-  ) {
+  init(record: Record) {
     self.record = record
   }
   
@@ -45,7 +43,7 @@ struct RecordView: View {
   
   var body: some View {
     VStack {
-      if smartReportInfo != nil {
+      if record.isSmart {
         // Segmented Picker
         Picker("Select View", selection: $selectedTab) {
           Text(Tab.smartReport.title).tag(Tab.smartReport)
@@ -58,13 +56,12 @@ struct RecordView: View {
         Group {
           switch selectedTab {
           case .smartReport:
-            SmartReportView(smartReportInfo: smartReportInfo)
+            SmartReportView(smartReportInfo: $smartReportInfo)
           case .documents:
             DocumentViewer(documents: $documents)
           }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .animation(.default, value: selectedTab)
       } else {
         DocumentViewer(documents: $documents)
           .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -32,14 +32,14 @@ struct SmartReportView: View {
     }
   }
   @State private var listData: [Verified] = []
-  var smartReportInfo: SmartReportInfo?
+  @Binding var smartReportInfo: SmartReportInfo?
   
   // MARK: - Init
   
   init(
-    smartReportInfo: SmartReportInfo?
+    smartReportInfo: Binding<SmartReportInfo?>
   ) {
-    self.smartReportInfo = smartReportInfo
+    _smartReportInfo = smartReportInfo
   }
   
   // MARK: - Body
@@ -59,11 +59,14 @@ struct SmartReportView: View {
         }
       }
       .frame(maxHeight: .infinity)
-      .onAppear {
-        formSmartReportListData(verifiedData: smartReportInfo?.verified)
-      }
     }
     .background(Color(.neutrals50))
+    .onAppear {
+      formSmartReportListData(verifiedData: smartReportInfo?.verified)
+    }
+    .onChange(of: smartReportInfo) { oldValue, newValue in
+      formSmartReportListData(verifiedData: newValue?.verified)
+    }
   }
 }
 
@@ -72,7 +75,7 @@ struct SmartReportView: View {
 extension SmartReportView {
   private func SmartReportVitalListEmptyView() -> some View {
     ContentUnavailableView {
-      Text("No out of range vitals found")
+      Label("No out of range vitals found", image: "")
     } description: {
       Text("Take care of your health and stay healthly")
     }
@@ -145,5 +148,5 @@ extension SmartReportView {
 }
 
 #Preview {
-  SmartReportView(smartReportInfo: nil)
+  SmartReportView(smartReportInfo: .constant(nil))
 }
