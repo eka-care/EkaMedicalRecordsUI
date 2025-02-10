@@ -79,7 +79,8 @@ extension EditBottomSheetView {
       Picker("", selection: $selectedDocumentType) {
         Text("Select").tag(nil as DocumentFilterType?) // Empty selection
         ForEach(DocumentFilterType.allCases.filter { $0 != .typeUnspecified}, id: \.self) { type in
-          Text(type.title).tag(type as DocumentFilterType?)
+          Text(type.title)
+            .tag(type)
             .font(.footnote)
         }
       }
@@ -131,9 +132,14 @@ extension EditBottomSheetView {
   
   /// Setup document type of document if available
   private func setupSelectedDocumentType() {
-    guard let documentType = record?.documentType,
-    let documentTypeFilter = DocumentFilterType(rawValue: Int(documentType)) else { return }
-    selectedDocumentType = documentTypeFilter
+    if let documentType = record?.documentType,
+       let documentTypeFilter = DocumentFilterType(rawValue: Int(documentType)) {
+      if documentTypeFilter != .typeUnspecified { /// dont save unspecified
+        selectedDocumentType = documentTypeFilter
+      }
+    } else {
+      selectedDocumentType = nil // Default to "Select"
+    }
   }
   
   /// Setup document date of document if available
