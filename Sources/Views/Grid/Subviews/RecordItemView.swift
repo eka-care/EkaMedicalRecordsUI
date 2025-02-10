@@ -84,6 +84,22 @@ struct RecordItemView: View {
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
+    .contextMenu {
+      Button {
+        if let record = itemData.record {
+          onTapEdit(record)
+        }
+      } label: {
+        Text("Edit")
+      }
+      Button(role: .destructive) {
+        if let record = itemData.record {
+          onTapDelete(record)
+        }
+      } label: {
+        Text("Delete")
+      }
+    }
     .simultaneousGesture(TapGesture().onEnded {
       onTapRecord()
     })

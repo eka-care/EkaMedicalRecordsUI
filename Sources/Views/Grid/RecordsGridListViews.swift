@@ -41,6 +41,10 @@ public struct RecordsGridListView: View {
   @State private var recordSelectedForEdit: Record?
   /// Bool to check if records is loading data from server
   @State private var isLoadingRecordsFromServer: Bool = false
+  /// Alert to confirm delete
+  @State private var isDeleteAlertPresented = false
+  /// Item to be deleted
+  @State private var itemToBeDeleted: Record?
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -104,7 +108,7 @@ public struct RecordsGridListView: View {
           isUploadBottomSheetPresented = true
         }
         .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-        .padding(.trailing, EkaSpacing.spacingM)
+        .padding([.trailing, .bottom], EkaSpacing.spacingM)
       }
       .background(Color(.neutrals50))
       .refreshable {
@@ -173,20 +177,18 @@ extension RecordsGridListView {
       recordPresentationState: recordPresentationState,
       pickerSelectedRecords: $pickerSelectedRecords,
       onTapEdit: editItem(record:),
-      onTapDelete: deleteItem(record:)
+      onTapDelete: onTapDelete(record:)
     )
-    // TODO: - Put these in common modifers
-    .contextMenu {
-      Button {
-        editItem(record: item)
-      } label: {
-        Text("Edit")
+    // alert box
+    .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
+      Button("Yes", role: .destructive) {
+        if let record = itemToBeDeleted {
+          deleteItem(record: record)
+        }
       }
-      Button(role: .destructive) {
-        deleteItem(record: item)
-      } label: {
-        Text("Delete")
-      }
+      Button("No", role: .cancel) {}
+    } message: {
+      Text("Are you sure you want to delete this record?")
     }
   }
 }
@@ -216,6 +218,12 @@ extension RecordsGridListView {
     recordsRepo.getUpdatedAtAndStartFetchRecords {
       isLoadingRecordsFromServer = false
     }
+  }
+  
+  /// On tap delete open
+  private func onTapDelete(record: Record) {
+    itemToBeDeleted = record
+    isDeleteAlertPresented = true
   }
   
   /// Used to delete a grid item
