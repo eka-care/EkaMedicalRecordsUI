@@ -18,6 +18,7 @@ struct RecordView: View {
   @State private var documents: [DocumentMimeType] = []
   @State private var smartReportInfo: SmartReportInfo?
   @State private var isLoading: Bool = false
+  @State private var isShareSheetPresented: Bool = false
   
   enum Tab: Int {
     case smartReport = 0
@@ -66,6 +67,14 @@ struct RecordView: View {
         DocumentViewer(documents: $documents)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
+    }
+    .navigationBarItems(trailing: Button(action: {
+      isShareSheetPresented = true
+    }) {
+      Image(systemName: "square.and.arrow.up")
+    })
+    .sheet(isPresented: $isShareSheetPresented) { [documents] in
+      ShareSheet(activityItems: documents.map { $0.activityItem })
     }
     .matteProgressOverlay(isLoading: $isLoading)
     .onAppear {

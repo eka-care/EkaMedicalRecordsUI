@@ -17,6 +17,15 @@ import EkaMedicalRecordsCore
 enum DocumentMimeType: Hashable, Equatable {
   case image(uiImage: UIImage)
   case pdf(data: Data)
+  
+  var activityItem: Any {
+    switch self {
+    case .image(let uiImage):
+      return uiImage
+    case .pdf(let data):
+      return data
+    }
+  }
 }
 
 struct DocumentViewer: View {
