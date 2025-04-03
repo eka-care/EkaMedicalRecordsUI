@@ -16,8 +16,8 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1")),
-    .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", .upToNextMajor(from: "3.0.0")),
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", .upToNextMinor(from: "1.0.2"))
+    .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "3.1.3"),
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", branch: "fix/document-update")
   ],
   targets: [
     .target(

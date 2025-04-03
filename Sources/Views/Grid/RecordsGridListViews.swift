@@ -63,8 +63,13 @@ public struct RecordsGridListView: View {
   // MARK: - View
   
   public var body: some View {
-      ZStack(alignment: .bottomTrailing) {
-        if records.isEmpty && !isLoadingRecordsFromServer {
+    ZStack(alignment: .bottomTrailing) {
+      if isLoadingRecordsFromServer {
+        ProgressView("Loading records...")
+          .progressViewStyle(CircularProgressViewStyle())
+          .scaleEffect(1.5)
+      } else {
+        if records.isEmpty {
           ContentUnavailableView(
             "No documents found",
             systemImage: "doc",
@@ -94,78 +99,78 @@ public struct RecordsGridListView: View {
             .padding()
             .padding(.bottom, 140)
           }
+          
+          /// Button
+          ButtonView(
+            title: "Add record",
+            imageName: UIImage(systemName: "plus"),
+            size: .large,
+            imagePosition: .leading,
+            style: .outline,
+            isFullWidth: false
+          ) {
+            isUploadBottomSheetPresented = true
+          }
+          .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
+          .padding([.trailing, .bottom], EkaSpacing.spacingM)
         }
-        
-        /// Button
-        ButtonView(
-          title: "Add record",
-          imageName: UIImage(systemName: "plus"),
-          size: .large,
-          imagePosition: .leading,
-          style: .outline,
-          isFullWidth: false
-        ) {
-          isUploadBottomSheetPresented = true
-        }
-        .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-        .padding([.trailing, .bottom], EkaSpacing.spacingM)
       }
-      .background(Color(.neutrals50))
-      .refreshable {
-        refreshRecords()
-      }
-      .navigationTitle(recordPresentationState.title) // Add a navigation title
-      .toolbar { /// Toolbar item
-        ToolbarItem(placement: .topBarTrailing) {
-          if pickerSelectedRecords.count > 0 {
-            Button("Done") {
-              onDoneButtonPressed()
-            }
+    }
+    .background(Color(.neutrals50))
+    .refreshable {
+      refreshRecords()
+    }
+    .navigationTitle(recordPresentationState.title) // Add a navigation title
+    .toolbar { /// Toolbar item
+      ToolbarItem(placement: .topBarTrailing) {
+        if pickerSelectedRecords.count > 0 {
+          Button("Done") {
+            onDoneButtonPressed()
           }
         }
       }
-      .uploadingOverlay(isUploading: $isUploading)
-      .sheet(isPresented: $isUploadBottomSheetPresented) {
-        RecordUploadSheetView(
-          images: $uploadedImages,
-          selectedPDFData: $selectedPDFData,
-          hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
-          isUploadBottomSheetPresented: $isUploadBottomSheetPresented
-        ) // The content of the sheet
-        .presentationDetents([.medium]) // Set medium detent
-        .presentationBackground(Color(.neutrals100)) // Set background
+    }
+    .uploadingOverlay(isUploading: $isUploading)
+    .sheet(isPresented: $isUploadBottomSheetPresented) {
+      RecordUploadSheetView(
+        images: $uploadedImages,
+        selectedPDFData: $selectedPDFData,
+        hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
+        isUploadBottomSheetPresented: $isUploadBottomSheetPresented
+      ) // The content of the sheet
+      .presentationDetents([.medium]) // Set medium detent
+      .presentationBackground(Color(.neutrals100)) // Set background
+      .presentationDragIndicator(.visible)
+    }
+    .sheet(isPresented: $isEditBottomSheetPresented) {
+      NavigationStack {
+        EditBottomSheetView(
+          isEditBottomSheetPresented: $isEditBottomSheetPresented,
+          record: $recordSelectedForEdit
+        )
         .presentationDragIndicator(.visible)
       }
-      .sheet(isPresented: $isEditBottomSheetPresented) {
-        NavigationStack {
-          EditBottomSheetView(
-            isEditBottomSheetPresented: $isEditBottomSheetPresented,
-            record: $recordSelectedForEdit
-          )
-          .presentationDragIndicator(.visible)
-        }
-      }
-      .onAppear {
-        refreshRecords()
-      }
+    }
+    .onAppear {
+      refreshRecords()
+    }
     /// On selection of PDF add a record to the storage
-      .onChange(of: selectedPDFData) { oldValue, newValue in
-        if let newValue {
-          addRecord(
-            data: [newValue],
-            contentType: .pdf
-          )
-        }
-      }
-    /// On selection of images add a record to the storage
-      .onChange(of: uploadedImages) { oldValue, newValue in
-        let data = GalleryHelper.convertImagesToData(images: newValue)
+    .onChange(of: selectedPDFData) { oldValue, newValue in
+      if let newValue {
         addRecord(
-          data: data,
-          contentType: .image
+          data: [newValue],
+          contentType: .pdf
         )
       }
-  }
+    }
+    /// On selection of images add a record to the storage
+    .onChange(of: uploadedImages) { oldValue, newValue in
+      let data = GalleryHelper.convertImagesToData(images: newValue)
+      addRecord(
+        data: data,
+        contentType: .image
+      )
+    }  }
 }
 
 // MARK: - Subviews
