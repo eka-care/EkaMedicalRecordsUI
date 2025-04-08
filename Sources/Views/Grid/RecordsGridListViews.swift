@@ -254,10 +254,13 @@ extension RecordsGridListView {
   ) -> [RecordPickerDataModel] {
     var pickerObjects: [RecordPickerDataModel] = []
     selectedRecords.forEach { record in
+      let recordsMetadata = record.toRecordMeta as? Set<RecordMeta>
+      let documentPaths = recordsMetadata?.compactMap { $0.documentURI }
       pickerObjects.append(
         RecordPickerDataModel(
           image: record.thumbnail,
-          documentID: record.documentID
+          documentID: record.documentID,
+          documentPath: documentPaths
         )
       )
     }

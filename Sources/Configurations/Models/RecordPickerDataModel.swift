@@ -11,4 +11,5 @@ import UIKit
 public struct RecordPickerDataModel {
   public let image: String?
   public let documentID: String?
+  public let documentPath: [String]?
 }
