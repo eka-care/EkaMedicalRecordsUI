@@ -65,9 +65,7 @@ public struct RecordsGridListView: View {
   public var body: some View {
     ZStack(alignment: .bottomTrailing) {
       if isLoadingRecordsFromServer {
-        ProgressView("Loading records...")
-          .progressViewStyle(CircularProgressViewStyle())
-          .scaleEffect(1.5)
+        ProgressView()
       } else {
         if records.isEmpty {
           ContentUnavailableView(
@@ -75,6 +73,20 @@ public struct RecordsGridListView: View {
             systemImage: "doc",
             description: Text("Upload documents to see them here")
           )
+          
+          /// Button
+          ButtonView(
+            title: "Add record",
+            imageName: UIImage(systemName: "plus"),
+            size: .large,
+            imagePosition: .leading,
+            style: .outline,
+            isFullWidth: false
+          ) {
+            isUploadBottomSheetPresented = true
+          }
+          .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
+          .padding([.trailing, .bottom], EkaSpacing.spacingM)
         } else {
           /// Grid
           ScrollView {
