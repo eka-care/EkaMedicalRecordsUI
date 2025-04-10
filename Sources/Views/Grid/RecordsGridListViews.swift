@@ -165,6 +165,7 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       refreshRecords()
+      syncRecords()
     }
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { oldValue, newValue in
@@ -182,7 +183,8 @@ public struct RecordsGridListView: View {
         data: data,
         contentType: .image
       )
-    }  }
+    }
+  }
 }
 
 // MARK: - Subviews
