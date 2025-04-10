@@ -229,6 +229,11 @@ extension RecordsGridListView {
     }
   }
   
+  /// To sync unuploaded records
+  private func syncRecords() {
+    recordsRepo.syncUnuploadedRecords()
+  }
+  
   /// Used to refresh records
   private func refreshRecords() {
     isLoadingRecordsFromServer = true
