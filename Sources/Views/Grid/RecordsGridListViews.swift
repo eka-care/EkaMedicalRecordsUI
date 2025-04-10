@@ -65,9 +65,7 @@ public struct RecordsGridListView: View {
   public var body: some View {
     ZStack(alignment: .bottomTrailing) {
       if isLoadingRecordsFromServer {
-        ProgressView("Loading records...")
-          .progressViewStyle(CircularProgressViewStyle())
-          .scaleEffect(1.5)
+        ProgressView()
       } else {
         if records.isEmpty {
           ContentUnavailableView(
