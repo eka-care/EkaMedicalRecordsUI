@@ -164,6 +164,7 @@ public struct RecordsGridListView: View {
       }
     }
     .onAppear {
+      syncRecords()
       refreshRecords()
     }
     /// On selection of PDF add a record to the storage
@@ -227,6 +228,10 @@ extension RecordsGridListView {
       isEditBottomSheetPresented = true /// Show edit bottom sheet
       isUploading = false
     }
+  }
+  
+  private func syncRecords() {
+    recordsRepo.syncUnuploadedRecords()
   }
   
   /// Used to refresh records
