@@ -45,6 +45,8 @@ public struct RecordsGridListView: View {
   @State private var isDeleteAlertPresented = false
   /// Item to be deleted
   @State private var itemToBeDeleted: Record?
+  /// Selected filter
+  @State private var selectedFilter: RecordDocumentType = .typeAll
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -90,6 +92,10 @@ public struct RecordsGridListView: View {
         } else {
           /// Grid
           ScrollView {
+            // Filter chips
+            RecordsFilterListView(selectedChip: $selectedFilter)
+              .padding([.leading, .vertical], EkaSpacing.spacingM)
+            // Records grid
             LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
               ForEach(records, id: \.id) { item in
                 switch recordPresentationState {
