@@ -69,68 +69,70 @@ public struct RecordsGridListView: View {
       if isLoadingRecordsFromServer {
         ProgressView()
       } else {
-        if records.isEmpty {
-          ContentUnavailableView(
-            "No documents found",
-            systemImage: "doc",
-            description: Text("Upload documents to see them here")
-          )
-          
-          /// Button
-          ButtonView(
-            title: "Add record",
-            imageName: UIImage(systemName: "plus"),
-            size: .large,
-            imagePosition: .leading,
-            style: .outline,
-            isFullWidth: false
-          ) {
-            isUploadBottomSheetPresented = true
-          }
-          .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-          .padding([.trailing, .bottom], EkaSpacing.spacingM)
-        } else {
-          /// Grid
-          ScrollView {
-            // Filter chips
-            RecordsFilterListView(selectedChip: $selectedFilter)
-              .padding([.leading, .vertical], EkaSpacing.spacingM)
-            // Records grid
-            LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
-              ForEach(records, id: \.id) { item in
-                switch recordPresentationState {
-                case .dashboard, .displayAll:
-                  /// Put navigation in this case
-                  NavigationLink(
-                    destination: RecordView(
-                      record: item
-                    )
-                  ) {
-                    ItemView(item: item)
-                  }
-                case .picker:
-                  /// Put picker tap in this case
-                  ItemView(item: item)
-                }
+        FilteredRecordsView(
+          predicate: generatePredicate(for: selectedFilter),
+          sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)]
+        ) { (records: FetchedResults<Record>) in
+          Group {
+            if records.isEmpty {
+              ContentUnavailableView(
+                "No documents found",
+                systemImage: "doc",
+                description: Text("Upload documents to see them here")
+              )
+              
+              ButtonView(
+                title: "Add record",
+                imageName: UIImage(systemName: "plus"),
+                size: .large,
+                imagePosition: .leading,
+                style: .outline,
+                isFullWidth: false
+              ) {
+                isUploadBottomSheetPresented = true
               }
+              .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
+              .padding([.trailing, .bottom], EkaSpacing.spacingM)
+            } else {
+              ScrollView {
+                // Filter chips
+                RecordsFilterListView(
+                  recordsRepo: recordsRepo,
+                  selectedChip: $selectedFilter
+                )
+                .padding([.leading, .vertical], EkaSpacing.spacingM)
+                
+                // Grid
+                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
+                  ForEach(records, id: \.id) { item in
+                    switch recordPresentationState {
+                    case .dashboard, .displayAll:
+                      NavigationLink(destination: RecordView(record: item)) {
+                        ItemView(item: item)
+                      }
+                    case .picker:
+                      ItemView(item: item)
+                    }
+                  }
+                }
+                .padding()
+                .padding(.bottom, 140)
+              }
+              
+              ButtonView(
+                title: "Add record",
+                imageName: UIImage(systemName: "plus"),
+                size: .large,
+                imagePosition: .leading,
+                style: .outline,
+                isFullWidth: false
+              ) {
+                isUploadBottomSheetPresented = true
+              }
+              .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
+              .padding([.trailing, .bottom], EkaSpacing.spacingM)
             }
-            .padding()
-            .padding(.bottom, 140)
           }
-          
-          /// Button
-          ButtonView(
-            title: "Add record",
-            imageName: UIImage(systemName: "plus"),
-            size: .large,
-            imagePosition: .leading,
-            style: .outline,
-            isFullWidth: false
-          ) {
-            isUploadBottomSheetPresented = true
-          }
-          .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-          .padding([.trailing, .bottom], EkaSpacing.spacingM)
         }
       }
     }
@@ -290,6 +292,20 @@ extension RecordsGridListView {
       )
     }
     return pickerObjects
+  }
+}
+
+// TODO: - Arya - to be moved to core layer
+extension RecordsGridListView {
+  func generatePredicate(for filter: RecordDocumentType) -> NSPredicate {
+    let oidPredicate = PredicateHelper.equals("oid", value: CoreInitConfigurations.shared.filterID)
+    switch filter {
+    case .typeAll:
+      return oidPredicate
+    default:
+      let typePredicate = PredicateHelper.equals("documentType", value: Int64(filter.intValue))
+      return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, typePredicate])
+    }
   }
 }
 
