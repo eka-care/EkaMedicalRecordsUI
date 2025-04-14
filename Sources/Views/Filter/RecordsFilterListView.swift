@@ -35,10 +35,13 @@ struct RecordsFilterListView: View {
         for: .NSManagedObjectContextObjectsDidChange,
         object: viewContext // must match the one being merged into
       )) { _ in
-        updateFiltersCount()
-        /// if chip
-        if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
-          selectedChip = .typeAll
+        /// Wait for merge changes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          updateFiltersCount()
+          /// if chip
+          if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
+            selectedChip = .typeAll
+          }
         }
       }
   }
