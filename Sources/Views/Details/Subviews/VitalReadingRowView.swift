@@ -27,8 +27,10 @@ enum LabParameterResultType: String {
       return .red
     case .low, .borderlineLow, .veryLow, .criticallyLow, .abnormal:
       return .red
-    case .undetermined, .normal:
+    case .undetermined:
       return UIColor(resource: .neutrals600)
+    case .normal:
+      return UIColor(resource: .green500)
     }
   }
 }
