@@ -8,6 +8,7 @@
 
 import SwiftUI
 import EkaMedicalRecordsCore
+import Combine
 
 struct RecordsFilterListView: View {
   
@@ -16,6 +17,13 @@ struct RecordsFilterListView: View {
   let recordsRepo: RecordsRepo
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
+  private var contextChangePublisher: AnyPublisher<Notification, Never> {
+    NotificationCenter.default.publisher(
+      for: .NSManagedObjectContextObjectsDidChange,
+      object: recordsRepo.databaseManager.container.viewContext
+    )
+    .eraseToAnyPublisher()
+  }
   
   // MARK: - Init
   
@@ -29,6 +37,9 @@ struct RecordsFilterListView: View {
   
   var body: some View {
     ChipsView()
+      .onReceive(contextChangePublisher.debounce(for: .milliseconds(100), scheduler: RunLoop.main)) { _ in
+        recordsFilter = recordsRepo.getRecordDocumentTypeCount()
+      }
   }
 }
 
