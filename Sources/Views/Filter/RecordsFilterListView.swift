@@ -38,7 +38,11 @@ struct RecordsFilterListView: View {
   var body: some View {
     ChipsView()
       .onReceive(contextChangePublisher.debounce(for: .milliseconds(100), scheduler: RunLoop.main)) { _ in
-        recordsFilter = recordsRepo.getRecordDocumentTypeCount()
+        updateFiltersCount()
+        /// if chip
+        if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
+          selectedChip = .typeAll
+        }
       }
   }
 }
@@ -66,7 +70,7 @@ extension RecordsFilterListView {
         .padding(.trailing, EkaSpacing.spacingM)
       }
       .onAppear {
-        recordsFilter = recordsRepo.getRecordDocumentTypeCount()
+        updateFiltersCount()
       }
       .onChange(of: selectedChip) { oldIndex, newIndex in
         withAnimation {
@@ -83,6 +87,11 @@ extension RecordsFilterListView {
   private func getChipTitle(filter: RecordDocumentType) -> String {
     let filterCountString = " (\(recordsFilter[filter] ?? 0))"
     return filter.filterName + filterCountString
+  }
+  
+  /// Update filters count
+  private func updateFiltersCount() {
+    recordsFilter = recordsRepo.getRecordDocumentTypeCount()
   }
 }
 
