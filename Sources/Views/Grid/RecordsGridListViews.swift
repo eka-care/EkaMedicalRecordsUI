@@ -101,6 +101,7 @@ public struct RecordsGridListView: View {
                   selectedChip: $selectedFilter
                 )
                 .padding([.leading, .vertical], EkaSpacing.spacingM)
+                .environment(\.managedObjectContext, viewContext)
                 
                 // Grid
                 LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {

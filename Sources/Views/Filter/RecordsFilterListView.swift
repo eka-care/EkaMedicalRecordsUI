@@ -17,10 +17,11 @@ struct RecordsFilterListView: View {
   let recordsRepo: RecordsRepo
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
+  @Environment(\.managedObjectContext) private var viewContext
   private var contextChangePublisher: AnyPublisher<Notification, Never> {
     NotificationCenter.default.publisher(
       for: .NSManagedObjectContextObjectsDidChange,
-      object: recordsRepo.databaseManager.container.viewContext
+      object: viewContext
     )
     .eraseToAnyPublisher()
   }
