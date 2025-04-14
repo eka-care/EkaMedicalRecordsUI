@@ -18,13 +18,6 @@ struct RecordsFilterListView: View {
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
   @Environment(\.managedObjectContext) private var viewContext
-  private var contextChangePublisher: AnyPublisher<Notification, Never> {
-    NotificationCenter.default.publisher(
-      for: .NSManagedObjectContextObjectsDidChange,
-      object: viewContext
-    )
-    .eraseToAnyPublisher()
-  }
   
   // MARK: - Init
   
@@ -38,7 +31,10 @@ struct RecordsFilterListView: View {
   
   var body: some View {
     ChipsView()
-      .onReceive(contextChangePublisher.debounce(for: .milliseconds(100), scheduler: RunLoop.main)) { _ in
+      .onReceive(NotificationCenter.default.publisher(
+        for: .NSManagedObjectContextObjectsDidChange,
+        object: viewContext // must match the one being merged into
+      )) { _ in
         updateFiltersCount()
         /// if chip
         if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
