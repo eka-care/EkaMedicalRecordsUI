@@ -27,8 +27,10 @@ enum LabParameterResultType: String {
       return .red
     case .low, .borderlineLow, .veryLow, .criticallyLow, .abnormal:
       return .red
-    case .undetermined, .normal:
+    case .undetermined:
       return UIColor(resource: .neutrals600)
+    case .normal:
+      return UIColor(resource: .green500)
     }
   }
 }
@@ -46,7 +48,6 @@ struct VitalReadingRowView: View {
         LeftStackView()
         Spacer()
         RightStackView()
-        rightArrowImage
       }
       .padding(.top, EkaSpacing.spacingXs)
       .padding(.horizontal, EkaSpacing.spacingM)
@@ -88,14 +89,6 @@ extension VitalReadingRowView {
           .textStyle(ekaFont: .bodyBold, color: .black)
       }
     }
-  }
-  
-  private var rightArrowImage: some View {
-    Image(systemName: "chevron.right")
-      .resizable()
-      .scaledToFit()
-      .frame(height: 12)
-      .foregroundColor(Color(.black))
   }
 }
 
