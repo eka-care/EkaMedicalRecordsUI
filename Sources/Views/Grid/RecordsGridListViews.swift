@@ -272,27 +272,29 @@ extension RecordsGridListView {
   
   /// On press of done button in picker state
   private func onDoneButtonPressed() {
-    let pickedRecords = setPickerSelectedObjects(selectedRecords: pickerSelectedRecords)
-    didSelectPickerDataObjects?(pickedRecords)
+    setPickerSelectedObjects(selectedRecords: pickerSelectedRecords) { pickedRecords in
+      didSelectPickerDataObjects?(pickedRecords)
+    }
   }
   
   /// Get picker selected images from records
   private func setPickerSelectedObjects(
-    selectedRecords: [Record]
-  ) -> [RecordPickerDataModel] {
+    selectedRecords: [Record],
+    completion: RecordItemsCallback
+  ) {
     var pickerObjects: [RecordPickerDataModel] = []
-    selectedRecords.forEach { record in
-      let recordsMetadata = record.toRecordMeta as? Set<RecordMeta>
-      let documentPaths = recordsMetadata?.compactMap { $0.documentURI }
-      pickerObjects.append(
-        RecordPickerDataModel(
-          image: record.thumbnail,
-          documentID: record.documentID,
-          documentPath: documentPaths
+    recordsRepo.fetchRecordsMetaData(for: selectedRecords) { documentURIs in
+      for (index, value) in selectedRecords.enumerated() {
+        pickerObjects.append(
+          RecordPickerDataModel(
+            image: value.thumbnail,
+            documentID: value.documentID,
+            documentPath: documentURIs[index]
+          )
         )
-      )
+      }
+      completion?(pickerObjects)
     }
-    return pickerObjects
   }
 }
 
