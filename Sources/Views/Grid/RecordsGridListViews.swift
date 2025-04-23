@@ -35,6 +35,8 @@ public struct RecordsGridListView: View {
   @State private var pickerSelectedRecords: [Record] = []
   /// Used to display uploading loader in view
   @State private var isUploading: Bool = false
+  /// Used to display downloading loader in view
+  @State private var isDownloading: Bool = false
   /// Edit bottom sheet bool
   @State private var isEditBottomSheetPresented: Bool = false
   /// Currently uploaded record
@@ -151,7 +153,7 @@ public struct RecordsGridListView: View {
         }
       }
     }
-    .uploadingOverlay(isUploading: $isUploading)
+    .loadingOverlay(isUploading: $isUploading, isDownloading: $isDownloading)
     .sheet(isPresented: $isUploadBottomSheetPresented) {
       RecordUploadSheetView(
         images: $uploadedImages,
@@ -272,7 +274,9 @@ extension RecordsGridListView {
   
   /// On press of done button in picker state
   private func onDoneButtonPressed() {
+    isDownloading = true
     setPickerSelectedObjects(selectedRecords: pickerSelectedRecords) { pickedRecords in
+      isDownloading = false
       didSelectPickerDataObjects?(pickedRecords)
     }
   }

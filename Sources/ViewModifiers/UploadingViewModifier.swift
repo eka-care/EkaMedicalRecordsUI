@@ -7,19 +7,20 @@
 
 import SwiftUI
 
-struct UploadingOverlayModifier: ViewModifier {
+struct LoadingOverlayModifier: ViewModifier {
   @Binding var isUploading: Bool
+  @Binding var isDownloading: Bool
   
   func body(content: Content) -> some View {
     ZStack {
       content
       
-      if isUploading {
-        Color.black.opacity(0.4) // Dim the background
+      if isUploading || isDownloading {
+        Color.black.opacity(0.4)
           .edgesIgnoringSafeArea(.all)
         
         VStack(spacing: 12) {
-          ProgressView("Uploading...")
+          ProgressView(isUploading ? "Uploading..." : "Downloading...")
             .progressViewStyle(CircularProgressViewStyle())
             .padding()
             .background(RoundedRectangle(cornerRadius: 10).fill(Color.white))
@@ -27,12 +28,12 @@ struct UploadingOverlayModifier: ViewModifier {
         }
       }
     }
-    .animation(.easeInOut, value: isUploading)
+    .animation(.easeInOut, value: isUploading || isDownloading)
   }
 }
 
 extension View {
-  func uploadingOverlay(isUploading: Binding<Bool>) -> some View {
-    self.modifier(UploadingOverlayModifier(isUploading: isUploading))
+  func loadingOverlay(isUploading: Binding<Bool>, isDownloading: Binding<Bool>) -> some View {
+    self.modifier(LoadingOverlayModifier(isUploading: isUploading, isDownloading: isDownloading))
   }
 }
