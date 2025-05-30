@@ -1,14 +1,10 @@
 import SwiftUI
-import SwiftProtoContracts
 import EkaMedicalRecordsCore
-
-typealias DocumentFilterType = Vault_Records_DocumentType
-
 struct EditBottomSheetView: View {
 
   // MARK: - Properties
   
-  @State private var selectedDocumentType: DocumentFilterType?
+  @State private var selectedDocumentType: RecordDocumentType?
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
   @Binding var isEditBottomSheetPresented: Bool
@@ -77,9 +73,9 @@ extension EditBottomSheetView {
       Spacer()
       
       Picker("", selection: $selectedDocumentType) {
-        Text("Select").tag(nil as DocumentFilterType?) // Empty selection
-        ForEach(DocumentFilterType.allCases.filter { $0 != .typeUnspecified}, id: \.self) { type in
-          Text(type.title)
+        Text("Select").tag(nil as RecordDocumentType?) // Empty selection
+        ForEach(RecordDocumentType.allCases.filter { $0 != .typeAll}, id: \.self) { type in
+          Text(type.filterName)
             .tag(type)
             .font(.footnote)
         }
@@ -124,7 +120,7 @@ extension EditBottomSheetView {
       recordID: record.objectID,
       documentID: record.documentID,
       documentDate: documentDate,
-      documentType: selectedDocumentType?.rawValue
+      documentType: selectedDocumentType?.intValue
     )
     /// Close edit bottom sheet
     isEditBottomSheetPresented = false
@@ -133,8 +129,8 @@ extension EditBottomSheetView {
   /// Setup document type of document if available
   private func setupSelectedDocumentType() {
     if let documentType = record?.documentType,
-       let documentTypeFilter = DocumentFilterType(rawValue: Int(documentType)) {
-      if documentTypeFilter != .typeUnspecified { /// dont save unspecified
+       let documentTypeFilter = RecordDocumentType.from(intValue: Int(documentType)) {
+      if documentTypeFilter != .typeAll { /// dont save unspecified
         selectedDocumentType = documentTypeFilter
       }
     } else {
