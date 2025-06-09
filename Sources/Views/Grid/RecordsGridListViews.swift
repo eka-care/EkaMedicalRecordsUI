@@ -26,7 +26,7 @@ public struct RecordsGridListView: View {
         guard let filterIDs = CoreInitConfigurations.shared.filterID, !filterIDs.isEmpty else {
             return NSPredicate(value: false) // No records if no filter IDs
         }
-        return PredicateHelper.inArray("oid", values: filterIDs)
+        return PredicateHelper.containsAny("oid", values: filterIDs)
     }(),
     animation: .easeIn
   ) var records: FetchedResults<Record>
