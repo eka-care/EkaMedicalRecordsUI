@@ -22,7 +22,12 @@ public struct RecordsGridListView: View {
   @Environment(\.managedObjectContext) private var viewContext
   @FetchRequest(
     sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
-    predicate: PredicateHelper.equals("oid", value: CoreInitConfigurations.shared.filterID),
+    predicate: {
+        guard let filterIDs = CoreInitConfigurations.shared.filterID, !filterIDs.isEmpty else {
+            return NSPredicate(value: false) // No records if no filter IDs
+        }
+        return PredicateHelper.inArray("oid", values: filterIDs)
+    }(),
     animation: .easeIn
   ) var records: FetchedResults<Record>
   /// Upload bottom sheet bool
