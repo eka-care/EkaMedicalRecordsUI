@@ -88,13 +88,13 @@ public struct RecordsGridListView: View {
       if isLoadingRecordsFromServer {
         ProgressView()
       } else {
+        Text("records count \(records.count)")
+        Text("records1 count \(records1.count)")
         FilteredRecordsView(
           predicate: generatePredicate(for: selectedFilter),
           sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)]
         ) { (records: FetchedResults<Record>) in
           Group {
-            Text("records count \(records.count)")
-            Text("records1 count \(records1.count)")
             if records.isEmpty {
               ContentUnavailableView(
                 "No documents found",
