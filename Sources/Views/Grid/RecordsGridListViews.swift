@@ -95,7 +95,7 @@ public struct RecordsGridListView: View {
           sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)]
         ) { (records: FetchedResults<Record>) in
           Group {
-            if records.isEmpty {
+            if records1.isEmpty {
               ContentUnavailableView(
                 "No documents found",
                 systemImage: "doc",
@@ -126,7 +126,7 @@ public struct RecordsGridListView: View {
                 
                 // Grid
                 LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
-                  ForEach(records, id: \.id) { item in
+                  ForEach(records1, id: \.id) { item in
                     switch recordPresentationState {
                     case .dashboard, .displayAll:
                       NavigationLink(destination: RecordView(record: item)) {
