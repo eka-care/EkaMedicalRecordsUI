@@ -30,6 +30,18 @@ public struct RecordsGridListView: View {
     }(),
     animation: .easeIn
   ) var records: FetchedResults<Record>
+  
+  @FetchRequest(
+    sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
+    predicate: {
+      guard let filterIDs = CoreInitConfigurations.shared.filterID, !filterIDs.isEmpty else {
+        return NSPredicate(value: false) // No records if no filter IDs
+      }
+      return NSPredicate(format: "oid IN %@", filterIDs)
+    }(),
+    animation: .easeIn
+  ) var records1: FetchedResults<Record>
+  
   /// Upload bottom sheet bool
   @State private var isUploadBottomSheetPresented = false
   /// Images that are selected for upload
@@ -81,6 +93,8 @@ public struct RecordsGridListView: View {
           sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)]
         ) { (records: FetchedResults<Record>) in
           Group {
+            Text("records count \(records.count)")
+            Text("records1 count \(records1.count)")
             if records.isEmpty {
               ContentUnavailableView(
                 "No documents found",
