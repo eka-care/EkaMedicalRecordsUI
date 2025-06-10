@@ -20,17 +20,17 @@ public struct RecordsGridListView: View {
   ]
   let recordPresentationState: RecordPresentationState
   @Environment(\.managedObjectContext) private var viewContext
-  @FetchRequest(
-    sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
-    predicate: {
-        guard let filterIDs = CoreInitConfigurations.shared.filterID, !filterIDs.isEmpty else {
-            return NSPredicate(value: false) // No records if no filter IDs
-        }
-      return NSPredicate(format: "oid IN %@", filterIDs)
-    }(),
-    animation: .easeIn
-  ) var records: FetchedResults<Record>
-  
+//  @FetchRequest(
+//    sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
+//    predicate: {
+//        guard let filterIDs = CoreInitConfigurations.shared.filterID, !filterIDs.isEmpty else {
+//            return NSPredicate(value: false) // No records if no filter IDs
+//        }
+//      return NSPredicate(format: "oid IN %@", filterIDs)
+//    }(),
+//    animation: .easeIn
+//  ) var records: FetchedResults<Record>
+//  
   /// Upload bottom sheet bool
   @State private var isUploadBottomSheetPresented = false
   /// Images that are selected for upload
@@ -311,7 +311,8 @@ extension RecordsGridListView {
 // TODO: - Arya - to be moved to core layer
 extension RecordsGridListView {
   func generatePredicate(for filter: RecordDocumentType) -> NSPredicate {
-    let oidPredicate = PredicateHelper.equals("oid", value: CoreInitConfigurations.shared.filterID)
+    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
+    let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
     switch filter {
     case .typeAll:
       return oidPredicate
