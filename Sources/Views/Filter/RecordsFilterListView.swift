@@ -91,7 +91,7 @@ extension RecordsFilterListView {
   
   /// Update filters count
   private func updateFiltersCount() {
-   // recordsFilter = recordsRepo.getRecordDocumentTypeCount()
+    recordsFilter = recordsRepo.getRecordDocumentTypeCount()
   }
 }
 
