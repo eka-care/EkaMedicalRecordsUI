@@ -26,21 +26,10 @@ public struct RecordsGridListView: View {
         guard let filterIDs = CoreInitConfigurations.shared.filterID, !filterIDs.isEmpty else {
             return NSPredicate(value: false) // No records if no filter IDs
         }
-        return PredicateHelper.containsAny("oid", values: filterIDs)
-    }(),
-    animation: .easeIn
-  ) var records: FetchedResults<Record>
-  
-  @FetchRequest(
-    sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)],
-    predicate: {
-      guard let filterIDs = CoreInitConfigurations.shared.filterID, !filterIDs.isEmpty else {
-        return NSPredicate(value: false) // No records if no filter IDs
-      }
       return NSPredicate(format: "oid IN %@", filterIDs)
     }(),
     animation: .easeIn
-  ) var records1: FetchedResults<Record>
+  ) var records: FetchedResults<Record>
   
   /// Upload bottom sheet bool
   @State private var isUploadBottomSheetPresented = false
@@ -88,14 +77,12 @@ public struct RecordsGridListView: View {
       if isLoadingRecordsFromServer {
         ProgressView()
       } else {
-        Text("records count \(records.count)")
-        Text("records1 count \(records1.count)")
         FilteredRecordsView(
           predicate: generatePredicate(for: selectedFilter),
           sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)]
         ) { (records: FetchedResults<Record>) in
           Group {
-            if records1.isEmpty {
+            if records.isEmpty {
               ContentUnavailableView(
                 "No documents found",
                 systemImage: "doc",
@@ -126,7 +113,7 @@ public struct RecordsGridListView: View {
                 
                 // Grid
                 LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
-                  ForEach(records1, id: \.id) { item in
+                  ForEach(records, id: \.id) { item in
                     switch recordPresentationState {
                     case .dashboard, .displayAll:
                       NavigationLink(destination: RecordView(record: item)) {
