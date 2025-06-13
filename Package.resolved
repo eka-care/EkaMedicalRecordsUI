@@ -1,5 +1,5 @@
 {
-  "originHash" : "f74047fbdf973629a9af3f00fd785b0212e51522cc8d6775003563689ba6d45d",
+  "originHash" : "e89362d8143edbe1bcb2ca52d3f41067989e9427fa09e5867bec942b97664ebc",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -11,12 +11,30 @@
       }
     },
     {
-      "identity" : "proto-contracts",
+      "identity" : "ekamedicalrecordscore",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/eka-care/proto-contracts.git",
+      "location" : "https://github.com/eka-care/EkaMedicalRecordsCore.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "bac1201cc305c453e913940c601467004998576c"
+        "branch" : "mergePatientImplementation",
+        "revision" : "6afa0cf77f743f024b312dcf7c83fbd387880746"
+      }
+    },
+    {
+      "identity" : "sdwebimage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SDWebImage/SDWebImage.git",
+      "state" : {
+        "revision" : "cac9a55a3ae92478a2c95042dcc8d9695d2129ca",
+        "version" : "5.21.0"
+      }
+    },
+    {
+      "identity" : "sdwebimageswiftui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SDWebImage/SDWebImageSwiftUI.git",
+      "state" : {
+        "revision" : "53573d6dd017e354c0e7d8f1c86b77ef1383c996",
+        "version" : "2.2.7"
       }
     },
     {
@@ -26,15 +44,6 @@
       "state" : {
         "revision" : "d458564516e5676af9c70b4f4b2a9178294f1bc6",
         "version" : "5.0.1"
-      }
-    },
-    {
-      "identity" : "swift-protobuf",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-protobuf.git",
-      "state" : {
-        "revision" : "ebc7251dd5b37f627c93698e4374084d98409633",
-        "version" : "1.28.2"
       }
     }
   ],
