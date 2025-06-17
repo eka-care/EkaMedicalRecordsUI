@@ -62,8 +62,12 @@ struct ButtonView: View {
       .background(backgroundColor)
       .cornerRadius(12)
       .overlay(
-        RoundedRectangle(cornerRadius: 12)
-          .stroke(borderColor, lineWidth: borderWidth)
+        Group {
+          if style == .outline {
+            RoundedRectangle(cornerRadius: 12)
+              .stroke(borderColor, lineWidth: borderWidth)
+          }
+        }
       )
       .buttonStyle(PlainButtonStyle())
     }
@@ -106,7 +110,7 @@ struct ButtonView: View {
   }
   
   private var borderColor: Color {
-    return style == .outline ? Color(.primary500) : Color.clear
+    return style == .outline ? Color(.primary500) : .white
   }
   
   private var foregroundColor: Color {

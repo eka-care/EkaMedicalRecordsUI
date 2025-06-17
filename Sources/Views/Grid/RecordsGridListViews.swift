@@ -83,7 +83,6 @@ public struct RecordsGridListView: View {
                 imageName: UIImage(systemName: "plus"),
                 size: .large,
                 imagePosition: .leading,
-                style: .outline,
                 isFullWidth: false
               ) {
                 isUploadBottomSheetPresented = true
@@ -101,7 +100,7 @@ public struct RecordsGridListView: View {
                 .environment(\.managedObjectContext, viewContext)
                 
                 // Grid
-                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
+                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingXl) {
                   ForEach(records, id: \.id) { item in
                     switch recordPresentationState {
                     case .dashboard, .displayAll:
@@ -122,11 +121,15 @@ public struct RecordsGridListView: View {
                 imageName: UIImage(systemName: "plus"),
                 size: .large,
                 imagePosition: .leading,
-                style: .outline,
                 isFullWidth: false
               ) {
                 isUploadBottomSheetPresented = true
               }
+              .recordUploadMenuModifier(
+                images: $uploadedImages,
+                selectedPDFData: $selectedPDFData,
+                hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+              )
               .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
               .padding([.trailing, .bottom], EkaSpacing.spacingM)
             }
@@ -147,7 +150,7 @@ public struct RecordsGridListView: View {
           dismiss()
         }) {
           Text("Close")
-            .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .primary600))
+            .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .primary500))
         }
       }
       
@@ -160,17 +163,6 @@ public struct RecordsGridListView: View {
       }
     }
     .loadingOverlay(isUploading: $isUploading, isDownloading: $isDownloading)
-    .sheet(isPresented: $isUploadBottomSheetPresented) {
-      RecordUploadSheetView(
-        images: $uploadedImages,
-        selectedPDFData: $selectedPDFData,
-        hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
-        isUploadBottomSheetPresented: $isUploadBottomSheetPresented
-      ) // The content of the sheet
-      .presentationDetents([.medium]) // Set medium detent
-      .presentationBackground(Color(.neutrals100)) // Set background
-      .presentationDragIndicator(.visible)
-    }
     .sheet(isPresented: $isEditBottomSheetPresented) {
       NavigationStack {
         EditBottomSheetView(

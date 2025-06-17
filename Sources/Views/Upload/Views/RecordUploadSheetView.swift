@@ -35,76 +35,33 @@ struct RecordUploadSheetView: View {
   // MARK: - Body
   
   var body: some View {
-    ZStack(alignment: .bottom) {
-      VStack(alignment: .leading, spacing: 0) {
-        Text("Recent images")
-          .textStyle(ekaFont: .calloutBold, color: UIColor(resource: .neutrals600))
-          .padding([.top,.leading], EkaSpacing.spacingM)
-        
-        /// Gallery View
-        VStack(spacing: 0) {
-          if !galleryPhotos.isEmpty {
-            UserGalleryView()
-          } else if !hasUserGalleryPermission {
-            UserGalleryGivePermissionView()
-          } else {
-            ProgressView().frame(maxWidth: .infinity, alignment: .center)
+    Menu {
+      ForEach(RecordUploadSheetData.formRecordUploadSheetItems(hasUserGalleryPermission: true).uploadItemType, id: \.self) { itemType in
+        Button {
+          selectedUploadOption = itemType
+        } label: {
+          Label {
+            Text(itemType.title)
+          } icon: {
+            if let icon = itemType.icon {
+              Image(uiImage: icon)
+                .resizable()
+                .frame(width: 16, height: 16)
+            }
           }
         }
-        .padding(.vertical, EkaSpacing.spacingS)
-        
-        Spacer().frame(height: EkaSpacing.spacingM)
-        
-        Text(NSLocalizedString("Other options", comment: ""))
-          .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
-          .padding(.leading, EkaSpacing.spacingM)
-        
-        Spacer().frame(height: EkaSpacing.spacingM)
-        
-        List {
-          ForEach(recordUploadSheetData.uploadItemType, id: \.self) { itemType in
-            UploadSheetRowView(itemType: itemType)
-              .contentShape(Rectangle())
-              .onTapGesture {
-                //              isUploadBottomSheetPresented = false
-                selectedUploadOption = itemType
-                //              delegate?.onTapRecordOption(option: itemType, isViewGalleryTap: false)
-              }
-          }
-        }
-        .scrollContentBackground(.hidden)
-        
-        Spacer()
       }
-      .edgesIgnoringSafeArea(.all)
-      
-      if currentlySelectedImageNumber > 0 {
-        ButtonView(
-          title: "Upload (\(currentlySelectedImageNumber))",
-          size: .medium
-        ) {
-          setImagesOnUploadButtonTap()
-        }
-        .padding(.horizontal, EkaSpacing.spacingM)
-        .padding(.bottom, EkaSpacing.spacingL)
-        .transition(.move(edge: .bottom))
-      }
+    } label: {
+      Label("Add record", systemImage: "plus")
+        .foregroundColor(.white)
+        .padding()
+        .background(Color.blue)
+        .cornerRadius(8)
     }
+    .menuStyle(.button)
+    .padding(.horizontal, EkaSpacing.spacingM)
     .edgesIgnoringSafeArea(.all)
     .animation(.easeInOut, value: currentlySelectedImageNumber)
-    .onAppear {
-      fetchUserPhotos()
-    }
-    .alert("Photo Library Access Required", isPresented: $showSettingsAlert) {
-      Button("Cancel", role: .cancel) {}
-      Button("Settings") {
-        if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-          UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
-        }
-      }
-    } message: {
-      Text("Please enable access to your photo library in Settings to use this feature.")
-    }
     .sheet(item: $selectedUploadOption) { option in
       switch option {
       case .camera:
@@ -121,59 +78,6 @@ struct RecordUploadSheetView: View {
 // MARK: - Subviews
 
 extension RecordUploadSheetView {
-  
-  // Photos View
-  
-  private func UserGalleryView() -> some View {
-    VStack(alignment: .leading) {
-      
-      RecordsUserGalleryView(
-        currentlySelectedImageNumber: $currentlySelectedImageNumber,
-        galleryPhotos: $galleryPhotos,
-        shouldShowSelectionLimitMessage: $shouldShowSelectionLimitMessage) {}
-      
-      if shouldShowSelectionLimitMessage {
-        Text(NSLocalizedString("Maximum 6 photos can be uploaded at once!", comment: ""))
-          .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .red600))
-          .padding(.leading, EkaSpacing.spacingM)
-      }
-    }
-  }
-  
-  private func UserGalleryGivePermissionView() -> some View {
-    HStack {
-      VStack(alignment: .leading) {
-        HStack {
-          Text(NSLocalizedString("Give permission", comment: ""))
-            .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals800))
-          Image(systemName: "exclamationmark.circle.fill")
-            .resizable()
-            .renderingMode(.template)
-            .scaledToFit()
-            .frame(width: 12, height: 12)
-            .foregroundColor(Color(.orange400))
-        }
-        Text(NSLocalizedString("To add existing photos, allow access to the photo library from your iOS setting", comment: ""))
-          .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals800))
-      }
-      Spacer()
-      Image(systemName: "chevron.right")
-        .resizable()
-        .scaledToFit()
-        .frame(width: 10, height: 10)
-        .foregroundColor(Color(.blue))
-    }
-    .padding([.horizontal, .vertical], EkaSpacing.spacingM)
-    .background(Color(.sunYellow100))
-    .cornerRadius(16)
-    .contentShape(Rectangle())
-    .onTapGesture {
-      requestGalleryPermissionAndShowPickerIfAuthorized()
-      //      delegate?.onTapRecordOption(option: .gallery, isViewGalleryTap: false)
-    }
-    .padding(.horizontal, EkaSpacing.spacingM)
-  }
-  
   // Row View
   private func UploadSheetRowView(itemType: RecordUploadItemType) -> some View {
     return HStack {
