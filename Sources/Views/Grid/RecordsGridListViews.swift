@@ -15,11 +15,11 @@ public struct RecordsGridListView: View {
   
   let recordsRepo: RecordsRepo
   let columns = [
-    GridItem(.flexible()), // First column
-    GridItem(.flexible())  // Second column
+    GridItem(.adaptive(minimum: 160), spacing: EkaSpacing.spacingS)
   ]
   let recordPresentationState: RecordPresentationState
   @Environment(\.managedObjectContext) private var viewContext
+  @Environment(\.dismiss) private var dismiss
   /// Upload bottom sheet bool
   @State private var isUploadBottomSheetPresented = false
   /// Images that are selected for upload
@@ -140,6 +140,17 @@ public struct RecordsGridListView: View {
     }
     .navigationTitle(recordPresentationState.title) // Add a navigation title
     .toolbar { /// Toolbar item
+      /// Close button on the top left
+      ToolbarItem(placement: .topBarLeading) {
+        Button(action: {
+          /// Dismiss or handle close action
+          dismiss()
+        }) {
+          Text("Close")
+            .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .primary600))
+        }
+      }
+      
       ToolbarItem(placement: .topBarTrailing) {
         if pickerSelectedRecords.count > 0 {
           Button("Done") {
