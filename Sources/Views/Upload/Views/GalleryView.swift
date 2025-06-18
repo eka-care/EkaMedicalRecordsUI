@@ -59,8 +59,7 @@ struct GalleryView: UIViewControllerRepresentable {
         }
       }
       
-      dispatchGroup.notify(queue: .main) { [weak self] in
-        guard let self else { return }
+      dispatchGroup.notify(queue: .main) { [parent] in
         parent.selectedImages = images  /// Update only after all images are loaded
       }
     }

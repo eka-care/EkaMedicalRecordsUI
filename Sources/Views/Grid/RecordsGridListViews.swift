@@ -77,18 +77,11 @@ public struct RecordsGridListView: View {
                 systemImage: "doc",
                 description: Text("Upload documents to see them here")
               )
-              
-              ButtonView(
-                title: "Add record",
-                imageName: UIImage(systemName: "plus"),
-                size: .large,
-                imagePosition: .leading,
-                isFullWidth: false
-              ) {
-                isUploadBottomSheetPresented = true
-              }
-              .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-              .padding([.trailing, .bottom], EkaSpacing.spacingM)
+              RecordUploadMenuView(
+                images: $uploadedImages,
+                selectedPDFData: $selectedPDFData,
+                hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+              )
             } else {
               ScrollView {
                 // Filter chips
@@ -116,22 +109,11 @@ public struct RecordsGridListView: View {
                 .padding(.bottom, 140)
               }
               
-              ButtonView(
-                title: "Add record",
-                imageName: UIImage(systemName: "plus"),
-                size: .large,
-                imagePosition: .leading,
-                isFullWidth: false
-              ) {
-                isUploadBottomSheetPresented = true
-              }
-              .recordUploadMenuModifier(
+              RecordUploadMenuView(
                 images: $uploadedImages,
                 selectedPDFData: $selectedPDFData,
                 hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
               )
-              .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-              .padding([.trailing, .bottom], EkaSpacing.spacingM)
             }
           }
         }

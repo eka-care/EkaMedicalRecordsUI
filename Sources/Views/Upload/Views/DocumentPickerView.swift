@@ -9,7 +9,6 @@ import SwiftUI
 
 struct DocumentPickerView: UIViewControllerRepresentable {
   @Binding var selectedPDFData: Data?
-  @Environment(\.presentationMode) var presentationMode
   
   func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
     let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf])
@@ -31,17 +30,13 @@ struct DocumentPickerView: UIViewControllerRepresentable {
     }
     
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+      controller.dismiss(animated: true)
       guard let url = urls.first, url.startAccessingSecurityScopedResource() else { return }
       defer { url.stopAccessingSecurityScopedResource() }
       
       if let data = try? Data(contentsOf: url) {
         parent.selectedPDFData = data
       }
-      parent.presentationMode.wrappedValue.dismiss()
-    }
-    
-    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-      parent.presentationMode.wrappedValue.dismiss()
     }
   }
 }
