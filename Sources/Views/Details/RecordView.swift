@@ -1,10 +1,3 @@
-//
-//  SwiftUIView.swift
-//  EkaMedicalRecordsUI
-//
-//  Created by Arya Vashisht on 03/02/25.
-//
-
 import SwiftUI
 import EkaMedicalRecordsCore
 
@@ -43,27 +36,19 @@ struct RecordView: View {
   // MARK: - Body
   
   var body: some View {
+    let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+    
     VStack {
       if record.isSmart {
-        // Segmented Picker
-        Picker("Select View", selection: $selectedTab) {
-          Text(Tab.smartReport.title).tag(Tab.smartReport)
-          Text(Tab.documents.title).tag(Tab.documents)
+        if isIPad {
+          // iPad Layout - Side by side view
+          iPadLayout
+        } else {
+          // iPhone Layout - Segmented picker
+          iPhoneLayout
         }
-        .pickerStyle(SegmentedPickerStyle())
-        .padding()
-        
-        // Conditional View Switching
-        Group {
-          switch selectedTab {
-          case .smartReport:
-            SmartReportView(smartReportInfo: $smartReportInfo)
-          case .documents:
-            DocumentViewer(documents: $documents)
-          }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else {
+        // Non-smart records - just show documents
         DocumentViewer(documents: $documents)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
@@ -88,6 +73,50 @@ struct RecordView: View {
           isLoading = false
         }
       }
+    }
+  }
+  
+  // MARK: - iPad Layout
+  
+  private var iPadLayout: some View {
+    GeometryReader { geometry in
+      HStack(spacing: 0) {
+        // Left Side - Documents (3/5 of width)
+        DocumentViewer(documents: $documents)
+          .frame(width: geometry.size.width * 0.7, height: geometry.size.height)
+          .background(Color(.systemBackground))
+        
+        // Right Side - Smart Report (2/5 of width)
+        SmartReportView(smartReportInfo: $smartReportInfo)
+          .frame(width: geometry.size.width * 0.3, height: geometry.size.height)
+          .background(Color(.systemBackground))
+      }
+      .edgesIgnoringSafeArea(.bottom)
+    }
+  }
+  
+  // MARK: - iPhone Layout
+  
+  private var iPhoneLayout: some View {
+    VStack {
+      // Segmented Picker
+      Picker("Select View", selection: $selectedTab) {
+        Text(Tab.smartReport.title).tag(Tab.smartReport)
+        Text(Tab.documents.title).tag(Tab.documents)
+      }
+      .pickerStyle(SegmentedPickerStyle())
+      .padding()
+      
+      // Conditional View Switching
+      Group {
+        switch selectedTab {
+        case .smartReport:
+          SmartReportView(smartReportInfo: $smartReportInfo)
+        case .documents:
+          DocumentViewer(documents: $documents)
+        }
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
   }
 }

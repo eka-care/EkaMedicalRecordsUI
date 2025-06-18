@@ -16,7 +16,7 @@ struct RecordItemView: View {
   enum RecordsDocumentThumbnailSize {
     static let height: CGFloat = 110
   }
-  let itemWidth: CGFloat = 160
+  let itemWidth: CGFloat = 180
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
@@ -111,10 +111,36 @@ struct RecordItemView: View {
 extension RecordItemView {
   private func BottomMetaDataView() -> some View {
     HStack {
-      if let record = itemData.record,
-         let uploadedDate = record.uploadDate {
-        Text("Added \(uploadedDate.formatted(as: "dd MMM ‘yy"))")
-          .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
+      /// Icon Image
+      VStack {
+        if let record = itemData.record,
+           let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
+          Image(uiImage: recordType.imageIcon)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 12, height: 12)
+            .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
+            .padding(4)
+            .background(Color(uiColor: recordType.imageIconBackgroundColor))
+            .cornerRadius(2)
+            .padding(.top, EkaSpacing.spacingXs)
+          Spacer()
+        }
+      }
+      
+      VStack(alignment: .leading) {
+        /// Document type
+        if let record = itemData.record,
+           let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
+          Text("\(recordType.filterName)")
+            .textStyle(ekaFont: .calloutBold, color: .black)
+        }
+        /// Date
+        if let record = itemData.record,
+           let uploadedDate = record.uploadDate {
+          Text("\(uploadedDate.formatted(as: "dd MMM ‘yy"))")
+            .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
+        }
       }
       
       Spacer()
@@ -122,7 +148,7 @@ extension RecordItemView {
       MenuView()
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
-    .frame(width: itemWidth, height: 35)
+    .frame(width: itemWidth, height: 50)
   }
   
   /// Thumbnail

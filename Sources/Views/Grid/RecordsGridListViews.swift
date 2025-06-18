@@ -15,7 +15,7 @@ public struct RecordsGridListView: View {
   
   let recordsRepo: RecordsRepo
   let columns = [
-    GridItem(.adaptive(minimum: 160), spacing: EkaSpacing.spacingS)
+    GridItem(.adaptive(minimum: 180), spacing: EkaSpacing.spacingS)
   ]
   let recordPresentationState: RecordPresentationState
   @Environment(\.managedObjectContext) private var viewContext
@@ -93,7 +93,7 @@ public struct RecordsGridListView: View {
                 .environment(\.managedObjectContext, viewContext)
                 
                 // Grid
-                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingXl) {
+                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                   ForEach(records, id: \.id) { item in
                     switch recordPresentationState {
                     case .dashboard, .displayAll:
