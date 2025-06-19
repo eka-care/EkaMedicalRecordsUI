@@ -207,7 +207,7 @@ extension RecordItemView {
       Image(systemName: "sparkle")
         .resizable()
         .scaledToFit()
-        .frame(width: 15, height: 15)
+        .frame(width: 13, height: 13)
         .foregroundStyle(Color(.yellow500))
       
       Text("Smart")

@@ -56,9 +56,9 @@ struct RecordUploadMenuView: View {
         imagePosition: .leading,
         isFullWidth: false
       ) {}
-        .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-        .padding([.trailing, .bottom], EkaSpacing.spacingM)
     }
+    .shadow(color: .black.opacity(0.3), radius: 36, x: 0, y: 0)
+    .padding([.trailing, .bottom], EkaSpacing.spacingM)
     .menuStyle(.button)
     .sheet(item: $selectedUploadOption) { option in
       switch option {
