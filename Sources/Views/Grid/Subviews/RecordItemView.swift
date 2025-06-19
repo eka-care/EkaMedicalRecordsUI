@@ -9,14 +9,16 @@ import SwiftUI
 import SDWebImageSwiftUI
 import EkaMedicalRecordsCore
 
+enum RecordsDocumentSize {
+  static let thumbnailHeight: CGFloat = 110
+  static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
+  static let itemHorizontalSpacing: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? EkaSpacing.spacingS : EkaSpacing.spacingXxxs
+}
+
 struct RecordItemView: View {
   
   // MARK: - Properties
   
-  enum RecordsDocumentThumbnailSize {
-    static let height: CGFloat = 110
-  }
-  let itemWidth: CGFloat = 180
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
@@ -80,7 +82,7 @@ struct RecordItemView: View {
       /// Bottom Meta Data View 
       BottomMetaDataView()
     }
-    .frame(width: itemWidth)
+    .frame(width: RecordsDocumentSize.itemWidth)
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
@@ -133,7 +135,10 @@ extension RecordItemView {
         if let record = itemData.record,
            let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
           Text("\(recordType.filterName)")
-            .textStyle(ekaFont: .calloutBold, color: .black)
+            .textStyle(
+              ekaFont: .calloutBold,
+              color: .black
+            )
         }
         /// Date
         if let record = itemData.record,
@@ -148,7 +153,7 @@ extension RecordItemView {
       MenuView()
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
-    .frame(width: itemWidth, height: 50)
+    .frame(width: RecordsDocumentSize.itemWidth, height: 50)
   }
   
   /// Thumbnail
@@ -159,13 +164,13 @@ extension RecordItemView {
         .scaledToFill()
       Color.black.opacity(0.2).layoutPriority(-1)
     }
-    .frame(width: itemWidth, height: RecordsDocumentThumbnailSize.height, alignment: .top)
+    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
     .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
   private func ThumbnailImageLoadingView() -> some View {
     Color.black.opacity(0.6)
-      .frame(width: itemWidth, height: RecordsDocumentThumbnailSize.height, alignment: .top)
+      .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
       .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
@@ -197,11 +202,11 @@ extension RecordItemView {
       Image(systemName: "sparkle")
         .resizable()
         .scaledToFit()
-        .frame(width: 12, height: 12)
-        .foregroundStyle(Color(.primary500))
+        .frame(width: 15, height: 15)
+        .foregroundStyle(Color(.yellow500))
       
       Text("Smart")
-        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
     }
     .padding(.horizontal, 10)
     .padding(.vertical, EkaSpacing.spacingXxs)

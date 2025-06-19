@@ -15,7 +15,12 @@ public struct RecordsGridListView: View {
   
   let recordsRepo: RecordsRepo
   let columns = [
-    GridItem(.adaptive(minimum: 180), spacing: EkaSpacing.spacingS)
+    GridItem(
+      .adaptive(
+        minimum: RecordsDocumentSize.itemWidth
+      ),
+      spacing: RecordsDocumentSize.itemHorizontalSpacing
+    )
   ]
   let recordPresentationState: RecordPresentationState
   @Environment(\.managedObjectContext) private var viewContext
@@ -105,7 +110,8 @@ public struct RecordsGridListView: View {
                     }
                   }
                 }
-                .padding()
+                .padding(.horizontal, EkaSpacing.spacingS)
+                .padding(.vertical)
                 .padding(.bottom, 140)
               }
               

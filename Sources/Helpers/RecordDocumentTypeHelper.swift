@@ -20,7 +20,7 @@ extension RecordDocumentType {
     case .typeDischargeSummary:
       return UIImage(resource: .dischargeSummaryDocumentIcon)
     case .typeVaccineCertificate:
-      return UIImage()
+      return UIImage(resource: .vaccineCertificateDocumentIcon)
     case .typeInsurance:
       return UIImage(resource: .slipDocumentIcon)
     case .typeInvoice:
@@ -43,7 +43,7 @@ extension RecordDocumentType {
     case .typeDischargeSummary:
       return UIColor(resource: .green500)
     case .typeVaccineCertificate:
-      return .black
+      return UIColor(resource: .primary500)
     case .typeInsurance:
       return UIColor(resource: .primary500)
     case .typeInvoice:
@@ -66,7 +66,7 @@ extension RecordDocumentType {
     case .typeDischargeSummary:
       return UIColor(resource: .green50)
     case .typeVaccineCertificate:
-      return .black
+      return UIColor(resource: .primary50)
     case .typeInsurance:
       return UIColor(resource: .primary50)
     case .typeInvoice:
