@@ -54,6 +54,8 @@ extension RecordsFilterListView {
     ScrollViewReader { scrollViewProxy in
       ScrollView(.horizontal, showsIndicators: false) {
         HStack {
+          // Sort Button
+          RecordSortMenuView()
           ForEach(RecordDocumentType.allCases.filter { recordsFilter.keys.contains($0) }, id: \.self) { chip in
             ChipView(
               selectionId: chip.intValue,
