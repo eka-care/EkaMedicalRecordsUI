@@ -25,13 +25,13 @@ enum RecordSortOptions: Hashable {
   var title: String {
     switch self {
     case .dateOfUpload(let order):
-      return "Created at (\(order.rawValue))"
+      return "Uploaded at (\(order.rawValue))"
     case .documentDate(let order):
       return "Document Date (\(order.rawValue))"
     }
   }
   
-  /// 🔑 Add this:
+  /// Key Path for the record date
   var keyPath: KeyPath<Record, Date?> {
     switch self {
     case .dateOfUpload:
