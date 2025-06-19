@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RecordSortMenuView: View {
-  @State private var selectedOption: RecordSortOptions?
+  @Binding var selectedOption: RecordSortOptions?
   
   var body: some View {
     Menu {
@@ -32,7 +32,12 @@ struct RecordSortMenuView: View {
       ChipView(
         selectionId: 0,
         title: getChipTitle(),
-        image: selectedOption == nil ? UIImage(systemName: "chevron.down") : nil,
+        image: UIImage(systemName: "chevron.down"),
+        imageConfig: ImageConfig(
+          width: 12,
+          height: 12,
+          color: UIColor(resource: selectedOption == nil ? .neutrals500 : .neutrals0)
+        ),
         isSelected: selectedOption != nil
       ) {_ in}
     }

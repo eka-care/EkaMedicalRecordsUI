@@ -22,6 +22,7 @@ struct RecordItemView: View {
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
+  @Binding var selectedFilterOption: RecordSortOptions?
   var onTapEdit: (Record) -> Void
   var onTapDelete: (Record) -> Void
   
@@ -31,12 +32,14 @@ struct RecordItemView: View {
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
     pickerSelectedRecords: Binding<[Record]>,
+    selectedFilterOption: Binding<RecordSortOptions?>,
     onTapEdit: @escaping (Record) -> Void,
     onTapDelete: @escaping (Record) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
     self._pickerSelectedRecords = pickerSelectedRecords
+    self._selectedFilterOption = selectedFilterOption
     self.onTapEdit = onTapEdit
     self.onTapDelete = onTapDelete
   }
@@ -141,9 +144,11 @@ extension RecordItemView {
             )
         }
         /// Date
-        if let record = itemData.record,
-           let uploadedDate = record.uploadDate {
-          Text("\(uploadedDate.formatted(as: "dd MMM ‘yy"))")
+        if let record = itemData.record {
+          let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
+          let dateText = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
+          
+          Text(dateText)
             .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
         }
       }
@@ -276,6 +281,7 @@ extension RecordItemView {
     itemData: RecordItemViewData.formRecordItemPreviewData(),
     recordPresentationState: .displayAll,
     pickerSelectedRecords: .constant([]),
+    selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
     onTapEdit: {_ in},
     onTapDelete: {_ in}
   )

@@ -49,6 +49,8 @@ public struct RecordsGridListView: View {
   @State private var itemToBeDeleted: Record?
   /// Selected filter
   @State private var selectedFilter: RecordDocumentType = .typeAll
+  /// Selected sort type
+  @State private var selectedSortFilter: RecordSortOptions?
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -73,7 +75,7 @@ public struct RecordsGridListView: View {
       } else {
         FilteredRecordsView(
           predicate: generatePredicate(for: selectedFilter),
-          sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)]
+          sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
         ) { (records: FetchedResults<Record>) in
           Group {
             if records.isEmpty {
@@ -92,7 +94,8 @@ public struct RecordsGridListView: View {
                 // Filter chips
                 RecordsFilterListView(
                   recordsRepo: recordsRepo,
-                  selectedChip: $selectedFilter
+                  selectedChip: $selectedFilter,
+                  selectedSortFilter: $selectedSortFilter
                 )
                 .padding([.leading, .vertical], EkaSpacing.spacingM)
                 .environment(\.managedObjectContext, viewContext)
@@ -192,6 +195,7 @@ extension RecordsGridListView {
       itemData: RecordItemViewData.formRecordItemViewData(from: item),
       recordPresentationState: recordPresentationState,
       pickerSelectedRecords: $pickerSelectedRecords,
+      selectedFilterOption: $selectedSortFilter,
       onTapEdit: editItem(record:),
       onTapDelete: onTapDelete(record:)
     )
@@ -299,6 +303,16 @@ extension RecordsGridListView {
     default:
       let typePredicate = PredicateHelper.equals("documentType", value: Int64(filter.intValue))
       return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, typePredicate])
+    }
+  }
+  
+  func generateSortDescriptors(for sortType: RecordSortOptions?) -> [NSSortDescriptor] {
+    guard let sortType else { return [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)] }
+    switch sortType {
+    case .dateOfUpload(let order):
+      return [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: order == .oldToNew)]
+    case .documentDate(let order):
+      return [NSSortDescriptor(keyPath: \Record.documentDate, ascending: order == .oldToNew)]
     }
   }
 }

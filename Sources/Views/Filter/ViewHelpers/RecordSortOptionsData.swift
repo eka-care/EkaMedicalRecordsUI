@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import EkaMedicalRecordsCore
 
 enum SortingOrder: String, CaseIterable, Hashable {
   case newToOld = "New to Old"
@@ -27,6 +28,16 @@ enum RecordSortOptions: Hashable {
       return "Created at (\(order.rawValue))"
     case .documentDate(let order):
       return "Document Date (\(order.rawValue))"
+    }
+  }
+  
+  /// 🔑 Add this:
+  var keyPath: KeyPath<Record, Date?> {
+    switch self {
+    case .dateOfUpload:
+      return \Record.uploadDate
+    case .documentDate:
+      return \Record.documentDate
     }
   }
 }
