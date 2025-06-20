@@ -68,7 +68,7 @@ extension RecordDocumentType {
     case .typeVaccineCertificate:
       return UIColor(resource: .primary50)
     case .typeInsurance:
-      return UIColor(resource: .primary50)
+      return UIColor(resource: .red50)
     case .typeInvoice:
       return UIColor(resource: .red50)
     case .typeScan:
