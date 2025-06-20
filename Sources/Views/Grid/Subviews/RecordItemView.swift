@@ -9,17 +9,20 @@ import SwiftUI
 import SDWebImageSwiftUI
 import EkaMedicalRecordsCore
 
+enum RecordsDocumentSize {
+  static let thumbnailHeight: CGFloat = 110
+  static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
+  static let itemHorizontalSpacing: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? EkaSpacing.spacingS : EkaSpacing.spacingXxxs
+}
+
 struct RecordItemView: View {
   
   // MARK: - Properties
   
-  enum RecordsDocumentThumbnailSize {
-    static let height: CGFloat = 110
-  }
-  let itemWidth: CGFloat = 160
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
+  @Binding var selectedFilterOption: RecordSortOptions?
   var onTapEdit: (Record) -> Void
   var onTapDelete: (Record) -> Void
   
@@ -29,12 +32,14 @@ struct RecordItemView: View {
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
     pickerSelectedRecords: Binding<[Record]>,
+    selectedFilterOption: Binding<RecordSortOptions?>,
     onTapEdit: @escaping (Record) -> Void,
     onTapDelete: @escaping (Record) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
     self._pickerSelectedRecords = pickerSelectedRecords
+    self._selectedFilterOption = selectedFilterOption
     self.onTapEdit = onTapEdit
     self.onTapDelete = onTapDelete
   }
@@ -80,7 +85,7 @@ struct RecordItemView: View {
       /// Bottom Meta Data View 
       BottomMetaDataView()
     }
-    .frame(width: itemWidth)
+    .frame(width: RecordsDocumentSize.itemWidth)
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
@@ -111,10 +116,41 @@ struct RecordItemView: View {
 extension RecordItemView {
   private func BottomMetaDataView() -> some View {
     HStack {
-      if let record = itemData.record,
-         let uploadedDate = record.uploadDate {
-        Text("Added \(uploadedDate.formatted(as: "dd MMM ‘yy"))")
-          .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
+      /// Icon Image
+      VStack {
+        if let record = itemData.record,
+           let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
+          Image(uiImage: recordType.imageIcon)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 12, height: 12)
+            .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
+            .padding(4)
+            .background(Color(uiColor: recordType.imageIconBackgroundColor))
+            .cornerRadius(2)
+            .padding(.top, EkaSpacing.spacingXs)
+          Spacer()
+        }
+      }
+      
+      VStack(alignment: .leading) {
+        /// Document type
+        if let record = itemData.record,
+           let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
+          Text("\(recordType.filterName)")
+            .textStyle(
+              ekaFont: .calloutBold,
+              color: .black
+            )
+        }
+        /// Date
+        if let record = itemData.record {
+          let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
+          let dateText = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
+          
+          Text(dateText)
+            .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
+        }
       }
       
       Spacer()
@@ -122,7 +158,7 @@ extension RecordItemView {
       MenuView()
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
-    .frame(width: itemWidth, height: 35)
+    .frame(width: RecordsDocumentSize.itemWidth, height: 50)
   }
   
   /// Thumbnail
@@ -133,13 +169,13 @@ extension RecordItemView {
         .scaledToFill()
       Color.black.opacity(0.2).layoutPriority(-1)
     }
-    .frame(width: itemWidth, height: RecordsDocumentThumbnailSize.height, alignment: .top)
+    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
     .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
   private func ThumbnailImageLoadingView() -> some View {
     Color.black.opacity(0.6)
-      .frame(width: itemWidth, height: RecordsDocumentThumbnailSize.height, alignment: .top)
+      .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
       .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
@@ -171,11 +207,11 @@ extension RecordItemView {
       Image(systemName: "sparkle")
         .resizable()
         .scaledToFit()
-        .frame(width: 12, height: 12)
-        .foregroundStyle(Color(.primary500))
+        .frame(width: 13, height: 13)
+        .foregroundStyle(Color(.yellow500))
       
       Text("Smart")
-        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
     }
     .padding(.horizontal, 10)
     .padding(.vertical, EkaSpacing.spacingXxs)
@@ -245,6 +281,7 @@ extension RecordItemView {
     itemData: RecordItemViewData.formRecordItemPreviewData(),
     recordPresentationState: .displayAll,
     pickerSelectedRecords: .constant([]),
+    selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
     onTapEdit: {_ in},
     onTapDelete: {_ in}
   )

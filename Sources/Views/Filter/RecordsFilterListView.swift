@@ -17,16 +17,19 @@ struct RecordsFilterListView: View {
   let recordsRepo: RecordsRepo
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
+  @Binding var selectedSortFilter: RecordSortOptions?
   @Environment(\.managedObjectContext) private var viewContext
   
   // MARK: - Init
   
   init(
     recordsRepo: RecordsRepo,
-    selectedChip: Binding<RecordDocumentType>
+    selectedChip: Binding<RecordDocumentType>,
+    selectedSortFilter: Binding<RecordSortOptions?>
   ) {
     self.recordsRepo = recordsRepo
     _selectedChip = selectedChip
+    _selectedSortFilter = selectedSortFilter
   }
   
   var body: some View {
@@ -54,6 +57,8 @@ extension RecordsFilterListView {
     ScrollViewReader { scrollViewProxy in
       ScrollView(.horizontal, showsIndicators: false) {
         HStack {
+          // Sort Button
+          RecordSortMenuView(selectedOption: $selectedSortFilter)
           ForEach(RecordDocumentType.allCases.filter { recordsFilter.keys.contains($0) }, id: \.self) { chip in
             ChipView(
               selectionId: chip.intValue,
@@ -96,5 +101,15 @@ extension RecordsFilterListView {
 }
 
 #Preview {
-  RecordsFilterListView(recordsRepo: RecordsRepo(), selectedChip: .constant(.typeAll))
+  RecordsFilterListView(
+    recordsRepo: RecordsRepo(),
+    selectedChip: .constant(
+      .typeAll
+    ),
+    selectedSortFilter: .constant(
+      .dateOfUpload(
+        sortingOrder: .newToOld
+      )
+    )
+  )
 }

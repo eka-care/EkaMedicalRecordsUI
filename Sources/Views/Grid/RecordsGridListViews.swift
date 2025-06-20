@@ -15,11 +15,16 @@ public struct RecordsGridListView: View {
   
   let recordsRepo: RecordsRepo
   let columns = [
-    GridItem(.flexible()), // First column
-    GridItem(.flexible())  // Second column
+    GridItem(
+      .adaptive(
+        minimum: RecordsDocumentSize.itemWidth
+      ),
+      spacing: RecordsDocumentSize.itemHorizontalSpacing
+    )
   ]
   let recordPresentationState: RecordPresentationState
   @Environment(\.managedObjectContext) private var viewContext
+  @Environment(\.dismiss) private var dismiss
   /// Upload bottom sheet bool
   @State private var isUploadBottomSheetPresented = false
   /// Images that are selected for upload
@@ -44,6 +49,8 @@ public struct RecordsGridListView: View {
   @State private var itemToBeDeleted: Record?
   /// Selected filter
   @State private var selectedFilter: RecordDocumentType = .typeAll
+  /// Selected sort type
+  @State private var selectedSortFilter: RecordSortOptions?
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -68,7 +75,7 @@ public struct RecordsGridListView: View {
       } else {
         FilteredRecordsView(
           predicate: generatePredicate(for: selectedFilter),
-          sortDescriptors: [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)]
+          sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
         ) { (records: FetchedResults<Record>) in
           Group {
             if records.isEmpty {
@@ -77,31 +84,24 @@ public struct RecordsGridListView: View {
                 systemImage: "doc",
                 description: Text("Upload documents to see them here")
               )
-              
-              ButtonView(
-                title: "Add record",
-                imageName: UIImage(systemName: "plus"),
-                size: .large,
-                imagePosition: .leading,
-                style: .outline,
-                isFullWidth: false
-              ) {
-                isUploadBottomSheetPresented = true
-              }
-              .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-              .padding([.trailing, .bottom], EkaSpacing.spacingM)
+              RecordUploadMenuView(
+                images: $uploadedImages,
+                selectedPDFData: $selectedPDFData,
+                hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+              )
             } else {
               ScrollView {
                 // Filter chips
                 RecordsFilterListView(
                   recordsRepo: recordsRepo,
-                  selectedChip: $selectedFilter
+                  selectedChip: $selectedFilter,
+                  selectedSortFilter: $selectedSortFilter
                 )
                 .padding([.leading, .vertical], EkaSpacing.spacingM)
                 .environment(\.managedObjectContext, viewContext)
                 
                 // Grid
-                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingL) {
+                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                   ForEach(records, id: \.id) { item in
                     switch recordPresentationState {
                     case .dashboard, .displayAll:
@@ -113,22 +113,16 @@ public struct RecordsGridListView: View {
                     }
                   }
                 }
-                .padding()
+                .padding(.horizontal, EkaSpacing.spacingS)
+                .padding(.vertical)
                 .padding(.bottom, 140)
               }
               
-              ButtonView(
-                title: "Add record",
-                imageName: UIImage(systemName: "plus"),
-                size: .large,
-                imagePosition: .leading,
-                style: .outline,
-                isFullWidth: false
-              ) {
-                isUploadBottomSheetPresented = true
-              }
-              .shadow(color: .black.opacity(0.3), radius: 50, x: 0, y: 10)
-              .padding([.trailing, .bottom], EkaSpacing.spacingM)
+              RecordUploadMenuView(
+                images: $uploadedImages,
+                selectedPDFData: $selectedPDFData,
+                hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+              )
             }
           }
         }
@@ -140,6 +134,17 @@ public struct RecordsGridListView: View {
     }
     .navigationTitle(recordPresentationState.title) // Add a navigation title
     .toolbar { /// Toolbar item
+      /// Close button on the top left
+      ToolbarItem(placement: .topBarLeading) {
+        Button(action: {
+          /// Dismiss or handle close action
+          dismiss()
+        }) {
+          Text("Close")
+            .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .primary500))
+        }
+      }
+      
       ToolbarItem(placement: .topBarTrailing) {
         if pickerSelectedRecords.count > 0 {
           Button("Done") {
@@ -149,17 +154,6 @@ public struct RecordsGridListView: View {
       }
     }
     .loadingOverlay(isUploading: $isUploading, isDownloading: $isDownloading)
-    .sheet(isPresented: $isUploadBottomSheetPresented) {
-      RecordUploadSheetView(
-        images: $uploadedImages,
-        selectedPDFData: $selectedPDFData,
-        hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized,
-        isUploadBottomSheetPresented: $isUploadBottomSheetPresented
-      ) // The content of the sheet
-      .presentationDetents([.medium]) // Set medium detent
-      .presentationBackground(Color(.neutrals100)) // Set background
-      .presentationDragIndicator(.visible)
-    }
     .sheet(isPresented: $isEditBottomSheetPresented) {
       NavigationStack {
         EditBottomSheetView(
@@ -201,6 +195,7 @@ extension RecordsGridListView {
       itemData: RecordItemViewData.formRecordItemViewData(from: item),
       recordPresentationState: recordPresentationState,
       pickerSelectedRecords: $pickerSelectedRecords,
+      selectedFilterOption: $selectedSortFilter,
       onTapEdit: editItem(record:),
       onTapDelete: onTapDelete(record:)
     )
@@ -308,6 +303,16 @@ extension RecordsGridListView {
     default:
       let typePredicate = PredicateHelper.equals("documentType", value: Int64(filter.intValue))
       return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, typePredicate])
+    }
+  }
+  
+  func generateSortDescriptors(for sortType: RecordSortOptions?) -> [NSSortDescriptor] {
+    guard let sortType else { return [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)] }
+    switch sortType {
+    case .dateOfUpload(let order):
+      return [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: order == .oldToNew)]
+    case .documentDate(let order):
+      return [NSSortDescriptor(keyPath: \Record.documentDate, ascending: order == .oldToNew)]
     }
   }
 }
