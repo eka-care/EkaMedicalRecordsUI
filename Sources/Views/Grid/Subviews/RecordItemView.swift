@@ -8,6 +8,9 @@
 import SwiftUI
 import SDWebImageSwiftUI
 import EkaMedicalRecordsCore
+import Combine
+
+typealias Record = EkaMedicalRecordsCore.Record
 
 enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
@@ -25,6 +28,8 @@ struct RecordItemView: View {
   @Binding var selectedFilterOption: RecordSortOptions?
   var onTapEdit: (Record) -> Void
   var onTapDelete: (Record) -> Void
+  @State private var isNetworkAvailable = true
+  @State var cancellable: AnyCancellable?
   
   // MARK: - Init
   
@@ -52,15 +57,23 @@ struct RecordItemView: View {
         /// Thumbnail Image
         if let documentImage = itemData.record?.thumbnail {
           ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(documentImage))
+            .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
+            .blur(radius: isThumbnailBlurred() ? 2 : 0)
         } else {
           ThumbnailImageLoadingView()
         }
         
-        /// Show smart tag
-        if let record = itemData.record, record.isSmart {
+        
+        if let record = itemData.record {
           VStack {
             HStack {
-              SmartReportView()
+              /// Sync State
+              if let syncState = RecordSyncState(from: record.syncState ?? ""),
+                 syncState != .upload(success: true) {
+                TopLeftStateTileView(syncState: syncState)
+              } else if record.isSmart {
+                SmartReportView()
+              }
               Spacer()
             }
             Spacer()
@@ -108,6 +121,14 @@ struct RecordItemView: View {
     .simultaneousGesture(TapGesture().onEnded {
       onTapRecord()
     })
+    .onAppear {
+      cancellable = NetworkMonitor.shared.publisher
+        .receive(on: DispatchQueue.main)
+        .assign(to: \.isNetworkAvailable, on: self)
+    }
+    .onDisappear {
+      cancellable?.cancel()
+    }
   }
 }
 
@@ -159,6 +180,48 @@ extension RecordItemView {
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
     .frame(width: RecordsDocumentSize.itemWidth, height: 50)
+  }
+  
+  private func TopLeftStateTileView(syncState: RecordSyncState) -> some View {
+    HStack {
+      if !isNetworkAvailable {
+        NoNetworkStateView()
+      } else if syncState == .uploading {
+        UploadingStateView()
+      }
+    }
+  }
+  
+  private func UploadingStateView() -> some View {
+    HStack {
+      ProgressView()
+        .frame(width: 13, height: 13)
+        .foregroundStyle(Color(.yellow500))
+      
+      Text("Uploading")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadiusModifier(6, corners: [.bottomRight])
+  }
+  
+  private func NoNetworkStateView() -> some View {
+    HStack {
+      Image(systemName: "icloud.slash.fill")
+        .resizable()
+        .scaledToFit()
+        .frame(width: 13, height: 13)
+        .foregroundStyle(Color(.neutrals600))
+      
+      Text("Waiting for network")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals600))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadiusModifier(6, corners: [.bottomRight])
   }
   
   /// Thumbnail
@@ -266,13 +329,18 @@ extension RecordItemView {
     itemData.isSelected.toggle()
     /// If item is selected add it in picker selected records
     if itemData.isSelected {
-        pickerSelectedRecords.append(record)
+      pickerSelectedRecords.append(record)
     } else {
       /// If item is unselected remove it from picker selected records
       if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.objectID == record.objectID}) {
         pickerSelectedRecords.remove(at: itemIndex)
       }
     }
+  }
+  
+  private func isThumbnailBlurred() -> Bool {
+    guard let recordState = RecordSyncState(from: itemData.record?.syncState ?? "") else { return false }
+    return recordState == .upload(success: false) && !isNetworkAvailable
   }
 }
 
