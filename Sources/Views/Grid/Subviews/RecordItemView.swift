@@ -306,7 +306,7 @@ extension RecordItemView {
     }
   }
 }
-
+//
 extension RecordItemView {
   private func onTapRecord() {
     switch recordPresentationState {
@@ -340,7 +340,7 @@ extension RecordItemView {
   
   private func isThumbnailBlurred() -> Bool {
     guard let recordState = RecordSyncState(from: itemData.record?.syncState ?? "") else { return false }
-    return recordState == .upload(success: false) && !isNetworkAvailable
+    return recordState == .upload(success: false) && !isNetworkAvailable || recordState == .upload(success: false)
   }
 }
 
