@@ -33,8 +33,6 @@ public struct RecordsGridListView: View {
   @State private var selectedPDFData: Data?
   /// Records that are selected in records picker state
   @State private var pickerSelectedRecords: [Record] = []
-  /// Used to display uploading loader in view
-  @State private var isUploading: Bool = false
   /// Used to display downloading loader in view
   @State private var isDownloading: Bool = false
   /// Edit bottom sheet bool
@@ -153,7 +151,6 @@ public struct RecordsGridListView: View {
         }
       }
     }
-    .loadingOverlay(isUploading: $isUploading, isDownloading: $isDownloading)
     .sheet(isPresented: $isEditBottomSheetPresented) {
       NavigationStack {
         EditBottomSheetView(
@@ -197,7 +194,8 @@ extension RecordsGridListView {
       pickerSelectedRecords: $pickerSelectedRecords,
       selectedFilterOption: $selectedSortFilter,
       onTapEdit: editItem(record:),
-      onTapDelete: onTapDelete(record:)
+      onTapDelete: onTapDelete(record:),
+      onTapRetry: onTapRetry(record:)
     )
     // alert box
     .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
@@ -222,13 +220,11 @@ extension RecordsGridListView {
     data: [Data],
     contentType: FileType
   ) {
-    isUploading = true /// Show uploading loader
     isUploadBottomSheetPresented = false /// Dismiss the sheet
     let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
     recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
       recordSelectedForEdit = uploadedRecord
       isEditBottomSheetPresented = true /// Show edit bottom sheet
-      isUploading = false
     }
   }
   
@@ -249,6 +245,11 @@ extension RecordsGridListView {
   private func onTapDelete(record: Record) {
     itemToBeDeleted = record
     isDeleteAlertPresented = true
+  }
+  
+  /// On tap retry upload
+  private func onTapRetry(record: Record) {
+    recordsRepo.uploadRecord(record: record) { record in }
   }
   
   /// Used to delete a grid item

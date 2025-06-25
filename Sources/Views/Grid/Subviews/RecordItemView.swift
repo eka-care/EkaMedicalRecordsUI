@@ -28,6 +28,7 @@ struct RecordItemView: View {
   @Binding var selectedFilterOption: RecordSortOptions?
   var onTapEdit: (Record) -> Void
   var onTapDelete: (Record) -> Void
+  var onTapRetry: (Record) -> Void
   @State private var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
   
@@ -39,7 +40,8 @@ struct RecordItemView: View {
     pickerSelectedRecords: Binding<[Record]>,
     selectedFilterOption: Binding<RecordSortOptions?>,
     onTapEdit: @escaping (Record) -> Void,
-    onTapDelete: @escaping (Record) -> Void
+    onTapDelete: @escaping (Record) -> Void,
+    onTapRetry: @escaping (Record) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -47,6 +49,7 @@ struct RecordItemView: View {
     self._selectedFilterOption = selectedFilterOption
     self.onTapEdit = onTapEdit
     self.onTapDelete = onTapDelete
+    self.onTapRetry = onTapRetry
   }
   
   // MARK: - Body
@@ -59,10 +62,20 @@ struct RecordItemView: View {
           ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(documentImage))
             .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
             .blur(radius: isThumbnailBlurred() ? 2 : 0)
+          
+          /// Show retry upload view
+          if let record = itemData.record,
+             let syncState = RecordSyncState(from: record.syncState ?? ""),
+             syncState == .upload(success: false), isNetworkAvailable {
+            RetryUploadingView()
+              .contentShape(Rectangle())
+              .onTapGesture {
+                onTapRetry(record)
+              }
+          }
         } else {
           ThumbnailImageLoadingView()
         }
-        
         
         if let record = itemData.record {
           VStack {
@@ -196,7 +209,7 @@ extension RecordItemView {
     HStack {
       ProgressView()
         .frame(width: 13, height: 13)
-        .foregroundStyle(Color(.yellow500))
+        .tint(Color(.yellow500))
       
       Text("Uploading")
         .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
@@ -222,6 +235,23 @@ extension RecordItemView {
     .padding(.vertical, EkaSpacing.spacingXxs)
     .background(.white)
     .cornerRadiusModifier(6, corners: [.bottomRight])
+  }
+  
+  private func RetryUploadingView() -> some View {
+    HStack {
+      Image(systemName: "arrow.clockwise")
+        .resizable()
+        .scaledToFit()
+        .frame(width: 13, height: 13)
+        .foregroundStyle(Color(.primary500))
+      
+      Text("Retry uploading")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadius(6)
   }
   
   /// Thumbnail
@@ -351,6 +381,7 @@ extension RecordItemView {
     pickerSelectedRecords: .constant([]),
     selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
     onTapEdit: {_ in},
-    onTapDelete: {_ in}
+    onTapDelete: {_ in},
+    onTapRetry: {_ in}
   )
 }
