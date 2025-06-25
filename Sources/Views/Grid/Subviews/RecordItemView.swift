@@ -58,7 +58,7 @@ struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        if let documentImage = itemData.record?.thumbnail {
+        if let documentImage = itemData.record?.thumbnail, !documentImage.isEmpty {
           ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(documentImage))
             .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
             .blur(radius: isThumbnailBlurred() ? 2 : 0)
@@ -206,9 +206,9 @@ extension RecordItemView {
   }
   
   private func UploadingStateView() -> some View {
-    HStack {
+    HStack(alignment: .bottom) {
       ProgressView()
-        .frame(width: 13, height: 13)
+        .frame(width: 10, height: 10)
         .tint(Color(.yellow500))
       
       Text("Uploading")

@@ -100,7 +100,7 @@ public struct RecordsGridListView: View {
                 
                 // Grid
                 LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
-                  ForEach(records, id: \.id) { item in
+                  ForEach(records) { item in
                     switch recordPresentationState {
                     case .dashboard, .displayAll:
                       NavigationLink(destination: RecordView(record: item)) {
@@ -144,6 +144,18 @@ public struct RecordsGridListView: View {
       }
       
       ToolbarItem(placement: .topBarTrailing) {
+        // Sync button
+        Button(action: {
+          /// refresh action
+          refreshRecords()
+        }) {
+          Image(systemName: "arrow.triangle.2.circlepath")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 24, height: 24, alignment: .center)
+            .foregroundStyle(Color(.primary500))
+        }
+        // Done
         if pickerSelectedRecords.count > 0 {
           Button("Done") {
             onDoneButtonPressed()
@@ -236,7 +248,7 @@ extension RecordsGridListView {
   /// Used to refresh records
   private func refreshRecords() {
     isLoadingRecordsFromServer = true
-    recordsRepo.getUpdatedAtAndStartFetchRecords {
+    recordsRepo.getUpdatedAtAndStartFetchRecords { success in
       isLoadingRecordsFromServer = false
     }
   }
