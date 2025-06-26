@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SDWebImageSwiftUI
 import EkaMedicalRecordsCore
 import Combine
 
@@ -15,7 +14,7 @@ typealias Record = EkaMedicalRecordsCore.Record
 enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
   static let bottomMetaDataHeight: CGFloat = 50
-  static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 160
+  static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
   static let itemHorizontalSpacing: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? EkaSpacing.spacingS : EkaSpacing.spacingXxxs
   static func getItemHeight() -> CGFloat {
     return thumbnailHeight + bottomMetaDataHeight
@@ -180,10 +179,15 @@ extension RecordItemView {
         /// Date
         if let record = itemData.record {
           let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
-          let dateText = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
+          let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
           
-          Text(dateText)
-            .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
+          let prefix = switch filterOption {
+          case .dateOfUpload: "Added "
+          default: ""
+          }
+          
+          Text(prefix + date)
+            .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
         }
       }
       
