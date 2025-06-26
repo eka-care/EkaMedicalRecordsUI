@@ -62,7 +62,6 @@ struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        
         ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
           .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
           .blur(radius: isThumbnailBlurred() ? 2 : 0)
