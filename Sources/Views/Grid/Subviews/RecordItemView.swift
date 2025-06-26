@@ -14,8 +14,12 @@ typealias Record = EkaMedicalRecordsCore.Record
 
 enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
-  static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
+  static let bottomMetaDataHeight: CGFloat = 50
+  static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 160
   static let itemHorizontalSpacing: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? EkaSpacing.spacingS : EkaSpacing.spacingXxxs
+  static func getItemHeight() -> CGFloat {
+    return thumbnailHeight + bottomMetaDataHeight
+  }
 }
 
 struct RecordItemView: View {
@@ -58,23 +62,20 @@ struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        if let documentImage = itemData.record?.thumbnail, !documentImage.isEmpty {
-          ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(documentImage))
-            .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
-            .blur(radius: isThumbnailBlurred() ? 2 : 0)
-          
-          /// Show retry upload view
-          if let record = itemData.record,
-             let syncState = RecordSyncState(from: record.syncState ?? ""),
-             syncState == .upload(success: false), isNetworkAvailable {
-            RetryUploadingView()
-              .contentShape(Rectangle())
-              .onTapGesture {
-                onTapRetry(record)
-              }
-          }
-        } else {
-          ThumbnailImageLoadingView()
+        
+        ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
+          .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
+          .blur(radius: isThumbnailBlurred() ? 2 : 0)
+        
+        /// Show retry upload view
+        if let record = itemData.record,
+           let syncState = RecordSyncState(from: record.syncState ?? ""),
+           syncState == .upload(success: false), isNetworkAvailable {
+          RetryUploadingView()
+            .contentShape(Rectangle())
+            .onTapGesture {
+              onTapRetry(record)
+            }
         }
         
         if let record = itemData.record {
@@ -111,7 +112,7 @@ struct RecordItemView: View {
       /// Bottom Meta Data View 
       BottomMetaDataView()
     }
-    .frame(width: RecordsDocumentSize.itemWidth)
+    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight + RecordsDocumentSize.bottomMetaDataHeight)
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
@@ -192,7 +193,7 @@ extension RecordItemView {
       MenuView()
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
-    .frame(width: RecordsDocumentSize.itemWidth, height: 50)
+    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)
   }
   
   private func TopLeftStateTileView(syncState: RecordSyncState) -> some View {
@@ -255,12 +256,15 @@ extension RecordItemView {
   }
   
   /// Thumbnail
-  private func ThumbnailImageView(thumbnailImageUrl: URL) -> some View {
+  private func ThumbnailImageView(thumbnailImageUrl: URL?) -> some View {
     ZStack {
-      WebImage(url: thumbnailImageUrl)
-        .resizable()
-        .scaledToFill()
-      Color.black.opacity(0.2).layoutPriority(-1)
+      AsyncImage(url: thumbnailImageUrl) { image in
+        image.resizable()
+          .scaledToFill()
+          .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight)
+      } placeholder: {
+        Color.gray.opacity(0.2)
+      }
     }
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
     .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))

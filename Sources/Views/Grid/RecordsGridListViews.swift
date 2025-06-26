@@ -49,6 +49,7 @@ public struct RecordsGridListView: View {
   @State private var selectedFilter: RecordDocumentType = .typeAll
   /// Selected sort type
   @State private var selectedSortFilter: RecordSortOptions?
+  @StateObject private var networkMonitor = NetworkMonitor.shared
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -100,14 +101,16 @@ public struct RecordsGridListView: View {
                 
                 // Grid
                 LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
-                  ForEach(records) { item in
+                  ForEach(records, id: \.id) { item in
                     switch recordPresentationState {
                     case .dashboard, .displayAll:
                       NavigationLink(destination: RecordView(record: item)) {
                         ItemView(item: item)
+                          .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.getItemHeight(), alignment: .center)
                       }
                     case .picker:
                       ItemView(item: item)
+                        .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.getItemHeight(), alignment: .center)
                     }
                   }
                 }
@@ -163,6 +166,17 @@ public struct RecordsGridListView: View {
         }
       }
     }
+    // alert box
+    .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
+      Button("Yes", role: .destructive) {
+        if let record = itemToBeDeleted {
+          deleteItem(record: record)
+        }
+      }
+      Button("No", role: .cancel) {}
+    } message: {
+      Text("Are you sure you want to delete this record?")
+    }
     .sheet(isPresented: $isEditBottomSheetPresented) {
       NavigationStack {
         EditBottomSheetView(
@@ -199,7 +213,9 @@ public struct RecordsGridListView: View {
 // MARK: - Subviews
 
 extension RecordsGridListView {
-  private func ItemView(item: Record) -> some View {
+  private func ItemView(
+    item: Record
+  ) -> some View {
     RecordItemView(
       itemData: RecordItemViewData.formRecordItemViewData(from: item),
       recordPresentationState: recordPresentationState,
@@ -209,17 +225,6 @@ extension RecordsGridListView {
       onTapDelete: onTapDelete(record:),
       onTapRetry: onTapRetry(record:)
     )
-    // alert box
-    .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
-      Button("Yes", role: .destructive) {
-        if let record = itemToBeDeleted {
-          deleteItem(record: record)
-        }
-      }
-      Button("No", role: .cancel) {}
-    } message: {
-      Text("Are you sure you want to delete this record?")
-    }
   }
 }
 
