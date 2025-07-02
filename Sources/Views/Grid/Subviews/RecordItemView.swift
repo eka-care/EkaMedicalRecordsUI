@@ -265,6 +265,7 @@ extension RecordItemView {
         image.resizable()
           .scaledToFill()
           .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight)
+          .foregroundStyle(Color.gray.opacity(0.2))
       } placeholder: {
         Color.gray.opacity(0.2)
       }
