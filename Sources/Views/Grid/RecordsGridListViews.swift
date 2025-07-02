@@ -33,8 +33,6 @@ public struct RecordsGridListView: View {
   @State private var selectedPDFData: Data?
   /// Records that are selected in records picker state
   @State private var pickerSelectedRecords: [Record] = []
-  /// Used to display uploading loader in view
-  @State private var isUploading: Bool = false
   /// Used to display downloading loader in view
   @State private var isDownloading: Bool = false
   /// Edit bottom sheet bool
@@ -51,6 +49,7 @@ public struct RecordsGridListView: View {
   @State private var selectedFilter: RecordDocumentType = .typeAll
   /// Selected sort type
   @State private var selectedSortFilter: RecordSortOptions?
+  @StateObject private var networkMonitor = NetworkMonitor.shared
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   
@@ -107,9 +106,11 @@ public struct RecordsGridListView: View {
                     case .dashboard, .displayAll:
                       NavigationLink(destination: RecordView(record: item)) {
                         ItemView(item: item)
+                          .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.getItemHeight(), alignment: .center)
                       }
                     case .picker:
                       ItemView(item: item)
+                        .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.getItemHeight(), alignment: .center)
                     }
                   }
                 }
@@ -146,6 +147,18 @@ public struct RecordsGridListView: View {
       }
       
       ToolbarItem(placement: .topBarTrailing) {
+        // Sync button
+        Button(action: {
+          /// refresh action
+          refreshRecords()
+        }) {
+          Image(systemName: "arrow.triangle.2.circlepath")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 24, height: 24, alignment: .center)
+            .foregroundStyle(Color(.primary500))
+        }
+        // Done
         if pickerSelectedRecords.count > 0 {
           Button("Done") {
             onDoneButtonPressed()
@@ -153,7 +166,17 @@ public struct RecordsGridListView: View {
         }
       }
     }
-    .loadingOverlay(isUploading: $isUploading, isDownloading: $isDownloading)
+    // alert box
+    .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
+      Button("Yes", role: .destructive) {
+        if let record = itemToBeDeleted {
+          deleteItem(record: record)
+        }
+      }
+      Button("No", role: .cancel) {}
+    } message: {
+      Text("Are you sure you want to delete this record?")
+    }
     .sheet(isPresented: $isEditBottomSheetPresented) {
       NavigationStack {
         EditBottomSheetView(
@@ -190,26 +213,18 @@ public struct RecordsGridListView: View {
 // MARK: - Subviews
 
 extension RecordsGridListView {
-  private func ItemView(item: Record) -> some View {
+  private func ItemView(
+    item: Record
+  ) -> some View {
     RecordItemView(
       itemData: RecordItemViewData.formRecordItemViewData(from: item),
       recordPresentationState: recordPresentationState,
       pickerSelectedRecords: $pickerSelectedRecords,
       selectedFilterOption: $selectedSortFilter,
       onTapEdit: editItem(record:),
-      onTapDelete: onTapDelete(record:)
+      onTapDelete: onTapDelete(record:),
+      onTapRetry: onTapRetry(record:)
     )
-    // alert box
-    .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
-      Button("Yes", role: .destructive) {
-        if let record = itemToBeDeleted {
-          deleteItem(record: record)
-        }
-      }
-      Button("No", role: .cancel) {}
-    } message: {
-      Text("Are you sure you want to delete this record?")
-    }
   }
 }
 
@@ -222,13 +237,11 @@ extension RecordsGridListView {
     data: [Data],
     contentType: FileType
   ) {
-    isUploading = true /// Show uploading loader
     isUploadBottomSheetPresented = false /// Dismiss the sheet
     let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
     recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
       recordSelectedForEdit = uploadedRecord
       isEditBottomSheetPresented = true /// Show edit bottom sheet
-      isUploading = false
     }
   }
   
@@ -240,7 +253,7 @@ extension RecordsGridListView {
   /// Used to refresh records
   private func refreshRecords() {
     isLoadingRecordsFromServer = true
-    recordsRepo.getUpdatedAtAndStartFetchRecords {
+    recordsRepo.getUpdatedAtAndStartFetchRecords { success in
       isLoadingRecordsFromServer = false
     }
   }
@@ -249,6 +262,11 @@ extension RecordsGridListView {
   private func onTapDelete(record: Record) {
     itemToBeDeleted = record
     isDeleteAlertPresented = true
+  }
+  
+  /// On tap retry upload
+  private func onTapRetry(record: Record) {
+    recordsRepo.uploadRecord(record: record) { record in }
   }
   
   /// Used to delete a grid item

@@ -6,13 +6,19 @@
 //
 
 import SwiftUI
-import SDWebImageSwiftUI
 import EkaMedicalRecordsCore
+import Combine
+
+typealias Record = EkaMedicalRecordsCore.Record
 
 enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
+  static let bottomMetaDataHeight: CGFloat = 50
   static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
   static let itemHorizontalSpacing: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? EkaSpacing.spacingS : EkaSpacing.spacingXxxs
+  static func getItemHeight() -> CGFloat {
+    return thumbnailHeight + bottomMetaDataHeight
+  }
 }
 
 struct RecordItemView: View {
@@ -25,6 +31,9 @@ struct RecordItemView: View {
   @Binding var selectedFilterOption: RecordSortOptions?
   var onTapEdit: (Record) -> Void
   var onTapDelete: (Record) -> Void
+  var onTapRetry: (Record) -> Void
+  @State private var isNetworkAvailable = true
+  @State var cancellable: AnyCancellable?
   
   // MARK: - Init
   
@@ -34,7 +43,8 @@ struct RecordItemView: View {
     pickerSelectedRecords: Binding<[Record]>,
     selectedFilterOption: Binding<RecordSortOptions?>,
     onTapEdit: @escaping (Record) -> Void,
-    onTapDelete: @escaping (Record) -> Void
+    onTapDelete: @escaping (Record) -> Void,
+    onTapRetry: @escaping (Record) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -42,6 +52,7 @@ struct RecordItemView: View {
     self._selectedFilterOption = selectedFilterOption
     self.onTapEdit = onTapEdit
     self.onTapDelete = onTapDelete
+    self.onTapRetry = onTapRetry
   }
   
   // MARK: - Body
@@ -50,17 +61,31 @@ struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        if let documentImage = itemData.record?.thumbnail {
-          ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(documentImage))
-        } else {
-          ThumbnailImageLoadingView()
+        ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
+          .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
+          .blur(radius: isThumbnailBlurred() ? 2 : 0)
+        
+        /// Show retry upload view
+        if let record = itemData.record,
+           let syncState = RecordSyncState(from: record.syncState ?? ""),
+           syncState == .upload(success: false), isNetworkAvailable {
+          RetryUploadingView()
+            .contentShape(Rectangle())
+            .onTapGesture {
+              onTapRetry(record)
+            }
         }
         
-        /// Show smart tag
-        if let record = itemData.record, record.isSmart {
+        if let record = itemData.record {
           VStack {
             HStack {
-              SmartReportView()
+              /// Sync State
+              if let syncState = RecordSyncState(from: record.syncState ?? ""),
+                 syncState != .upload(success: true) {
+                TopLeftStateTileView(syncState: syncState)
+              } else if record.isSmart {
+                SmartReportView()
+              }
               Spacer()
             }
             Spacer()
@@ -85,7 +110,7 @@ struct RecordItemView: View {
       /// Bottom Meta Data View 
       BottomMetaDataView()
     }
-    .frame(width: RecordsDocumentSize.itemWidth)
+    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight + RecordsDocumentSize.bottomMetaDataHeight)
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
@@ -108,6 +133,14 @@ struct RecordItemView: View {
     .simultaneousGesture(TapGesture().onEnded {
       onTapRecord()
     })
+    .onAppear {
+      cancellable = NetworkMonitor.shared.publisher
+        .receive(on: DispatchQueue.main)
+        .assign(to: \.isNetworkAvailable, on: self)
+    }
+    .onDisappear {
+      cancellable?.cancel()
+    }
   }
 }
 
@@ -146,10 +179,15 @@ extension RecordItemView {
         /// Date
         if let record = itemData.record {
           let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
-          let dateText = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
+          let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
           
-          Text(dateText)
-            .textStyle(ekaFont: .calloutRegular, color: UIColor(resource: .neutrals600))
+          let prefix = switch filterOption {
+          case .dateOfUpload: "Added "
+          default: ""
+          }
+          
+          Text(prefix + date)
+            .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
         }
       }
       
@@ -158,16 +196,79 @@ extension RecordItemView {
       MenuView()
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
-    .frame(width: RecordsDocumentSize.itemWidth, height: 50)
+    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)
+  }
+  
+  private func TopLeftStateTileView(syncState: RecordSyncState) -> some View {
+    HStack {
+      if !isNetworkAvailable {
+        NoNetworkStateView()
+      } else if syncState == .uploading {
+        UploadingStateView()
+      }
+    }
+  }
+  
+  private func UploadingStateView() -> some View {
+    HStack(alignment: .bottom) {
+      ProgressView()
+        .frame(width: 10, height: 10)
+        .tint(Color(.yellow500))
+      
+      Text("Uploading")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadiusModifier(6, corners: [.bottomRight])
+  }
+  
+  private func NoNetworkStateView() -> some View {
+    HStack {
+      Image(systemName: "icloud.slash.fill")
+        .resizable()
+        .scaledToFit()
+        .frame(width: 13, height: 13)
+        .foregroundStyle(Color(.neutrals600))
+      
+      Text("Waiting for network")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals600))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadiusModifier(6, corners: [.bottomRight])
+  }
+  
+  private func RetryUploadingView() -> some View {
+    HStack {
+      Image(systemName: "arrow.clockwise")
+        .resizable()
+        .scaledToFit()
+        .frame(width: 13, height: 13)
+        .foregroundStyle(Color(.primary500))
+      
+      Text("Retry uploading")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .primary500))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadius(6)
   }
   
   /// Thumbnail
-  private func ThumbnailImageView(thumbnailImageUrl: URL) -> some View {
+  private func ThumbnailImageView(thumbnailImageUrl: URL?) -> some View {
     ZStack {
-      WebImage(url: thumbnailImageUrl)
-        .resizable()
-        .scaledToFill()
-      Color.black.opacity(0.2).layoutPriority(-1)
+      AsyncImage(url: thumbnailImageUrl) { image in
+        image.resizable()
+          .scaledToFill()
+          .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight)
+          .foregroundStyle(Color.gray.opacity(0.2))
+      } placeholder: {
+        Color.gray.opacity(0.2)
+      }
     }
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
     .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
@@ -243,7 +344,7 @@ extension RecordItemView {
     }
   }
 }
-
+//
 extension RecordItemView {
   private func onTapRecord() {
     switch recordPresentationState {
@@ -266,13 +367,18 @@ extension RecordItemView {
     itemData.isSelected.toggle()
     /// If item is selected add it in picker selected records
     if itemData.isSelected {
-        pickerSelectedRecords.append(record)
+      pickerSelectedRecords.append(record)
     } else {
       /// If item is unselected remove it from picker selected records
       if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.objectID == record.objectID}) {
         pickerSelectedRecords.remove(at: itemIndex)
       }
     }
+  }
+  
+  private func isThumbnailBlurred() -> Bool {
+    guard let recordState = RecordSyncState(from: itemData.record?.syncState ?? "") else { return false }
+    return recordState == .upload(success: false) && !isNetworkAvailable || recordState == .upload(success: false)
   }
 }
 
@@ -283,6 +389,7 @@ extension RecordItemView {
     pickerSelectedRecords: .constant([]),
     selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
     onTapEdit: {_ in},
-    onTapDelete: {_ in}
+    onTapDelete: {_ in},
+    onTapRetry: {_ in}
   )
 }
