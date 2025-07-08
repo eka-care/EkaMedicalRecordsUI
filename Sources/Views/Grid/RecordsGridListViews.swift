@@ -158,7 +158,10 @@ public struct RecordsGridListView: View {
             .frame(width: 24, height: 24, alignment: .center)
             .foregroundStyle(Color(.primary500))
         }
-        // Done
+      }
+      
+      ToolbarItem(placement: .topBarTrailing) {
+        // Done button
         if pickerSelectedRecords.count > 0 {
           Button("Done") {
             onDoneButtonPressed()
