@@ -285,6 +285,7 @@ extension RecordsGridListView {
   
   /// On press of done button in picker state
   private func onDoneButtonPressed() {
+    dismiss()
     isDownloading = true
     setPickerSelectedObjects(selectedRecords: pickerSelectedRecords) { pickedRecords in
       isDownloading = false
