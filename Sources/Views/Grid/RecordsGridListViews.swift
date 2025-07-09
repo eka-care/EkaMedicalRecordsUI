@@ -25,8 +25,6 @@ public struct RecordsGridListView: View {
   let recordPresentationState: RecordPresentationState
   @Environment(\.managedObjectContext) private var viewContext
   @Environment(\.dismiss) private var dismiss
-  /// Upload bottom sheet bool
-  @State private var isUploadBottomSheetPresented = false
   /// Images that are selected for upload
   @State private var uploadedImages: [UIImage] = []
   /// PDF data that is selected for upload
@@ -76,20 +74,22 @@ public struct RecordsGridListView: View {
           predicate: generatePredicate(for: selectedFilter),
           sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
         ) { (records: FetchedResults<Record>) in
-          Group {
-            if records.isEmpty {
-              ContentUnavailableView(
-                "No documents found",
-                systemImage: "doc",
-                description: Text("Upload documents to see them here")
-              )
-              RecordUploadMenuView(
-                images: $uploadedImages,
-                selectedPDFData: $selectedPDFData,
-                hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
-              )
-            } else {
-              ScrollView {
+          ZStack(alignment: .bottomTrailing) {
+            ScrollView {
+              if records.isEmpty {
+                VStack(spacing: 16) {
+                  Spacer(minLength: 100)
+                  
+                  ContentUnavailableView(
+                    "No documents found",
+                    systemImage: "doc",
+                    description: Text("Upload documents to see them here")
+                  )
+                  
+                  Spacer()
+                }
+                .frame(maxWidth: .infinity)
+              } else {
                 // Filter chips
                 RecordsFilterListView(
                   recordsRepo: recordsRepo,
@@ -106,25 +106,34 @@ public struct RecordsGridListView: View {
                     case .dashboard, .displayAll:
                       NavigationLink(destination: RecordView(record: item)) {
                         ItemView(item: item)
-                          .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.getItemHeight(), alignment: .center)
+                          .frame(
+                            width: RecordsDocumentSize.itemWidth,
+                            height: RecordsDocumentSize.getItemHeight()
+                          )
                       }
                     case .picker:
                       ItemView(item: item)
-                        .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.getItemHeight(), alignment: .center)
+                        .frame(
+                          width: RecordsDocumentSize.itemWidth,
+                          height: RecordsDocumentSize.getItemHeight()
+                        )
                     }
                   }
                 }
                 .padding(.horizontal, EkaSpacing.spacingS)
                 .padding(.vertical)
-                .padding(.bottom, 140)
+                .padding(.bottom, 140) // Space for floating button
               }
-              
-              RecordUploadMenuView(
-                images: $uploadedImages,
-                selectedPDFData: $selectedPDFData,
-                hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
-              )
             }
+            
+            // Upload menu floating bottom-right
+            RecordUploadMenuView(
+              images: $uploadedImages,
+              selectedPDFData: $selectedPDFData,
+              hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+            )
+            .padding([.bottom], EkaSpacing.spacingM)
+            .padding(.trailing, EkaSpacing.spacingS)
           }
         }
       }
@@ -240,7 +249,6 @@ extension RecordsGridListView {
     data: [Data],
     contentType: FileType
   ) {
-    isUploadBottomSheetPresented = false /// Dismiss the sheet
     let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
     recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
       recordSelectedForEdit = uploadedRecord
@@ -269,6 +277,7 @@ extension RecordsGridListView {
   
   /// On tap retry upload
   private func onTapRetry(record: Record) {
+    print("Record id for retry is -> \(record.objectID)")
     recordsRepo.uploadRecord(record: record) { record in }
   }
   

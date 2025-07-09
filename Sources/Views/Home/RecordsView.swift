@@ -41,7 +41,7 @@ public struct RecordsView: View {
   
   public init(
     recordsRepo: RecordsRepo,
-    recordPresentationState: RecordPresentationState = .picker,
+    recordPresentationState: RecordPresentationState = .displayAll,
     didSelectPickerDataObjects: RecordItemsCallback = nil
   ) {
     self.recordsRepo = recordsRepo

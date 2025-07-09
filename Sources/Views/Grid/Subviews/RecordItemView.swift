@@ -75,6 +75,7 @@ struct RecordItemView: View {
             .onTapGesture {
               onTapRetry(record)
             }
+            .frame(width: RecordsDocumentSize.itemWidth)
         }
         
         if let record = itemData.record {
