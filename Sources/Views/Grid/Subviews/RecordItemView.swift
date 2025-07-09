@@ -64,6 +64,7 @@ struct RecordItemView: View {
         ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
           .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
           .blur(radius: isThumbnailBlurred() ? 2 : 0)
+          .frame(width: RecordsDocumentSize.itemWidth)
         
         /// Show retry upload view
         if let record = itemData.record,
