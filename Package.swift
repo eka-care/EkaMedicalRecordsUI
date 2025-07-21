@@ -15,17 +15,15 @@ let package = Package(
       targets: ["EkaMedicalRecordsUI"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1")),
-    .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.0.0"),
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", from: "1.0.24")
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", from: "1.0.24"),
+    .package(url: "https://github.com/eka-care/EkaUI.git", branch: "main")
   ],
   targets: [
     .target(
       name: "EkaMedicalRecordsUI",
       dependencies: [
-        .product(name: "SnapKit", package: "SnapKit"),
-        .product(name: "SDWebImageSwiftUI", package: "SDWebImageSwiftUI"),
-        .product(name: "EkaMedicalRecordsCore", package: "EkaMedicalRecordsCore")
+        .product(name: "EkaMedicalRecordsCore", package: "EkaMedicalRecordsCore"),
+        .product(name: "EkaUI", package: "EkaUI")
       ],
       resources: [
         .process("Resources")
