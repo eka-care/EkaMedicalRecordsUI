@@ -17,7 +17,8 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1")),
     .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.0.0"),
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", from: "1.0.24")
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", branch: "feature/cases-databse-added"),
+    .package(url: "https://github.com/eka-care/EkaUI.git", branch: "fix/color-token-fixes")
   ],
   targets: [
     .target(
@@ -25,7 +26,8 @@ let package = Package(
       dependencies: [
         .product(name: "SnapKit", package: "SnapKit"),
         .product(name: "SDWebImageSwiftUI", package: "SDWebImageSwiftUI"),
-        .product(name: "EkaMedicalRecordsCore", package: "EkaMedicalRecordsCore")
+        .product(name: "EkaMedicalRecordsCore", package: "EkaMedicalRecordsCore"),
+        .product(name: "EkaUI", package: "EkaUI"),
       ],
       resources: [
         .process("Resources")

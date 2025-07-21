@@ -67,74 +67,70 @@ public struct RecordsGridListView: View {
   
   public var body: some View {
     ZStack(alignment: .bottomTrailing) {
-      if isLoadingRecordsFromServer {
-        ProgressView()
-      } else {
-        FilteredRecordsView(
-          predicate: generatePredicate(for: selectedFilter),
-          sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
-        ) { (records: FetchedResults<Record>) in
-          ZStack(alignment: .bottomTrailing) {
-            ScrollView {
-              if records.isEmpty {
-                VStack(spacing: 16) {
-                  Spacer(minLength: 100)
-                  
-                  ContentUnavailableView(
-                    "No documents found",
-                    systemImage: "doc",
-                    description: Text("Upload documents to see them here")
-                  )
-                  
-                  Spacer()
-                }
-                .frame(maxWidth: .infinity)
-              } else {
-                // Filter chips
-                RecordsFilterListView(
-                  recordsRepo: recordsRepo,
-                  selectedChip: $selectedFilter,
-                  selectedSortFilter: $selectedSortFilter
-                )
-                .padding([.leading, .vertical], EkaSpacing.spacingM)
-                .environment(\.managedObjectContext, viewContext)
+      QueryResponderView(
+        predicate: generatePredicate(for: selectedFilter),
+        sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
+      ) { (records: FetchedResults<Record>) in
+        ZStack(alignment: .bottomTrailing) {
+          ScrollView {
+            if records.isEmpty {
+              VStack(spacing: 16) {
+                Spacer(minLength: 100)
                 
-                // Grid
-                LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
-                  ForEach(records, id: \.id) { item in
-                    switch recordPresentationState {
-                    case .dashboard, .displayAll:
-                      NavigationLink(destination: RecordView(record: item)) {
-                        ItemView(item: item)
-                          .frame(
-                            width: RecordsDocumentSize.itemWidth,
-                            height: RecordsDocumentSize.getItemHeight()
-                          )
-                      }
-                    case .picker:
+                ContentUnavailableView(
+                  "No documents found",
+                  systemImage: "doc",
+                  description: Text("Upload documents to see them here")
+                )
+                
+                Spacer()
+              }
+              .frame(maxWidth: .infinity)
+            } else {
+              // Filter chips
+              RecordsFilterListView(
+                recordsRepo: recordsRepo,
+                selectedChip: $selectedFilter,
+                selectedSortFilter: $selectedSortFilter
+              )
+              .padding([.leading, .vertical], EkaSpacing.spacingM)
+              .environment(\.managedObjectContext, viewContext)
+              
+              // Grid
+              LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
+                ForEach(records, id: \.id) { item in
+                  switch recordPresentationState {
+                  case .dashboard, .displayAll:
+                    NavigationLink(destination: RecordView(record: item)) {
                       ItemView(item: item)
                         .frame(
                           width: RecordsDocumentSize.itemWidth,
                           height: RecordsDocumentSize.getItemHeight()
                         )
                     }
+                  case .picker:
+                    ItemView(item: item)
+                      .frame(
+                        width: RecordsDocumentSize.itemWidth,
+                        height: RecordsDocumentSize.getItemHeight()
+                      )
                   }
                 }
-                .padding(.horizontal, EkaSpacing.spacingS)
-                .padding(.vertical)
-                .padding(.bottom, 140) // Space for floating button
               }
+              .padding(.horizontal, EkaSpacing.spacingS)
+              .padding(.vertical)
+              .padding(.bottom, 140) // Space for floating button
             }
-            
-            // Upload menu floating bottom-right
-            RecordUploadMenuView(
-              images: $uploadedImages,
-              selectedPDFData: $selectedPDFData,
-              hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
-            )
-            .padding([.bottom], EkaSpacing.spacingM)
-            .padding(.trailing, EkaSpacing.spacingS)
           }
+          
+          // Upload menu floating bottom-right
+          RecordUploadMenuView(
+            images: $uploadedImages,
+            selectedPDFData: $selectedPDFData,
+            hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+          )
+          .padding([.bottom], EkaSpacing.spacingM)
+          .padding(.trailing, EkaSpacing.spacingS)
         }
       }
     }

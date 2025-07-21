@@ -1,0 +1,76 @@
+//
+//  CasesListView.swift
+//  EkaMedicalRecordsUI
+//
+//  Created by Arya Vashisht on 18/07/25.
+//
+
+import SwiftUI
+import EkaUI
+import EkaMedicalRecordsCore
+
+struct CasesListView: View {
+  
+  // MARK: - Properties
+  
+  @Environment(\.managedObjectContext) private var viewContext
+  @State var isCreateCaseFormSheetOpened: Bool = false
+  let recordsRepo: RecordsRepo
+  
+  // MARK: - Init
+  
+  init(
+    recordsRepo: RecordsRepo
+  ) {
+    self.recordsRepo = recordsRepo
+    // For preview to work
+    EkaUI.registerFonts()
+  }
+  
+  // MARK: - Body
+  
+  var body: some View {
+    ZStack(alignment: .bottomTrailing) {
+      QueryResponderView(
+        predicate: generateCasesFetchRequest(),
+        sortDescriptors: []
+      ) { (cases: FetchedResults<CaseModel>) in
+        ForEach(cases) { caseModel in
+          if let caseName = caseModel.caseName {
+            Text(caseName)
+          }
+        }
+      }
+      
+      EkaButtonView(
+        iconImageString: "plus",
+        title: "Add Case",
+        size: .large,
+        style: .filled,
+        isEnabled: true
+      ) {
+        isCreateCaseFormSheetOpened = true
+      }
+      .padding(EkaSpacing.spacingM)
+    }
+    .frame(
+      maxWidth:  .infinity,
+      maxHeight: .infinity,
+      alignment: .bottomTrailing
+    )
+    .sheet(isPresented: $isCreateCaseFormSheetOpened) {
+      CreateCaseFormView(recordsRepo: recordsRepo)
+    }
+  }
+}
+
+extension CasesListView {
+  private func generateCasesFetchRequest() -> NSPredicate {
+    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
+    return NSPredicate(format: "oid IN %@", filterIDs)
+  }
+}
+
+#Preview {
+  CasesListView(recordsRepo: RecordsRepo())
+}
