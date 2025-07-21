@@ -23,15 +23,15 @@ enum RecordTab: CaseIterable, Hashable {
   }
 }
 
-struct RecordContainerView: View {
+public struct RecordContainerView: View {
   @State private var selectedTab: RecordTab = .records
   let recordsRepo = RecordsRepo()
   
-  init() {
+  public init() {
     // For preview to work
     EkaUI.registerFonts()
   }
-  var body: some View {
+  public var body: some View {
     SegmentsView()
     contentView()
   }
