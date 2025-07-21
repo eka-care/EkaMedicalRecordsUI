@@ -31,13 +31,17 @@ struct CasesListView: View {
   
   var body: some View {
     ZStack(alignment: .bottomTrailing) {
-      QueryResponderView(
-        predicate: generateCasesFetchRequest(),
-        sortDescriptors: generateSortDescriptors()
-      ) { (cases: FetchedResults<CaseModel>) in
-        ForEach(cases) { caseModel in
-          if let caseName = caseModel.caseName {
-            Text(caseName)
+      ScrollView {
+        QueryResponderView(
+          predicate: generateCasesFetchRequest(),
+          sortDescriptors: generateSortDescriptors()
+        ) { (cases: FetchedResults<CaseModel>) in
+          VStack(alignment: .leading) {
+            ForEach(cases) { caseModel in
+              if let caseName = caseModel.caseName {
+                Text(caseName)
+              }
+            }
           }
         }
       }
@@ -66,8 +70,9 @@ struct CasesListView: View {
 
 extension CasesListView {
   private func generateCasesFetchRequest() -> NSPredicate {
-    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
-    return NSPredicate(format: "oid IN %@", filterIDs)
+//    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
+//    return NSPredicate(format: "oid IN %@", filterIDs)
+    return NSPredicate(value: true)
   }
   
   func generateSortDescriptors() -> [NSSortDescriptor] {
