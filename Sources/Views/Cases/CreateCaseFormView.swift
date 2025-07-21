@@ -14,6 +14,7 @@ struct CreateCaseFormView: View {
   @State private var caseType: String = ""
   @State private var date: Date = Date()
   @Environment(\.managedObjectContext) private var viewContext
+  @Environment(\.dismiss) private var dismiss
   
   @State private var showCaseTypeSheet = false
   @State private var showDatePicker = false
@@ -44,7 +45,8 @@ struct CreateCaseFormView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           Button("Add") {
-            
+            addCase()
+            dismiss()
           }
           .foregroundStyle(Color(.ascent))
         }

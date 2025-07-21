@@ -45,8 +45,10 @@ extension RecordContainerView {
     switch selectedTab {
     case .records:
       RecordsGridListView(recordsRepo: recordsRepo, recordPresentationState: .displayAll) // Replace with your real view for showing files
+        .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     case .cases:
       CasesListView(recordsRepo: recordsRepo) // Replace with your real view for showing cases
+        .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     }
   }
   

@@ -33,7 +33,7 @@ struct CasesListView: View {
     ZStack(alignment: .bottomTrailing) {
       QueryResponderView(
         predicate: generateCasesFetchRequest(),
-        sortDescriptors: []
+        sortDescriptors: generateSortDescriptors()
       ) { (cases: FetchedResults<CaseModel>) in
         ForEach(cases) { caseModel in
           if let caseName = caseModel.caseName {
@@ -68,6 +68,10 @@ extension CasesListView {
   private func generateCasesFetchRequest() -> NSPredicate {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
     return NSPredicate(format: "oid IN %@", filterIDs)
+  }
+  
+  func generateSortDescriptors() -> [NSSortDescriptor] {
+    return [NSSortDescriptor(keyPath: \CaseModel.createdAt, ascending: true)]
   }
 }
 
