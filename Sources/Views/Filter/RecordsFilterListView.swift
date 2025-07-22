@@ -18,6 +18,7 @@ struct RecordsFilterListView: View {
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
   @Binding var selectedSortFilter: RecordSortOptions?
+  let caseID: String?
   @Environment(\.managedObjectContext) private var viewContext
   
   // MARK: - Init
@@ -25,9 +26,11 @@ struct RecordsFilterListView: View {
   init(
     recordsRepo: RecordsRepo,
     selectedChip: Binding<RecordDocumentType>,
-    selectedSortFilter: Binding<RecordSortOptions?>
+    selectedSortFilter: Binding<RecordSortOptions?>,
+    caseID: String? = nil
   ) {
     self.recordsRepo = recordsRepo
+    self.caseID = caseID
     _selectedChip = selectedChip
     _selectedSortFilter = selectedSortFilter
   }
@@ -96,7 +99,7 @@ extension RecordsFilterListView {
   
   /// Update filters count
   private func updateFiltersCount() {
-    recordsFilter = recordsRepo.getRecordDocumentTypeCount()
+    recordsFilter = recordsRepo.getRecordDocumentTypeCount(caseID: caseID)
   }
 }
 

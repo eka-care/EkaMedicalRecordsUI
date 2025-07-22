@@ -8,10 +8,11 @@
 import SwiftUI
 import EkaMedicalRecordsCore
 
-public enum RecordPresentationState {
+public enum RecordPresentationState: Equatable {
   case dashboard /// Full medical records dashboard state
   case displayAll /// Display All medical records state
   case picker /// Medical records picker state
+  case caseRelatedRecordsView(caseID: String?) /// Medical records related to a case
   
   var title: String {
     switch self {
@@ -21,7 +22,23 @@ public enum RecordPresentationState {
       return InitConfiguration.shared.recordsTitle ?? "All"
     case .picker:
       return InitConfiguration.shared.recordsTitle ?? "Select"
+    case .caseRelatedRecordsView:
+      return "Documents"
     }
+  }
+  
+  var isCaseRelated: Bool {
+    if case .caseRelatedRecordsView = self {
+      return true
+    }
+    return false
+  }
+  
+  var associatedCaseID: String? {
+    if case let .caseRelatedRecordsView(caseID) = self {
+      return caseID
+    }
+    return nil
   }
 }
 
@@ -53,7 +70,7 @@ public struct RecordsView: View {
   
   public var body: some View {
       switch recordPresentationState {
-      case .dashboard:
+      case .dashboard, .caseRelatedRecordsView:
         EmptyView()
       case .displayAll, .picker:
         RecordsGridListView(

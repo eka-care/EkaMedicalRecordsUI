@@ -352,7 +352,7 @@ extension RecordItemView {
     switch recordPresentationState {
     case .dashboard:
       print("Click on record in dashboard state")
-    case .displayAll:
+    case .displayAll, .caseRelatedRecordsView:
       onTapDocument()
     case .picker:
       updateItemDataOnPickerSelection()

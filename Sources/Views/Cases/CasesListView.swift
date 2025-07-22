@@ -38,15 +38,7 @@ struct CasesListView: View {
         ) { (cases: FetchedResults<CaseModel>) in
           VStack(alignment: .leading) {
             ForEach(cases) { caseModel in
-              NavigationLink {
-                RecordsGridListView(recordsRepo: recordsRepo, recordPresentationState: .displayAll, title: caseModel.caseName ?? "Case")
-              } label: {
-                CaseCardView(
-                  caseName: caseModel.caseName ?? "",
-                  recordCount: caseModel.toRecord?.count ?? 0,
-                  date: caseModel.updatedAt
-                )
-              }
+              ItemView(caseModel)
             }
           }
           .padding(.horizontal, EkaSpacing.spacingM)
@@ -72,6 +64,34 @@ struct CasesListView: View {
     )
     .sheet(isPresented: $isCreateCaseFormSheetOpened) {
       CreateCaseFormView(recordsRepo: recordsRepo)
+    }
+  }
+}
+
+// MARK: - Subviews
+
+extension CasesListView {
+  private func ItemView(_ caseModel: CaseModel) -> some View {
+    NavigationLink {
+      RecordsGridListView(
+        recordsRepo: recordsRepo,
+        recordPresentationState: .caseRelatedRecordsView(caseID: caseModel.caseID),
+        title: caseModel.caseName ?? "Documents"
+      )
+      .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+    } label: {
+      CaseCardView(
+        caseName: caseModel.caseName ?? "",
+        recordCount: caseModel.toRecord?.count ?? 0,
+        date: caseModel.updatedAt
+      )
+      .contextMenu {
+        Button(role: .destructive) {
+          recordsRepo.deleteCase(caseModel)
+        } label: {
+          Text("Delete")
+        }
+      }
     }
   }
 }

@@ -16,8 +16,17 @@ struct QueryResponderView<T: NSManagedObject, Content: View>: View {
     self.content(fetchRequest.wrappedValue)
   }
   
-  init(predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor], @ViewBuilder content: @escaping (FetchedResults<T>) -> Content) {
-    fetchRequest = FetchRequest<T>(entity: T.entity(), sortDescriptors: sortDescriptors, predicate: predicate)
+  init(
+    predicate: NSPredicate?,
+    sortDescriptors: [NSSortDescriptor],
+    @ViewBuilder content: @escaping (FetchedResults<T>) -> Content
+  ) {
+    fetchRequest = FetchRequest<T>(
+      entity: T.entity(),
+      sortDescriptors: sortDescriptors,
+      predicate: predicate,
+      animation: .default
+    )
     self.content = content
   }
   

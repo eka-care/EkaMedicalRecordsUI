@@ -134,6 +134,7 @@ extension CreateCaseFormView {
 extension CreateCaseFormView {
   private func addCase() {
     let caseModel = CaseArguementModel(
+      caseId: UUID().uuidString,
       caseType: caseType,
       oid: CoreInitConfigurations.shared.primaryFilterID,
       createdAt: Date(),

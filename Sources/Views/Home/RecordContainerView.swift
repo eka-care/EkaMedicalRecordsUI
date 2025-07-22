@@ -44,7 +44,11 @@ extension RecordContainerView {
   private func contentView() -> some View {
     switch selectedTab {
     case .records:
-      RecordsGridListView(recordsRepo: recordsRepo, recordPresentationState: .displayAll, title: RecordPresentationState.displayAll.title)
+      RecordsGridListView(
+        recordsRepo: recordsRepo,
+        recordPresentationState: .displayAll,
+        title: RecordPresentationState.displayAll.title
+      )
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     case .cases:
       CasesListView(recordsRepo: recordsRepo)

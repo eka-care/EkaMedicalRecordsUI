@@ -71,7 +71,10 @@ public struct RecordsGridListView: View {
   public var body: some View {
     ZStack(alignment: .bottomTrailing) {
       QueryResponderView(
-        predicate: generatePredicate(for: selectedFilter),
+        predicate: generatePredicate(
+          for: selectedFilter,
+          caseID: recordPresentationState.associatedCaseID
+        ),
         sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
       ) { (records: FetchedResults<Record>) in
           ScrollView {
@@ -93,7 +96,8 @@ public struct RecordsGridListView: View {
               RecordsFilterListView(
                 recordsRepo: recordsRepo,
                 selectedChip: $selectedFilter,
-                selectedSortFilter: $selectedSortFilter
+                selectedSortFilter: $selectedSortFilter,
+                caseID: recordPresentationState.associatedCaseID
               )
               .padding([.leading, .vertical], EkaSpacing.spacingM)
               .environment(\.managedObjectContext, viewContext)
@@ -102,7 +106,7 @@ public struct RecordsGridListView: View {
               LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                 ForEach(records, id: \.id) { item in
                   switch recordPresentationState {
-                  case .dashboard, .displayAll:
+                  case .dashboard, .displayAll, .caseRelatedRecordsView:
                     NavigationLink(destination: RecordView(record: item)) {
                       ItemView(item: item)
                         .frame(
@@ -143,12 +147,14 @@ public struct RecordsGridListView: View {
     .toolbar { /// Toolbar item
       /// Close button on the top left
       ToolbarItem(placement: .topBarLeading) {
-        Button(action: {
-          /// Dismiss or handle close action
-          dismiss()
-        }) {
-          Text("Close")
-            .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .primary500))
+        if !recordPresentationState.isCaseRelated { /// Dont show close if its case related records
+          Button(action: {
+            /// Dismiss or handle close action
+            dismiss()
+          }) {
+            Text("Close")
+              .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .primary500))
+          }
         }
       }
       
@@ -246,10 +252,23 @@ extension RecordsGridListView {
     data: [Data],
     contentType: FileType
   ) {
-    let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(data: data, contentType: contentType)
-    recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
-      recordSelectedForEdit = uploadedRecord
-      isEditBottomSheetPresented = true /// Show edit bottom sheet
+    recordsRepo.databaseManager.fetchCase(
+      fetchRequest: QueryHelper.fetchCase(
+        caseID: recordPresentationState.associatedCaseID
+      )
+    ) { cases in
+      let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(
+        data: data,
+        contentType: contentType,
+        caseModel: cases.first
+      )
+      DispatchQueue.main.async { [weak self] in
+        guard let self else { return }
+        recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
+          recordSelectedForEdit = uploadedRecord
+          isEditBottomSheetPresented = true /// Show edit bottom sheet
+        }
+      }
     }
   }
   
@@ -320,18 +339,28 @@ extension RecordsGridListView {
   }
 }
 
-// TODO: - Arya - to be moved to core layer
+// TODO: - Arya - to be moved to a common place
 extension RecordsGridListView {
-  func generatePredicate(for filter: RecordDocumentType) -> NSPredicate {
+  func generatePredicate(
+    for filter: RecordDocumentType,
+    caseID: String? = nil
+  ) -> NSPredicate {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
     let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
-    switch filter {
-    case .typeAll:
-      return oidPredicate
-    default:
+    
+    var predicates: [NSPredicate] = [oidPredicate]
+    
+    if filter != .typeAll {
       let typePredicate = PredicateHelper.equals("documentType", value: Int64(filter.intValue))
-      return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, typePredicate])
+      predicates.append(typePredicate)
     }
+    
+    if let caseID = caseID {
+      let casePredicate = NSPredicate(format: "ANY toCaseModel.caseID == %@", caseID)
+      predicates.append(casePredicate)
+    }
+    
+    return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
   }
   
   func generateSortDescriptors(for sortType: RecordSortOptions?) -> [NSSortDescriptor] {
