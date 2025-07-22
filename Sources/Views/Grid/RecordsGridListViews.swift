@@ -23,6 +23,7 @@ public struct RecordsGridListView: View {
     )
   ]
   let recordPresentationState: RecordPresentationState
+  let title: String
   @Environment(\.managedObjectContext) private var viewContext
   @Environment(\.dismiss) private var dismiss
   /// Images that are selected for upload
@@ -56,11 +57,13 @@ public struct RecordsGridListView: View {
   public init(
     recordsRepo: RecordsRepo = RecordsRepo(),
     recordPresentationState: RecordPresentationState,
-    didSelectPickerDataObjects: RecordItemsCallback = nil
+    didSelectPickerDataObjects: RecordItemsCallback = nil,
+    title: String
   ) {
     self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
+    self.title = title
   }
   
   // MARK: - View
@@ -71,7 +74,6 @@ public struct RecordsGridListView: View {
         predicate: generatePredicate(for: selectedFilter),
         sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
       ) { (records: FetchedResults<Record>) in
-        ZStack(alignment: .bottomTrailing) {
           ScrollView {
             if records.isEmpty {
               VStack(spacing: 16) {
@@ -122,23 +124,22 @@ public struct RecordsGridListView: View {
               .padding(.bottom, 140) // Space for floating button
             }
           }
-          
-          // Upload menu floating bottom-right
-          RecordUploadMenuView(
-            images: $uploadedImages,
-            selectedPDFData: $selectedPDFData,
-            hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
-          )
-          .padding([.bottom], EkaSpacing.spacingM)
-          .padding(.trailing, EkaSpacing.spacingS)
-        }
       }
+      
+      // Upload menu floating bottom-right
+      RecordUploadMenuView(
+        images: $uploadedImages,
+        selectedPDFData: $selectedPDFData,
+        hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
+      )
+      .padding([.bottom], EkaSpacing.spacingM)
+      .padding(.trailing, EkaSpacing.spacingS)
     }
     .background(Color(.neutrals50))
     .refreshable {
       refreshRecords()
     }
-    .navigationTitle(recordPresentationState.title) // Add a navigation title
+    .navigationTitle(title) // Add a navigation title
     .toolbar { /// Toolbar item
       /// Close button on the top left
       ToolbarItem(placement: .topBarLeading) {
@@ -345,5 +346,5 @@ extension RecordsGridListView {
 }
 
 #Preview {
-  RecordsGridListView(recordPresentationState: .displayAll)
+  RecordsGridListView(recordPresentationState: .displayAll, title: RecordPresentationState.displayAll.title)
 }

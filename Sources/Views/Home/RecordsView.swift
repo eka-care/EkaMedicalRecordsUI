@@ -59,7 +59,8 @@ public struct RecordsView: View {
         RecordsGridListView(
           recordsRepo: recordsRepo,
           recordPresentationState: recordPresentationState,
-          didSelectPickerDataObjects: didSelectPickerDataObjects
+          didSelectPickerDataObjects: didSelectPickerDataObjects,
+          title: recordPresentationState.title
         )
         .environment(\.managedObjectContext, viewContext)
       }

@@ -38,11 +38,19 @@ struct CasesListView: View {
         ) { (cases: FetchedResults<CaseModel>) in
           VStack(alignment: .leading) {
             ForEach(cases) { caseModel in
-              if let caseName = caseModel.caseName {
-                Text(caseName)
+              NavigationLink {
+                RecordsGridListView(recordsRepo: recordsRepo, recordPresentationState: .displayAll, title: caseModel.caseName ?? "Case")
+              } label: {
+                CaseCardView(
+                  caseName: caseModel.caseName ?? "",
+                  recordCount: caseModel.toRecord?.count ?? 0,
+                  date: caseModel.updatedAt
+                )
               }
             }
           }
+          .padding(.horizontal, EkaSpacing.spacingM)
+          .padding(.top, EkaSpacing.spacingS)
         }
       }
       
