@@ -31,7 +31,7 @@ public struct RecordsGridListView: View {
   /// PDF data that is selected for upload
   @State private var selectedPDFData: Data?
   /// Records that are selected in records picker state
-  @State private var pickerSelectedRecords: [Record] = []
+  @Binding var pickerSelectedRecords: [Record]
   /// Used to display downloading loader in view
   @State private var isDownloading: Bool = false
   /// Edit bottom sheet bool
@@ -58,11 +58,13 @@ public struct RecordsGridListView: View {
     recordsRepo: RecordsRepo = RecordsRepo(),
     recordPresentationState: RecordPresentationState,
     didSelectPickerDataObjects: RecordItemsCallback = nil,
-    title: String
+    title: String,
+    pickerSelectedRecords: Binding<[Record]> = .constant([])
   ) {
     self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
+    self._pickerSelectedRecords = pickerSelectedRecords
     self.title = title
   }
   
@@ -104,10 +106,10 @@ public struct RecordsGridListView: View {
               
               // Grid
               LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
-                ForEach(records, id: \.id) { item in
+                ForEach(records, id: \.objectID) { item in
                   switch recordPresentationState {
                   case .dashboard, .displayAll, .caseRelatedRecordsView:
-                    NavigationLink(destination: RecordView(record: item)) {
+                    NavigationLink(value: item) {
                       ItemView(item: item)
                         .frame(
                           width: RecordsDocumentSize.itemWidth,
@@ -143,21 +145,7 @@ public struct RecordsGridListView: View {
     .refreshable {
       refreshRecords()
     }
-    .navigationTitle(title) // Add a navigation title
-    .toolbar { /// Toolbar item
-      /// Close button on the top left
-      ToolbarItem(placement: .topBarLeading) {
-        if !recordPresentationState.isCaseRelated { /// Dont show close if its case related records
-          Button(action: {
-            /// Dismiss or handle close action
-            dismiss()
-          }) {
-            Text("Close")
-              .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .primary500))
-          }
-        }
-      }
-      
+    .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         // Sync button
         Button(action: {
@@ -169,15 +157,6 @@ public struct RecordsGridListView: View {
             .scaledToFit()
             .frame(width: 24, height: 24, alignment: .center)
             .foregroundStyle(Color(.primary500))
-        }
-      }
-      
-      ToolbarItem(placement: .topBarTrailing) {
-        // Done button
-        if pickerSelectedRecords.count > 0 {
-          Button("Done") {
-            onDoneButtonPressed()
-          }
         }
       }
     }
@@ -306,36 +285,6 @@ extension RecordsGridListView {
     recordSelectedForEdit = record
     isEditBottomSheetPresented = true
   }
-  
-  /// On press of done button in picker state
-  private func onDoneButtonPressed() {
-    dismiss()
-    isDownloading = true
-    setPickerSelectedObjects(selectedRecords: pickerSelectedRecords) { pickedRecords in
-      isDownloading = false
-      didSelectPickerDataObjects?(pickedRecords)
-    }
-  }
-  
-  /// Get picker selected images from records
-  private func setPickerSelectedObjects(
-    selectedRecords: [Record],
-    completion: RecordItemsCallback
-  ) {
-    var pickerObjects: [RecordPickerDataModel] = []
-    recordsRepo.fetchRecordsMetaData(for: selectedRecords) { documentURIs in
-      for (index, value) in selectedRecords.enumerated() {
-        pickerObjects.append(
-          RecordPickerDataModel(
-            image: value.thumbnail,
-            documentID: value.documentID,
-            documentPath: documentURIs[index]
-          )
-        )
-      }
-      completion?(pickerObjects)
-    }
-  }
 }
 
 // TODO: - Arya - to be moved to a common place
@@ -374,5 +323,9 @@ extension RecordsGridListView {
 }
 
 #Preview {
-  RecordsGridListView(recordPresentationState: .displayAll, title: RecordPresentationState.displayAll.title)
+  RecordsGridListView(
+    recordPresentationState: .displayAll,
+    title: RecordPresentationState.displayAll.title,
+    pickerSelectedRecords: .constant([])
+  )
 }

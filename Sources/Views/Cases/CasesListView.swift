@@ -72,14 +72,7 @@ struct CasesListView: View {
 
 extension CasesListView {
   private func ItemView(_ caseModel: CaseModel) -> some View {
-    NavigationLink {
-      RecordsGridListView(
-        recordsRepo: recordsRepo,
-        recordPresentationState: .caseRelatedRecordsView(caseID: caseModel.caseID),
-        title: caseModel.caseName ?? "Documents"
-      )
-      .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
-    } label: {
+    NavigationLink(value: caseModel) {
       CaseCardView(
         caseName: caseModel.caseName ?? "",
         recordCount: caseModel.toRecord?.count ?? 0,

@@ -77,7 +77,8 @@ public struct RecordsView: View {
           recordsRepo: recordsRepo,
           recordPresentationState: recordPresentationState,
           didSelectPickerDataObjects: didSelectPickerDataObjects,
-          title: recordPresentationState.title
+          title: recordPresentationState.title,
+          pickerSelectedRecords: .constant([])
         )
         .environment(\.managedObjectContext, viewContext)
       }

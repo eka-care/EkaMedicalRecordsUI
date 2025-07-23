@@ -9,7 +9,7 @@ import SwiftUI
 import EkaMedicalRecordsCore
 import Combine
 
-typealias Record = EkaMedicalRecordsCore.Record
+public typealias Record = EkaMedicalRecordsCore.Record
 
 enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
@@ -359,9 +359,11 @@ extension RecordItemView {
     }
   }
   
-  
   /// On tap of document we open document viewer
-  private func onTapDocument() {}
+  /// Note: - This is not being used. We use navigation link.
+  private func onTapDocument() {
+    
+  }
   
   /// Update item data on picker selection
   private func updateItemDataOnPickerSelection() {
