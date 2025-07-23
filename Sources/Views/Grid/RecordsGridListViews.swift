@@ -262,8 +262,7 @@ extension RecordsGridListView {
         contentType: contentType,
         caseModel: cases.first
       )
-      DispatchQueue.main.async { [weak self] in
-        guard let self else { return }
+      DispatchQueue.main.async {
         recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
           recordSelectedForEdit = uploadedRecord
           isEditBottomSheetPresented = true /// Show edit bottom sheet
