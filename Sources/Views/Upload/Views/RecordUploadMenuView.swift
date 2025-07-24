@@ -2,6 +2,7 @@
 
 import SwiftUI
 import PhotosUI
+import EkaUI
 
 struct RecordUploadMenuView: View {
   
@@ -49,12 +50,12 @@ struct RecordUploadMenuView: View {
         }
       }
     } label: {
-      ButtonView(
-        title: "Add record",
-        imageName: UIImage(systemName: "plus"),
+      EkaButtonView(
+        iconImageString: "plus",
+        title: "Add Records",
         size: .large,
-        imagePosition: .leading,
-        isFullWidth: false
+        style: .filled,
+        isEnabled: true
       ) {}
     }
     .shadow(color: .black.opacity(0.3), radius: 36, x: 0, y: 0)

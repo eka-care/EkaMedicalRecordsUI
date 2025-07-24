@@ -138,8 +138,6 @@ public struct RecordsGridListView: View {
         selectedPDFData: $selectedPDFData,
         hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
       )
-      .padding([.bottom], EkaSpacing.spacingM)
-      .padding(.trailing, EkaSpacing.spacingS)
     }
     .background(Color(.neutrals50))
     .refreshable {

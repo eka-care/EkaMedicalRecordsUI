@@ -15,6 +15,7 @@ struct CasesListView: View {
   
   @Environment(\.managedObjectContext) private var viewContext
   @State var isCreateCaseFormSheetOpened: Bool = false
+  @State var caseSearchText: String = ""
   let recordsRepo: RecordsRepo
   
   // MARK: - Init
@@ -31,20 +32,17 @@ struct CasesListView: View {
   
   var body: some View {
     ZStack(alignment: .bottomTrailing) {
-      ScrollView {
+      List {
         QueryResponderView(
           predicate: generateCasesFetchRequest(),
           sortDescriptors: generateSortDescriptors()
         ) { (cases: FetchedResults<CaseModel>) in
-          VStack(alignment: .leading) {
-            ForEach(cases) { caseModel in
-              ItemView(caseModel)
-            }
+          ForEach(cases) { caseModel in
+            ItemView(caseModel)
           }
-          .padding(.horizontal, EkaSpacing.spacingM)
-          .padding(.top, EkaSpacing.spacingS)
         }
       }
+      .listStyle(.insetGrouped)
       
       EkaButtonView(
         iconImageString: "plus",
@@ -57,6 +55,10 @@ struct CasesListView: View {
       }
       .padding(EkaSpacing.spacingM)
     }
+    .searchable(
+      text: $caseSearchText,
+      prompt: "Search or add new case"
+    )
     .frame(
       maxWidth:  .infinity,
       maxHeight: .infinity,
@@ -91,9 +93,12 @@ extension CasesListView {
 
 extension CasesListView {
   private func generateCasesFetchRequest() -> NSPredicate {
-//    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
-//    return NSPredicate(format: "oid IN %@", filterIDs)
-    return NSPredicate(value: true)
+    //    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
+    //    return NSPredicate(format: "oid IN %@", filterIDs)
+    guard !caseSearchText.isEmpty else {
+      return NSPredicate(value: true)
+    }
+    return NSPredicate(format: "caseName CONTAINS[cd] %@", caseSearchText)
   }
   
   func generateSortDescriptors() -> [NSSortDescriptor] {
