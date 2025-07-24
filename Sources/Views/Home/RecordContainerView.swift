@@ -32,11 +32,14 @@ public struct RecordContainerView: View {
   let recordsRepo = RecordsRepo()
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
+  var recordPresentationState: RecordPresentationState
   
   public init(
-    didSelectPickerDataObjects: RecordItemsCallback = nil
+    didSelectPickerDataObjects: RecordItemsCallback = nil,
+    recordPresentationState: RecordPresentationState = .displayAll
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
+    self.recordPresentationState = recordPresentationState
     // For preview to work
     EkaUI.registerFonts()
   }
@@ -57,7 +60,7 @@ public struct RecordContainerView: View {
     .navigationDestination(for: Record.self) { record in
       RecordView(record: record)
     }
-    .navigationTitle("Hello") // Add a navigation title
+    .navigationTitle(InitConfiguration.shared.recordsTitle ?? recordPresentationState.title) // Add a navigation title
     .toolbar { /// Toolbar item
       /// Close button on the top left
       ToolbarItem(placement: .topBarLeading) {
