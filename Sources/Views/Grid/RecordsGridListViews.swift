@@ -175,7 +175,8 @@ public struct RecordsGridListView: View {
       NavigationStack {
         EditBottomSheetView(
           isEditBottomSheetPresented: $isEditBottomSheetPresented,
-          record: $recordSelectedForEdit
+          record: $recordSelectedForEdit,
+          recordPresentationState: recordPresentationState
         )
         .presentationDragIndicator(.visible)
       }

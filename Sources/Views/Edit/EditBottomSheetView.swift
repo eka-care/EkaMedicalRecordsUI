@@ -1,5 +1,7 @@
 import SwiftUI
 import EkaMedicalRecordsCore
+import EkaUI
+
 struct EditBottomSheetView: View {
 
   // MARK: - Properties
@@ -10,15 +12,19 @@ struct EditBottomSheetView: View {
   @Binding var isEditBottomSheetPresented: Bool
   @Binding var record: Record?
   private let recordsRepo = RecordsRepo()
+  private let recordPresentationState: RecordPresentationState
+  @State private var assignCaseText: String = "Select"
   
   // MARK: - Init
   
   init(
     isEditBottomSheetPresented: Binding<Bool>,
-    record: Binding<Record?>
+    record: Binding<Record?>,
+    recordPresentationState: RecordPresentationState
   ) {
     _isEditBottomSheetPresented = isEditBottomSheetPresented
     _record = record
+    self.recordPresentationState = recordPresentationState
   }
   
   // MARK: - Body
@@ -28,6 +34,12 @@ struct EditBottomSheetView: View {
       List {
         TypeOfDocumentPickerView()
         DocumentDatePickerView()
+        /// If we are showing this outside the case related flow we show this
+        if !recordPresentationState.isCaseRelated {
+          Section(header: Text("Assign a medical case").textCase(nil)) {
+            AssignCaseView()
+          }
+        }
       }
       .listStyle(.insetGrouped)
     }
@@ -65,7 +77,7 @@ extension EditBottomSheetView {
   private func TypeOfDocumentPickerView() -> some View {
     HStack {
       Text("Type of document")
-        .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .neutrals1000))
+        .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       
       Text("*")
         .foregroundColor(.red) // Red asterisk
@@ -88,13 +100,32 @@ extension EditBottomSheetView {
   private func DocumentDatePickerView() -> some View {
     HStack {
       Text("Document Date")
-        .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .neutrals1000))
+        .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       
       Spacer()
       
       DatePicker("", selection: $documentDate, displayedComponents: .date)
         .labelsHidden()
         .foregroundColor(.gray)
+    }
+  }
+  
+  private func AssignCaseView() -> some View {
+    HStack {
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Select/Create case")
+          .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
+      }
+      
+      Spacer()
+      
+      Text(assignCaseText)
+        .newTextStyle(ekaFont: .footnoteRegular, color: UIColor(resource: .labelsQuaternary))
+      
+      Image(systemName: "chevron.right")
+        .renderingMode(.template)
+        .imageScale(.small)
+        .foregroundStyle(Color(.labelsQuaternary))
     }
   }
 }
