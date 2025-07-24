@@ -57,6 +57,12 @@ public struct RecordContainerView: View {
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     }
+    .navigationDestination(for: CaseFormRoute.self) { route in
+      CreateCaseFormView(
+        caseName: route.prefilledName,
+        recordsRepo: recordsRepo
+      )
+    }
     .navigationDestination(for: Record.self) { record in
       RecordView(record: record)
     }

@@ -143,6 +143,7 @@ public struct RecordsGridListView: View {
     .refreshable {
       refreshRecords()
     }
+    .navigationTitle(title)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         // Sync button
@@ -170,14 +171,12 @@ public struct RecordsGridListView: View {
       Text("Are you sure you want to delete this record?")
     }
     .sheet(isPresented: $isEditBottomSheetPresented) {
-      NavigationStack {
-        EditBottomSheetView(
-          isEditBottomSheetPresented: $isEditBottomSheetPresented,
-          record: $recordSelectedForEdit,
-          recordPresentationState: recordPresentationState
-        )
-        .presentationDragIndicator(.visible)
-      }
+      EditBottomSheetView(
+        isEditBottomSheetPresented: $isEditBottomSheetPresented,
+        record: $recordSelectedForEdit,
+        recordPresentationState: recordPresentationState
+      )
+      .presentationDragIndicator(.visible)
     }
     .onAppear {
       refreshRecords()
@@ -270,8 +269,7 @@ extension RecordsGridListView {
   
   /// On tap retry upload
   private func onTapRetry(record: Record) {
-    print("Record id for retry is -> \(record.objectID)")
-    recordsRepo.uploadRecord(record: record) { record in }
+    recordsRepo.uploadRecord(record: record)
   }
   
   /// Used to delete a grid item

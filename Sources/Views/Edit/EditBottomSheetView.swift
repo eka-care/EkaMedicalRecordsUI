@@ -3,7 +3,7 @@ import EkaMedicalRecordsCore
 import EkaUI
 
 struct EditBottomSheetView: View {
-
+  
   // MARK: - Properties
   
   @State private var selectedDocumentType: RecordDocumentType?
@@ -14,6 +14,7 @@ struct EditBottomSheetView: View {
   private let recordsRepo = RecordsRepo()
   private let recordPresentationState: RecordPresentationState
   @State private var assignCaseText: String = "Select"
+  @State private var selectedCaseModel: CaseModel?
   
   // MARK: - Init
   
@@ -30,38 +31,71 @@ struct EditBottomSheetView: View {
   // MARK: - Body
   
   var body: some View {
-    VStack {
-      List {
-        TypeOfDocumentPickerView()
-        DocumentDatePickerView()
-        /// If we are showing this outside the case related flow we show this
-        if !recordPresentationState.isCaseRelated {
-          Section(header: Text("Assign a medical case").textCase(nil)) {
-            AssignCaseView()
+    NavigationStack {
+      VStack {
+        List {
+          TypeOfDocumentPickerView()
+          DocumentDatePickerView()
+          /// If we are showing this outside the case related flow we show this
+          if !recordPresentationState.isCaseRelated {
+            Section(header: Text("Assign a medical case").textCase(nil)) {
+              // Wrap AssignCaseView in NavigationLink
+              NavigationLink(value: "casesList") {
+                AssignCaseView()
+              }
+            }
+          }
+        }
+        .listStyle(.insetGrouped)
+      }
+      .navigationTitle("Edit Document Details")
+      .navigationBarTitleDisplayMode(.inline)
+      .navigationDestination(for: String.self) { destination in
+        if destination == "casesList" {
+          CasesListView(
+            recordsRepo: recordsRepo,
+            casesPresentationState: .editRecord,
+            isSearchActive: true,
+            onSelectCase: { caseModel in
+              assignCaseText = caseModel.caseName ?? ""
+              addCaseToRecord(caseModel)
+            }
+          )
+          .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+        }
+      }
+      .navigationDestination(for: CaseFormRoute.self) { route in
+        CreateCaseFormView(
+          caseName: route.prefilledName,
+          recordsRepo: recordsRepo
+        )
+      }
+      .navigationDestination(for: CaseModel.self) { model in
+        RecordsGridListView(
+          recordsRepo: recordsRepo,
+          recordPresentationState: .caseRelatedRecordsView(caseID: model.caseID),
+          title: model.caseName ?? "Documents"
+        )
+        .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+      }
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button("Save") {
+            if selectedDocumentType == nil {
+              showAlert = true // Show alert if document type is not selected
+            } else {
+              saveDocumentDetails()
+            }
           }
         }
       }
-      .listStyle(.insetGrouped)
     }
     .background(.white)
-    .navigationTitle("Edit Document Details")
-    .navigationBarTitleDisplayMode(.inline)
     .onAppear {
       updateData()
     }
     .onChange(of: record) { _, _ in
       updateData()
-    }
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button("Save") {
-          if selectedDocumentType == nil {
-            showAlert = true // Show alert if document type is not selected
-          } else {
-            saveDocumentDetails()
-          }
-        }
-      }
     }
     .alert("Error", isPresented: $showAlert) {
       Button("OK", role: .cancel) { }
@@ -121,11 +155,6 @@ extension EditBottomSheetView {
       
       Text(assignCaseText)
         .newTextStyle(ekaFont: .footnoteRegular, color: UIColor(resource: .labelsQuaternary))
-      
-      Image(systemName: "chevron.right")
-        .renderingMode(.template)
-        .imageScale(.small)
-        .foregroundStyle(Color(.labelsQuaternary))
     }
   }
 }
@@ -173,6 +202,29 @@ extension EditBottomSheetView {
   private func setupDocumentDate() {
     guard let recordDate = record?.documentDate else { return }
     documentDate = recordDate
+  }
+  
+  /// Used to setup case data
+  private func setupCaseData() {
+    guard let record,
+          let casesAttached = record.toCaseModel as? Set<CaseModel>,
+          casesAttached.count == 1,
+          let caseModel = casesAttached.first else {
+      return
+    }
+    
+    assignCaseText = caseModel.caseName ?? "Select"
+    selectedCaseModel = caseModel
+  }
+  
+  /// Used to update case for the given record
+  /// - Parameter caseModel: case model which is to be attached to the record
+  private func addCaseToRecord(_ caseModel: CaseModel) {
+    guard let recordID = record?.objectID else { return }
+    recordsRepo.updateRecord(
+      recordID: recordID,
+      caseModel: caseModel
+    )
   }
 }
 
