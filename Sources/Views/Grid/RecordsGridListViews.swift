@@ -180,7 +180,6 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       refreshRecords()
-      syncRecords()
     }
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { oldValue, newValue in
@@ -269,7 +268,7 @@ extension RecordsGridListView {
   
   /// On tap retry upload
   private func onTapRetry(record: Record) {
-    recordsRepo.uploadRecord(record: record)
+    recordsRepo.uploadRecord(record: record) { _ in }
   }
   
   /// Used to delete a grid item

@@ -58,7 +58,7 @@ struct EditBottomSheetView: View {
             isSearchActive: true,
             onSelectCase: { caseModel in
               assignCaseText = caseModel.caseName ?? ""
-              addCaseToRecord(caseModel)
+              selectedCaseModel = caseModel
             }
           )
           .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
@@ -167,6 +167,7 @@ extension EditBottomSheetView {
   private func updateData() {
     setupSelectedDocumentType()
     setupDocumentDate()
+    setupCaseData()
   }
   
   /// Save document details
@@ -180,7 +181,8 @@ extension EditBottomSheetView {
       recordID: record.objectID,
       documentID: record.documentID,
       documentDate: documentDate,
-      documentType: selectedDocumentType?.intValue
+      documentType: selectedDocumentType?.intValue,
+      caseModel: selectedCaseModel
     )
     /// Close edit bottom sheet
     isEditBottomSheetPresented = false
@@ -215,16 +217,6 @@ extension EditBottomSheetView {
     
     assignCaseText = caseModel.caseName ?? "Select"
     selectedCaseModel = caseModel
-  }
-  
-  /// Used to update case for the given record
-  /// - Parameter caseModel: case model which is to be attached to the record
-  private func addCaseToRecord(_ caseModel: CaseModel) {
-    guard let recordID = record?.objectID else { return }
-    recordsRepo.updateRecord(
-      recordID: recordID,
-      caseModel: caseModel
-    )
   }
 }
 

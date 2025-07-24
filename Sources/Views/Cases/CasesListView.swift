@@ -124,6 +124,7 @@ extension CasesListView {
       
     case .editRecord:
       cardView
+        .contentShape(Rectangle())
         .onTapGesture {
           onSelectCase?(caseModel)
           dismiss()
