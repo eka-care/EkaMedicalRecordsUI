@@ -1,7 +1,9 @@
 import SwiftUI
 import EkaMedicalRecordsCore
-struct EditBottomSheetView: View {
+import EkaUI
 
+struct EditBottomSheetView: View {
+  
   // MARK: - Properties
   
   @State private var selectedDocumentType: RecordDocumentType?
@@ -10,46 +12,90 @@ struct EditBottomSheetView: View {
   @Binding var isEditBottomSheetPresented: Bool
   @Binding var record: Record?
   private let recordsRepo = RecordsRepo()
+  private let recordPresentationState: RecordPresentationState
+  @State private var assignCaseText: String = "Select"
+  @State private var selectedCaseModel: CaseModel?
   
   // MARK: - Init
   
   init(
     isEditBottomSheetPresented: Binding<Bool>,
-    record: Binding<Record?>
+    record: Binding<Record?>,
+    recordPresentationState: RecordPresentationState
   ) {
     _isEditBottomSheetPresented = isEditBottomSheetPresented
     _record = record
+    self.recordPresentationState = recordPresentationState
   }
   
   // MARK: - Body
   
   var body: some View {
-    VStack {
-      List {
-        TypeOfDocumentPickerView()
-        DocumentDatePickerView()
+    NavigationStack {
+      VStack {
+        List {
+          TypeOfDocumentPickerView()
+          DocumentDatePickerView()
+          /// If we are showing this outside the case related flow we show this
+          if !recordPresentationState.isCaseRelated {
+            Section(header: Text("Assign a medical case").textCase(nil)) {
+              // Wrap AssignCaseView in NavigationLink
+              NavigationLink(value: "casesList") {
+                AssignCaseView()
+              }
+            }
+          }
+        }
+        .listStyle(.insetGrouped)
       }
-      .listStyle(.insetGrouped)
+      .navigationTitle("Edit Document Details")
+      .navigationBarTitleDisplayMode(.inline)
+      .navigationDestination(for: String.self) { destination in
+        if destination == "casesList" {
+          CasesListView(
+            recordsRepo: recordsRepo,
+            casesPresentationState: .editRecord,
+            isSearchActive: true,
+            onSelectCase: { caseModel in
+              assignCaseText = caseModel.caseName ?? ""
+              selectedCaseModel = caseModel
+            }
+          )
+          .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+        }
+      }
+      .navigationDestination(for: CaseFormRoute.self) { route in
+        CreateCaseFormView(
+          caseName: route.prefilledName,
+          recordsRepo: recordsRepo
+        )
+      }
+      .navigationDestination(for: CaseModel.self) { model in
+        RecordsGridListView(
+          recordsRepo: recordsRepo,
+          recordPresentationState: .caseRelatedRecordsView(caseID: model.caseID),
+          title: model.caseName ?? "Documents"
+        )
+        .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+      }
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button("Save") {
+            if selectedDocumentType == nil {
+              showAlert = true // Show alert if document type is not selected
+            } else {
+              saveDocumentDetails()
+            }
+          }
+        }
+      }
     }
     .background(.white)
-    .navigationTitle("Edit Document Details")
-    .navigationBarTitleDisplayMode(.inline)
     .onAppear {
       updateData()
     }
     .onChange(of: record) { _, _ in
       updateData()
-    }
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button("Save") {
-          if selectedDocumentType == nil {
-            showAlert = true // Show alert if document type is not selected
-          } else {
-            saveDocumentDetails()
-          }
-        }
-      }
     }
     .alert("Error", isPresented: $showAlert) {
       Button("OK", role: .cancel) { }
@@ -65,7 +111,7 @@ extension EditBottomSheetView {
   private func TypeOfDocumentPickerView() -> some View {
     HStack {
       Text("Type of document")
-        .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .neutrals1000))
+        .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       
       Text("*")
         .foregroundColor(.red) // Red asterisk
@@ -88,13 +134,27 @@ extension EditBottomSheetView {
   private func DocumentDatePickerView() -> some View {
     HStack {
       Text("Document Date")
-        .textStyle(ekaFont: .bodyRegular, color: UIColor(resource: .neutrals1000))
+        .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       
       Spacer()
       
       DatePicker("", selection: $documentDate, displayedComponents: .date)
         .labelsHidden()
         .foregroundColor(.gray)
+    }
+  }
+  
+  private func AssignCaseView() -> some View {
+    HStack {
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Select/Create case")
+          .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
+      }
+      
+      Spacer()
+      
+      Text(assignCaseText)
+        .newTextStyle(ekaFont: .footnoteRegular, color: UIColor(resource: .labelsQuaternary))
     }
   }
 }
@@ -107,6 +167,7 @@ extension EditBottomSheetView {
   private func updateData() {
     setupSelectedDocumentType()
     setupDocumentDate()
+    setupCaseData()
   }
   
   /// Save document details
@@ -120,7 +181,8 @@ extension EditBottomSheetView {
       recordID: record.objectID,
       documentID: record.documentID,
       documentDate: documentDate,
-      documentType: selectedDocumentType?.intValue
+      documentType: selectedDocumentType?.intValue,
+      caseModel: selectedCaseModel
     )
     /// Close edit bottom sheet
     isEditBottomSheetPresented = false
@@ -142,6 +204,19 @@ extension EditBottomSheetView {
   private func setupDocumentDate() {
     guard let recordDate = record?.documentDate else { return }
     documentDate = recordDate
+  }
+  
+  /// Used to setup case data
+  private func setupCaseData() {
+    guard let record,
+          let casesAttached = record.toCaseModel as? Set<CaseModel>,
+          casesAttached.count == 1,
+          let caseModel = casesAttached.first else {
+      return
+    }
+    
+    assignCaseText = caseModel.caseName ?? "Select"
+    selectedCaseModel = caseModel
   }
 }
 

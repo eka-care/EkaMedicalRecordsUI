@@ -9,20 +9,35 @@ import SwiftUI
 import EkaUI
 import EkaMedicalRecordsCore
 
+enum CasesPresentationState {
+  case casesDisplay
+  case editRecord
+}
+
 struct CasesListView: View {
   
   // MARK: - Properties
   
   @Environment(\.managedObjectContext) private var viewContext
-  @State var isCreateCaseFormSheetOpened: Bool = false
+  @Environment(\.dismiss) private var dismiss
+  @State var caseSearchText: String = ""
+  @State private var isSearchActive: Bool
+  let casesPresentationState: CasesPresentationState
   let recordsRepo: RecordsRepo
+  let onSelectCase: ((CaseModel) -> Void)?
   
   // MARK: - Init
   
   init(
-    recordsRepo: RecordsRepo
+    recordsRepo: RecordsRepo,
+    casesPresentationState: CasesPresentationState = .casesDisplay,
+    isSearchActive: Bool = false,
+    onSelectCase: ((CaseModel) -> Void)? = nil
   ) {
     self.recordsRepo = recordsRepo
+    self.casesPresentationState = casesPresentationState
+    self.onSelectCase = onSelectCase
+    _isSearchActive = State(initialValue: isSearchActive)
     // For preview to work
     EkaUI.registerFonts()
   }
@@ -31,20 +46,30 @@ struct CasesListView: View {
   
   var body: some View {
     ZStack(alignment: .bottomTrailing) {
-      ScrollView {
+      List {
         QueryResponderView(
           predicate: generateCasesFetchRequest(),
           sortDescriptors: generateSortDescriptors()
         ) { (cases: FetchedResults<CaseModel>) in
-          VStack(alignment: .leading) {
+          if cases.isEmpty {
+            ContentUnavailableView(
+              "No Medical Case Found",
+              systemImage: "doc",
+              description: Text("Create a new case to add and organize your medical records")
+            )
+          } else {
             ForEach(cases) { caseModel in
               ItemView(caseModel)
             }
           }
-          .padding(.horizontal, EkaSpacing.spacingM)
-          .padding(.top, EkaSpacing.spacingS)
+        }
+        if !caseSearchText.isEmpty {
+          NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
+            CreateNewCaseRowView()
+          }
         }
       }
+      .listStyle(.insetGrouped)
       
       EkaButtonView(
         iconImageString: "plus",
@@ -53,17 +78,22 @@ struct CasesListView: View {
         style: .filled,
         isEnabled: true
       ) {
-        isCreateCaseFormSheetOpened = true
+        isSearchActive = true
       }
       .padding(EkaSpacing.spacingM)
     }
+    .searchable(
+      text: $caseSearchText,
+      isPresented: $isSearchActive,
+      prompt: "Search or add new case"
+    )
     .frame(
       maxWidth:  .infinity,
       maxHeight: .infinity,
       alignment: .bottomTrailing
     )
-    .sheet(isPresented: $isCreateCaseFormSheetOpened) {
-      CreateCaseFormView(recordsRepo: recordsRepo)
+    .onAppear {
+      resetView()
     }
   }
 }
@@ -71,40 +101,76 @@ struct CasesListView: View {
 // MARK: - Subviews
 
 extension CasesListView {
+  @ViewBuilder
   private func ItemView(_ caseModel: CaseModel) -> some View {
-    NavigationLink {
-      RecordsGridListView(
-        recordsRepo: recordsRepo,
-        recordPresentationState: .caseRelatedRecordsView(caseID: caseModel.caseID),
-        title: caseModel.caseName ?? "Documents"
-      )
-      .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
-    } label: {
-      CaseCardView(
-        caseName: caseModel.caseName ?? "",
-        recordCount: caseModel.toRecord?.count ?? 0,
-        date: caseModel.updatedAt
-      )
-      .contextMenu {
-        Button(role: .destructive) {
-          recordsRepo.deleteCase(caseModel)
-        } label: {
-          Text("Delete")
+    let cardView = CaseCardView(
+      caseName: caseModel.caseName ?? "",
+      recordCount: caseModel.toRecord?.count ?? 0,
+      date: caseModel.updatedAt
+    )
+    
+    switch casesPresentationState {
+    case .casesDisplay:
+      NavigationLink(value: caseModel) {
+        cardView
+          .contextMenu {
+            Button(role: .destructive) {
+              recordsRepo.deleteCase(caseModel)
+            } label: {
+              Text("Delete")
+            }
+          }
+      }
+      
+    case .editRecord:
+      cardView
+        .contentShape(Rectangle())
+        .onTapGesture {
+          onSelectCase?(caseModel)
+          dismiss()
         }
+    }
+  }
+  
+  private func CreateNewCaseRowView() -> some View {
+    HStack(spacing: 12) {
+      Circle()
+        .fill(Color(.ascent))
+        .frame(width: 28, height: 28)
+        .overlay(
+          Image(systemName: "plus")
+            .foregroundColor(.white)
+            .font(.system(size: 14, weight: .bold))
+        )
+      
+      HStack(spacing: 0) {
+        Text("Create new case ")
+          .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
+        
+        Text("\"\(caseSearchText)\"")
+          .newTextStyle(ekaFont: .bodyEmphasized, color: UIColor(resource: .ascent))
       }
     }
+    .padding(.vertical, 8)
   }
 }
 
 extension CasesListView {
   private func generateCasesFetchRequest() -> NSPredicate {
-//    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
-//    return NSPredicate(format: "oid IN %@", filterIDs)
-    return NSPredicate(value: true)
+    //    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
+    //    return NSPredicate(format: "oid IN %@", filterIDs)
+    guard !caseSearchText.isEmpty else {
+      return NSPredicate(value: true)
+    }
+    return NSPredicate(format: "caseName CONTAINS[cd] %@", caseSearchText)
   }
   
   func generateSortDescriptors() -> [NSSortDescriptor] {
     return [NSSortDescriptor(keyPath: \CaseModel.createdAt, ascending: true)]
+  }
+  
+  func resetView() {
+    caseSearchText = ""
   }
 }
 

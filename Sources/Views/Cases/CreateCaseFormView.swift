@@ -9,8 +9,11 @@ import SwiftUI
 import EkaUI
 import EkaMedicalRecordsCore
 
+struct CaseFormRoute: Hashable {
+  let prefilledName: String
+}
+
 struct CreateCaseFormView: View {
-  @State private var caseName: String = "dengue"
   @State private var caseType: String = ""
   @State private var date: Date = Date()
   @Environment(\.managedObjectContext) private var viewContext
@@ -18,11 +21,14 @@ struct CreateCaseFormView: View {
   
   @State private var showCaseTypeSheet = false
   @State private var showDatePicker = false
+  let caseName: String
   let recordsRepo: RecordsRepo
   
   init(
+    caseName: String,
     recordsRepo: RecordsRepo
   ) {
+    self.caseName = caseName
     self.recordsRepo = recordsRepo
     // For preview to work
     EkaUI.registerFonts()
@@ -82,9 +88,9 @@ extension CreateCaseFormView {
       Text("*")
         .foregroundStyle(.red)
       Spacer()
-      TextField("Enter case name", text: $caseName)
-        .multilineTextAlignment(.trailing)
-        .foregroundStyle(Color(.ascent))
+      
+      Text(caseName)
+        .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .ascent))
     }
   }
   
@@ -142,10 +148,9 @@ extension CreateCaseFormView {
       updatedAt: Date()
     )
     let addedModel = recordsRepo.addCase(caseArguementModel: caseModel)
-    print("Added model is \(addedModel)")
   }
 }
 
 #Preview {
-  CreateCaseFormView(recordsRepo: RecordsRepo())
+  CreateCaseFormView(caseName: "", recordsRepo: RecordsRepo())
 }

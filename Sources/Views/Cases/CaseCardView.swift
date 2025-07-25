@@ -37,22 +37,12 @@ struct CaseCardView: View {
       
       Spacer()
       
-      VStack(spacing: 4) {
-        if let date = date {
-          Text(formattedDate(date))
-            .font(.footnote)
-            .foregroundColor(.gray)
-        }
-        
-        Image(systemName: "chevron.right")
+      if let date = date {
+        Text(formattedDate(date))
           .font(.footnote)
           .foregroundColor(.gray)
       }
     }
-    .padding()
-    .background(Color.white)
-    .cornerRadius(12)
-    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
   }
   
   private func formattedDate(_ date: Date) -> String {
