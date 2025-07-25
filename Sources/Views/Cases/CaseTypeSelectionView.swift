@@ -26,7 +26,7 @@ struct CaseTypeSelectionView: View {
     NavigationView {
       VStack {
         List {
-          // ✅ CoreData-driven list
+          // CoreData-driven list
           QueryResponderView(
             predicate: NSPredicate(value: true),
             sortDescriptors: []
@@ -54,7 +54,7 @@ struct CaseTypeSelectionView: View {
             }
           }
           
-          // ✅ Create new case type row
+          // Create new case type row
           HStack {
             ZStack {
               Circle()
