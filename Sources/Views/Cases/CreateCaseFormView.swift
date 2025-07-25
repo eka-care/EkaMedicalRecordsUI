@@ -59,6 +59,7 @@ struct CreateCaseFormView: View {
       }
       .sheet(isPresented: $showCaseTypeSheet) {
         CaseTypeSelectionView(selectedCase: $caseType, recordsRepo: recordsRepo)
+          .environment(\.managedObjectContext, viewContext)
       }
       .sheet(isPresented: $showDatePicker) {
         DatePicker("Select Date", selection: $date, displayedComponents: .date)
