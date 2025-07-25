@@ -157,12 +157,15 @@ extension CasesListView {
 
 extension CasesListView {
   private func generateCasesFetchRequest() -> NSPredicate {
-    //    guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
-    //    return NSPredicate(format: "oid IN %@", filterIDs)
-    guard !caseSearchText.isEmpty else {
-      return NSPredicate(value: true)
+    guard let filterIDs = CoreInitConfigurations.shared.filterID else {
+      return NSPredicate(value: false)
     }
-    return NSPredicate(format: "caseName CONTAINS[cd] %@", caseSearchText)
+    let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
+    if caseSearchText.isEmpty {
+      return oidPredicate
+    }
+    let namePredicate = NSPredicate(format: "caseName CONTAINS[cd] %@", caseSearchText)
+    return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, namePredicate])
   }
   
   func generateSortDescriptors() -> [NSSortDescriptor] {
