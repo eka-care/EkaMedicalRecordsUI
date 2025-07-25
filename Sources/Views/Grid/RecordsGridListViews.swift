@@ -270,7 +270,7 @@ extension RecordsGridListView {
   
   /// On tap retry upload
   private func onTapRetry(record: Record) {
-    recordsRepo.uploadRecord(record: record) { _ in }
+    recordsRepo.uploadRecord(record: record)
   }
   
   /// Used to delete a grid item
