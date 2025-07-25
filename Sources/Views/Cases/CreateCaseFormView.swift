@@ -52,7 +52,7 @@ struct CreateCaseFormView: View {
         }
       }
       .sheet(isPresented: $showCaseTypeSheet) {
-        CaseTypePickerView(selectedType: $caseType)
+        CaseTypeSelectionView(selectedCase: $caseType, recordsRepo: recordsRepo)
       }
       .sheet(isPresented: $showDatePicker) {
         DatePicker("Select Date", selection: $date, displayedComponents: .date)

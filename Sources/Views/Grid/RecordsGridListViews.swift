@@ -130,6 +130,8 @@ public struct RecordsGridListView: View {
           }
       }
       
+      
+      
       // Upload menu floating bottom-right
       RecordUploadMenuView(
         images: $uploadedImages,
