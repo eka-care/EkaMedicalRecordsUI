@@ -11,6 +11,7 @@ import EkaMedicalRecordsCore
 
 struct CaseTypeSelectionView: View {
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.managedObjectContext) private var viewContext
   @Binding var selectedCase: String
   @State private var showingAlert = false
   @State private var newCaseType = ""
@@ -87,9 +88,10 @@ struct CaseTypeSelectionView: View {
           }
         }
       }
-      .task {
+      .onAppear {
         //check preload data is avaliable in DataBase
         recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
+          
         }
       }
       .alert("Create new Case Type", isPresented: $showingAlert) {

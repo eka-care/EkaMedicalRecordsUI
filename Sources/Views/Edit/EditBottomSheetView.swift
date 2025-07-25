@@ -69,6 +69,7 @@ struct EditBottomSheetView: View {
           caseName: route.prefilledName,
           recordsRepo: recordsRepo
         )
+        .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       }
       .navigationDestination(for: CaseModel.self) { model in
         RecordsGridListView(

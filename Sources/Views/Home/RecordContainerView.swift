@@ -62,6 +62,7 @@ public struct RecordContainerView: View {
         caseName: route.prefilledName,
         recordsRepo: recordsRepo
       )
+      .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     }
     .navigationDestination(for: Record.self) { record in
       RecordView(record: record)
