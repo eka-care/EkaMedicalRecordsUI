@@ -70,17 +70,18 @@ struct CasesListView: View {
         }
       }
       .listStyle(.insetGrouped)
-      
-      EkaButtonView(
-        iconImageString: "plus",
-        title: "Add Case",
-        size: .large,
-        style: .filled,
-        isEnabled: true
-      ) {
-        isSearchActive = true
+      if !isSearchActive {
+        EkaButtonView(
+          iconImageString: "plus",
+          title: "Add Case",
+          size: .large,
+          style: .filled,
+          isEnabled: true
+        ) {
+          isSearchActive = true
+        }
+        .padding(EkaSpacing.spacingM)
       }
-      .padding(EkaSpacing.spacingM)
     }
     .searchable(
       text: $caseSearchText,
