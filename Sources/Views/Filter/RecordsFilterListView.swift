@@ -18,7 +18,7 @@ struct RecordsFilterListView: View {
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
   @Binding var selectedSortFilter: RecordSortOptions?
-  let caseID: String?
+  @Binding var caseID: String?
   @Environment(\.managedObjectContext) private var viewContext
   
   // MARK: - Init
@@ -27,10 +27,10 @@ struct RecordsFilterListView: View {
     recordsRepo: RecordsRepo,
     selectedChip: Binding<RecordDocumentType>,
     selectedSortFilter: Binding<RecordSortOptions?>,
-    caseID: String? = nil
+    caseID: Binding<String?>
   ) {
     self.recordsRepo = recordsRepo
-    self.caseID = caseID
+    _caseID = caseID
     _selectedChip = selectedChip
     _selectedSortFilter = selectedSortFilter
   }
@@ -42,6 +42,15 @@ struct RecordsFilterListView: View {
         object: viewContext // must match the one being merged into
       )) { _ in
         /// Wait for merge changes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          updateFiltersCount()
+          /// if chip
+          if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
+            selectedChip = .typeAll
+          }
+        }
+      }
+      .onChange(of: caseID) { oldValue, newValue in
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
           updateFiltersCount()
           /// if chip
@@ -113,6 +122,6 @@ extension RecordsFilterListView {
       .dateOfUpload(
         sortingOrder: .newToOld
       )
-    )
+    ), caseID: .constant(nil)
   )
 }

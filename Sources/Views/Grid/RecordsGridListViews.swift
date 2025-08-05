@@ -51,21 +51,25 @@ public struct RecordsGridListView: View {
   @StateObject private var networkMonitor = NetworkMonitor.shared
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
-  
+  @Binding private var selectedRecord: Record?
   // MARK: - Init
+  @State private var currentCaseID: String? =  nil
   
   public init(
     recordsRepo: RecordsRepo = RecordsRepo(),
     recordPresentationState: RecordPresentationState,
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     title: String,
-    pickerSelectedRecords: Binding<[Record]> = .constant([])
-  ) {
+    pickerSelectedRecords: Binding<[Record]> = .constant([]),
+    selectedRecord: Binding<Record?> = .constant(nil),
+    ) {
     self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self._pickerSelectedRecords = pickerSelectedRecords
     self.title = title
+    self._selectedRecord = selectedRecord
+    self.currentCaseID = recordPresentationState.associatedCaseID
   }
   
   // MARK: - View
@@ -95,11 +99,18 @@ public struct RecordsGridListView: View {
               .frame(maxWidth: .infinity)
             } else {
               // Filter chips
+              
+//              if let caseModelSet = records.first?.toCaseModel as? Set<CaseModel>,
+//                 let caseModel = caseModelSet.first {
+//                  let name = caseModel.caseName
+//                  print("Case Name: \(name)")
+//              }
+              
               RecordsFilterListView(
                 recordsRepo: recordsRepo,
                 selectedChip: $selectedFilter,
                 selectedSortFilter: $selectedSortFilter,
-                caseID: recordPresentationState.associatedCaseID
+                caseID: $currentCaseID
               )
               .padding([.leading, .vertical], EkaSpacing.spacingM)
               .environment(\.managedObjectContext, viewContext)
@@ -109,12 +120,23 @@ public struct RecordsGridListView: View {
                 ForEach(records, id: \.objectID) { item in
                   switch recordPresentationState {
                   case .dashboard, .displayAll, .caseRelatedRecordsView:
-                    NavigationLink(value: item) {
+                    if UIDevice.current.isIPad {
                       ItemView(item: item)
                         .frame(
                           width: RecordsDocumentSize.itemWidth,
                           height: RecordsDocumentSize.getItemHeight()
                         )
+                        .onTapGesture {
+                          selectedRecord = item
+                        }
+                    } else  {
+                      NavigationLink(value: item) {
+                        ItemView(item: item)
+                          .frame(
+                            width: RecordsDocumentSize.itemWidth,
+                            height: RecordsDocumentSize.getItemHeight()
+                          )
+                      }
                     }
                   case .picker:
                     ItemView(item: item)
@@ -141,26 +163,14 @@ public struct RecordsGridListView: View {
         hasUserGalleryPermission: PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized
       )
     }
+    .onAppear {
+      currentCaseID = recordPresentationState.associatedCaseID
+    }
+    .onChange(of: recordPresentationState.associatedCaseID) { oldValue, newValue in
+      currentCaseID = newValue
+    }
     .background(Color(.neutrals50))
-    .refreshable {
-      refreshRecords()
-    }
-    .navigationTitle(title)
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        // Sync button
-        Button(action: {
-          /// refresh action
-          refreshRecords()
-        }) {
-          Image(systemName: "arrow.triangle.2.circlepath")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 24, height: 24, alignment: .center)
-            .foregroundStyle(Color(.primary500))
-        }
-      }
-    }
+    
     // alert box
     .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
       Button("Yes", role: .destructive) {

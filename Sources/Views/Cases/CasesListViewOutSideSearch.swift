@@ -1,43 +1,51 @@
 //
-//  CasesListView.swift
+//  CasesListViewOutSideSearch.swift
 //  EkaMedicalRecordsUI
 //
-//  Created by Arya Vashisht on 18/07/25.
+//  Created by shekhar gupta on 05/08/25.
 //
 
 import SwiftUI
 import EkaUI
 import EkaMedicalRecordsCore
 
-enum CasesPresentationState {
-  case casesDisplay
-  case editRecord
-}
-
-struct CasesListView: View {
+//TODO: - Shekhar optimize code
+struct CasesListViewOutSideSearch: View {
   
   // MARK: - Properties
-  
   @Environment(\.managedObjectContext) private var viewContext
   @Environment(\.dismiss) private var dismiss
-  @State var caseSearchText: String = ""
+  @Binding var caseSearchText: String
+  @Binding var createNewCase: String?
   @State private var isSearchActive: Bool
   let casesPresentationState: CasesPresentationState
   let recordsRepo: RecordsRepo
   let onSelectCase: ((CaseModel) -> Void)?
+  var isSearchEnabled: Bool
+  var shouldSelectDefaultCase: Bool = false
+  @Binding var selectedCase: CaseModel?
   
   // MARK: - Init
-  
   init(
     recordsRepo: RecordsRepo,
     casesPresentationState: CasesPresentationState = .casesDisplay,
     isSearchActive: Bool = false,
-    onSelectCase: ((CaseModel) -> Void)? = nil
+    isSearchEnabled: Bool,
+    caseSearchText: Binding<String> = .constant(""),
+    createNewCase: Binding<String?> = .constant(nil),
+    selectedCase: Binding<CaseModel?> = .constant(nil),
+    shouldSelectDefaultCase: Bool = false,
+    onSelectCase: ((CaseModel) -> Void)? = nil,
   ) {
     self.recordsRepo = recordsRepo
     self.casesPresentationState = casesPresentationState
     self.onSelectCase = onSelectCase
+    self.isSearchEnabled = isSearchEnabled
+    self.shouldSelectDefaultCase = shouldSelectDefaultCase
     _isSearchActive = State(initialValue: isSearchActive)
+    _caseSearchText = caseSearchText
+    _createNewCase = createNewCase
+    _selectedCase = selectedCase
     // For preview to work
     EkaUI.registerFonts()
   }
@@ -51,10 +59,16 @@ struct CasesListView: View {
           predicate: generateCasesFetchRequest(),
           sortDescriptors: generateSortDescriptors()
         ) { (cases: FetchedResults<CaseModel>) in
-          
           if !caseSearchText.isEmpty {
-            NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
+            if UIDevice.current.isIPad {
               CreateNewCaseRowView()
+                .onTapGesture {
+                  createNewCase = caseSearchText
+                }
+            } else {
+              NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
+                CreateNewCaseRowView()
+              }
             }
           }
           
@@ -68,11 +82,20 @@ struct CasesListView: View {
             ForEach(cases) { caseModel in
               ItemView(caseModel)
             }
+
           }
+          Color.clear
+            .hidden()
+            .onAppear {
+              if selectedCase == nil, shouldSelectDefaultCase,  let first = cases.first {
+                selectedCase = first
+                onSelectCase?(first)
+              }
+            }
         }
       }
       .listStyle(.insetGrouped)
-      if !isSearchActive {
+      if !isSearchActive && !UIDevice.current.isIPad {
         EkaButtonView(
           iconImageString: "plus",
           title: "Add Case",
@@ -85,11 +108,11 @@ struct CasesListView: View {
         .padding(EkaSpacing.spacingM)
       }
     }
-    .searchable(
-      text: $caseSearchText,
-      isPresented: $isSearchActive,
-      prompt: "Search or add new case"
-    )
+    .modifier(SearchableIfNeeded(
+        isSearchable: isSearchEnabled,
+        searchText: $caseSearchText,
+        isPresented: $isSearchActive
+      ))
     .frame(
       maxWidth:  .infinity,
       maxHeight: .infinity,
@@ -101,20 +124,39 @@ struct CasesListView: View {
   }
 }
 
+struct SearchableIfNeeded: ViewModifier {
+  let isSearchable: Bool
+  @Binding var searchText: String
+  @Binding var isPresented: Bool
+
+  func body(content: Content) -> some View {
+    if isSearchable {
+      content.searchable(
+        text: $searchText,
+        isPresented: $isPresented,
+        prompt: "Search or add new case"
+      )
+    } else {
+      content
+    }
+  }
+}
+
 // MARK: - Subviews
 
-extension CasesListView {
+extension CasesListViewOutSideSearch {
   @ViewBuilder
   private func ItemView(_ caseModel: CaseModel) -> some View {
     let cardView = CaseCardView(
       caseName: caseModel.caseName ?? "",
       recordCount: caseModel.toRecord?.count ?? 0,
-      date: caseModel.updatedAt
+      date: caseModel.updatedAt,
+      isSelected: selectedCase?.caseID == caseModel.caseID
     )
     
     switch casesPresentationState {
     case .casesDisplay:
-      NavigationLink(value: caseModel) {
+      if UIDevice.current.isIPad {
         cardView
           .contextMenu {
             Button(role: .destructive) {
@@ -122,7 +164,22 @@ extension CasesListView {
             } label: {
               Text("Delete")
             }
+          }.contentShape(Rectangle())
+          .onTapGesture {
+              selectedCase = caseModel
+              onSelectCase?(caseModel)
           }
+      } else {
+        NavigationLink(value: caseModel) {
+          cardView
+            .contextMenu {
+              Button(role: .destructive) {
+                recordsRepo.deleteCase(caseModel)
+              } label: {
+                Text("Delete")
+              }
+            }
+        }
       }
       
     case .editRecord:
@@ -158,7 +215,7 @@ extension CasesListView {
   }
 }
 
-extension CasesListView {
+extension CasesListViewOutSideSearch {
   private func generateCasesFetchRequest() -> NSPredicate {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else {
       return NSPredicate(value: false)
@@ -181,17 +238,5 @@ extension CasesListView {
 }
 
 #Preview {
-  CasesListView(recordsRepo: RecordsRepo())
+  CasesListViewOutSideSearch(recordsRepo: RecordsRepo(), isSearchEnabled: true)
 }
-
-
-
-extension UIDevice {
-  var isIPad: Bool {
-    return userInterfaceIdiom == .pad
-  }
-}
-
-
-//-----------------------------------
-
