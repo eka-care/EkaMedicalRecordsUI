@@ -281,20 +281,25 @@ extension RecordContainerView {
   
   @ViewBuilder
   private var detailContent: some View {
-    RecordsGridListView(
-      recordsRepo: recordsRepo,
-      recordPresentationState: {
-        if let caseId = viewModel.selectedCase?.caseID {
+    
+    if viewModel.selectedCase == nil && viewModel.selectedTab == .cases {
+      Text("A case needs to be created first.")
+    } else {
+      RecordsGridListView(
+        recordsRepo: recordsRepo,
+        recordPresentationState: {
+          if let caseId = viewModel.selectedCase?.caseID {
             return .caseRelatedRecordsView(caseID: caseId)
-        } else {
+          } else {
             return .displayAll
-        }
-    }(),
-      title: "Documents",
-      selectedRecord: $viewModel.selectedRecord,
-    )
-    .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
-    .navigationDestination(for: Record.self, destination: recordDestination)
+          }
+        }(),
+        title: "Documents",
+        selectedRecord: $viewModel.selectedRecord,
+      )
+      .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+      .navigationDestination(for: Record.self, destination: recordDestination)
+    }
   }
   
   @ViewBuilder

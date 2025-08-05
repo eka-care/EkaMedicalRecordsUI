@@ -161,8 +161,9 @@ extension CasesListViewOutSideSearch {
           .contextMenu {
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)
+              selectedCase = nil
             } label: {
-              Text("Delete")
+              Text("Archive")
             }
           }.contentShape(Rectangle())
           .onTapGesture {
@@ -176,7 +177,7 @@ extension CasesListViewOutSideSearch {
               Button(role: .destructive) {
                 recordsRepo.deleteCase(caseModel)
               } label: {
-                Text("Delete")
+                Text("Archive")
               }
             }
         }
