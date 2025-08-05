@@ -15,8 +15,8 @@ let package = Package(
       targets: ["EkaMedicalRecordsUI"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", from: "1.0.24"),
-    .package(url: "https://github.com/eka-care/EkaUI.git", branch: "main")
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", from: "1.0.25"),
+    .package(url: "git@github.com:eka-care/EkaUI.git", branch: "main")
   ],
   targets: [
     .target(
