@@ -15,7 +15,7 @@ let package = Package(
       targets: ["EkaMedicalRecordsUI"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", branch: "fix-offline-sync"),
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", branch: "main"),
     .package(url: "git@github.com:eka-care/EkaUI.git", branch: "main")
   ],
   targets: [
