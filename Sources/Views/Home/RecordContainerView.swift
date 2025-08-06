@@ -9,39 +9,65 @@ import SwiftUI
 import EkaUI
 import EkaMedicalRecordsCore
 
-public enum RecordPresentationState: Equatable {
-  case dashboard /// Full medical records dashboard state
-  case displayAll /// Display All medical records state
-  case picker /// Medical records picker state
-  case caseRelatedRecordsView(caseID: String?) /// Medical records related to a case
-  
-  var title: String {
-    switch self {
+public struct RecordPresentationState: Equatable {
+  public var mode: RecordMode
+  public var filters: RecordFilter
+
+  public init(mode: RecordMode, filters: RecordFilter = RecordFilter()) {
+    self.mode = mode
+    self.filters = filters
+  }
+
+  public var title: String {
+    switch mode {
     case .dashboard:
       return ""
     case .displayAll:
       return InitConfiguration.shared.recordsTitle ?? "All"
     case .picker:
       return InitConfiguration.shared.recordsTitle ?? "Select"
-    case .caseRelatedRecordsView:
-      return "Documents"
     }
   }
-  
-  var isCaseRelated: Bool {
-    if case .caseRelatedRecordsView = self {
-      return true
-    }
-    return false
+
+  public var associatedCaseID: String? {
+    filters.caseID
   }
-  
-  var associatedCaseID: String? {
-    if case let .caseRelatedRecordsView(caseID) = self {
-      return caseID
-    }
-    return nil
+
+  public var isPicker: Bool {
+    mode == .picker
+  }
+
+  public var isCaseRelated: Bool {
+    filters.caseID != nil
+  }
+
+  public var isDashboard: Bool {
+    mode == .dashboard
+  }
+
+  public var isDisplayAll: Bool {
+    mode == .displayAll
   }
 }
+
+public struct RecordFilter: Equatable {
+  public var caseID: String?
+  public var userID: String?  
+  public var tags: [String]?
+
+  public init(caseID: String? = nil, userID: String? = nil, tags: [String]? = nil) {
+    self.caseID = caseID
+    self.userID = userID
+    self.tags = tags
+  }
+}
+
+public enum RecordMode: Equatable {
+  case dashboard
+  case displayAll
+  case picker
+}
+
 
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
 
@@ -107,7 +133,7 @@ public struct RecordContainerView: View {
   // MARK: - Properties
   private let recordsRepo = RecordsRepo()
   private let didSelectPickerDataObjects: RecordItemsCallback
-  private let recordPresentationState: RecordPresentationState
+  @State var recordPresentationState: RecordPresentationState
   
   // MARK: - Computed Properties
   private var isCompact: Bool {
@@ -125,7 +151,7 @@ public struct RecordContainerView: View {
   // MARK: - Initializer
   public init(
     didSelectPickerDataObjects: RecordItemsCallback = nil,
-    recordPresentationState: RecordPresentationState = .displayAll
+    recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.recordPresentationState = recordPresentationState
@@ -176,12 +202,22 @@ public struct RecordContainerView: View {
           viewModel.activeModal = .record(record)
         }
     }
+    
+    .onChange(of: viewModel.selectedCase) { oldValue, newValue in
+      let currentMode = self.recordPresentationState.mode
+      let newCaseID = newValue?.caseID
+      self.recordPresentationState = RecordPresentationState(mode: currentMode, filters: RecordFilter(caseID: newCaseID))
+    }
 
     .onChange(of: viewModel.createNewCase) { oldValue, newValue in
         if let name = newValue {
           viewModel.activeModal = .newCase(name)
         }
     }
+    
+//    .onChange(of: viewModel.pickerSelectedRecords, { oldValue, newValue in
+//      print(viewModel.presentationState.count)
+//    })
     
     .onAppear {
       viewModel.configure(
@@ -213,10 +249,8 @@ extension RecordContainerView {
     } detail: {
       Group {
       if viewModel.isSearchFocused {
-        CasesListViewOutSideSearch(
+        CasesListView(
           recordsRepo: recordsRepo,
-          isSearchActive: false,
-          isSearchEnabled: false,
           caseSearchText: $viewModel.searchText,
           createNewCase: $viewModel.createNewCase,
           selectedCase: $viewModel.selectedCase,
@@ -224,8 +258,8 @@ extension RecordContainerView {
           
           onSelectCase: { caseModel in
             viewModel.isSearchFocused = false
-            viewModel.selectedTab = .cases
             viewModel.selectedCase = caseModel
+            viewModel.selectedTab = .cases
           }
         )
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
@@ -265,10 +299,8 @@ extension RecordContainerView {
       Spacer()
       
     case .cases:
-      CasesListViewOutSideSearch(
+      CasesListView(
         recordsRepo: recordsRepo,
-        isSearchActive: false,
-        isSearchEnabled: false,
         selectedCase: $viewModel.selectedCase,
         shouldSelectDefaultCase: viewModel.isSearchFocused ? false : true,
         onSelectCase: { caseModel in
@@ -287,15 +319,10 @@ extension RecordContainerView {
     } else {
       RecordsGridListView(
         recordsRepo: recordsRepo,
-        recordPresentationState: {
-          if let caseId = viewModel.selectedCase?.caseID {
-            return .caseRelatedRecordsView(caseID: caseId)
-          } else {
-            return .displayAll
-          }
-        }(),
+        recordPresentationState: recordPresentationState,
         title: "Documents",
-        selectedRecord: $viewModel.selectedRecord,
+        pickerSelectedRecords: $viewModel.pickerSelectedRecords,
+        selectedRecord: $viewModel.selectedRecord
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       .navigationDestination(for: Record.self, destination: recordDestination)
@@ -315,7 +342,7 @@ extension RecordContainerView {
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       
     case .cases:
-      CasesListView(recordsRepo: recordsRepo)
+      SearchableCaseListView(recordsRepo: recordsRepo)
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     }
   }
@@ -386,8 +413,9 @@ extension RecordContainerView {
   private func caseDestination(for model: CaseModel) -> some View {
     RecordsGridListView(
       recordsRepo: recordsRepo,
-      recordPresentationState: .caseRelatedRecordsView(caseID: model.caseID),
-      title: model.caseName ?? "Documents"
+      recordPresentationState: RecordPresentationState(mode: recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
+      title: model.caseName ?? "Documents",
+      pickerSelectedRecords: $viewModel.pickerSelectedRecords
     )
     .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
   }
@@ -416,7 +444,6 @@ extension RecordContainerView {
   }
   
   private func handleTabChange(_ oldValue: RecordTab, _ newValue: RecordTab) {
-    viewModel.refreshData.toggle()
     switch newValue {
       case .records:
       viewModel.selectedCase = nil
@@ -463,15 +490,13 @@ final class RecordContainerViewModel: ObservableObject {
   @Published var isDownloading: Bool = false
   @Published var searchText: String = ""
   @Published var columnVisibility = NavigationSplitViewVisibility.doubleColumn
-  @Published var selectedTag: String?
   @Published var selectedCase: CaseModel?
   @Published var isSearchFocused: Bool = false
-  @Published var refreshData: Bool = false
   @Published var selectedRecord: Record?
   @Published var createNewCase: String? = nil
   @Published var activeModal: FullScreenModal?
   private var recordsRepo: RecordsRepo?
-  private var presentationState: RecordPresentationState = .displayAll
+  private var presentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   
   func configure(recordsRepo: RecordsRepo, presentationState: RecordPresentationState) {
     self.recordsRepo = recordsRepo

@@ -98,13 +98,6 @@ public struct RecordsGridListView: View {
               }
               .frame(maxWidth: .infinity)
             } else {
-              // Filter chips
-              
-//              if let caseModelSet = records.first?.toCaseModel as? Set<CaseModel>,
-//                 let caseModel = caseModelSet.first {
-//                  let name = caseModel.caseName
-//                  print("Case Name: \(name)")
-//              }
               
               RecordsFilterListView(
                 recordsRepo: recordsRepo,
@@ -118,8 +111,8 @@ public struct RecordsGridListView: View {
               // Grid
               LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                 ForEach(records, id: \.objectID) { item in
-                  switch recordPresentationState {
-                  case .dashboard, .displayAll, .caseRelatedRecordsView:
+                  switch recordPresentationState.mode  {
+                  case .dashboard, .displayAll:
                     if UIDevice.current.isIPad {
                       ItemView(item: item)
                         .frame(
@@ -220,7 +213,7 @@ extension RecordsGridListView {
     item: Record
   ) -> some View {
     RecordItemView(
-      itemData: RecordItemViewData.formRecordItemViewData(from: item),
+      itemData: RecordItemViewData.formRecordItemViewData(from: item, isSelected: pickerSelectedRecords.firstIndex(where: { $0.objectID == item.objectID}) != nil),
       recordPresentationState: recordPresentationState,
       pickerSelectedRecords: $pickerSelectedRecords,
       selectedFilterOption: $selectedSortFilter,
@@ -332,8 +325,8 @@ extension RecordsGridListView {
 
 #Preview {
   RecordsGridListView(
-    recordPresentationState: .displayAll,
-    title: RecordPresentationState.displayAll.title,
+    recordPresentationState: RecordPresentationState(mode: .displayAll),
+    title: RecordPresentationState(mode: .displayAll).title,
     pickerSelectedRecords: .constant([])
   )
 }

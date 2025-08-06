@@ -41,23 +41,10 @@ struct RecordsFilterListView: View {
         for: .NSManagedObjectContextObjectsDidChange,
         object: viewContext // must match the one being merged into
       )) { _ in
-        /// Wait for merge changes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-          updateFiltersCount()
-          /// if chip
-          if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
-            selectedChip = .typeAll
-          }
-        }
+        refeshFilters()
       }
       .onChange(of: caseID) { oldValue, newValue in
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-          updateFiltersCount()
-          /// if chip
-          if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
-            selectedChip = .typeAll
-          }
-        }
+        refeshFilters()
       }
   }
 }
@@ -104,6 +91,17 @@ extension RecordsFilterListView {
   private func getChipTitle(filter: RecordDocumentType) -> String {
     let filterCountString = " (\(recordsFilter[filter] ?? 0))"
     return filter.filterName + filterCountString
+  }
+  
+  private func refeshFilters() {
+    /// Wait for merge changes
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+      updateFiltersCount()
+      /// if chip
+      if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
+        selectedChip = .typeAll
+      }
+    }
   }
   
   /// Update filters count

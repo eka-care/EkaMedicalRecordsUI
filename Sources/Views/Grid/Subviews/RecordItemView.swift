@@ -95,7 +95,7 @@ struct RecordItemView: View {
         }
         
         /// Show tick view only in picker state
-        if recordPresentationState == .picker {
+        if recordPresentationState.mode == .picker {
           /// Selection Tick View at Top-Right
           VStack {
             HStack {
@@ -349,10 +349,10 @@ extension RecordItemView {
 //
 extension RecordItemView {
   private func onTapRecord() {
-    switch recordPresentationState {
+    switch recordPresentationState.mode {
     case .dashboard:
       print("Click on record in dashboard state")
-    case .displayAll, .caseRelatedRecordsView:
+    case .displayAll:
       onTapDocument()
     case .picker:
       updateItemDataOnPickerSelection()
@@ -389,7 +389,7 @@ extension RecordItemView {
 #Preview {
   RecordItemView(
     itemData: RecordItemViewData.formRecordItemPreviewData(),
-    recordPresentationState: .displayAll,
+    recordPresentationState: RecordPresentationState(mode: .displayAll),
     pickerSelectedRecords: .constant([]),
     selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
     onTapEdit: {_ in},

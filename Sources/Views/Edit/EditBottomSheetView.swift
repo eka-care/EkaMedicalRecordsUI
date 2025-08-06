@@ -40,7 +40,7 @@ struct EditBottomSheetView: View {
           if !recordPresentationState.isCaseRelated {
             Section(header: Text("Assign a medical case").textCase(nil)) {
               // Wrap AssignCaseView in NavigationLink
-              NavigationLink(value: "casesList") {
+              NavigationLink(value: "CasesListView") {
                 AssignCaseView()
               }
             }
@@ -51,8 +51,8 @@ struct EditBottomSheetView: View {
       .navigationTitle("Edit Document Details")
       .navigationBarTitleDisplayMode(.inline)
       .navigationDestination(for: String.self) { destination in
-        if destination == "casesList" {
-          CasesListView(
+        if destination == "CasesListView" {
+          SearchableCaseListView(
             recordsRepo: recordsRepo,
             casesPresentationState: .editRecord,
             isSearchActive: true,
@@ -74,7 +74,10 @@ struct EditBottomSheetView: View {
       .navigationDestination(for: CaseModel.self) { model in
         RecordsGridListView(
           recordsRepo: recordsRepo,
-          recordPresentationState: .caseRelatedRecordsView(caseID: model.caseID),
+          recordPresentationState:RecordPresentationState(
+            mode: recordPresentationState.mode,
+            filters: RecordFilter(caseID: model.caseID)
+          ),
           title: model.caseName ?? "Documents"
         )
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)

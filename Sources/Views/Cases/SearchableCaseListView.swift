@@ -1,51 +1,43 @@
 //
-//  CasesListViewOutSideSearch.swift
+//  CasesListView.swift
 //  EkaMedicalRecordsUI
 //
-//  Created by shekhar gupta on 05/08/25.
+//  Created by Arya Vashisht on 18/07/25.
 //
 
 import SwiftUI
 import EkaUI
 import EkaMedicalRecordsCore
 
-//TODO: - Shekhar optimize code
-struct CasesListViewOutSideSearch: View {
+enum CasesPresentationState {
+  case casesDisplay
+  case editRecord
+}
+
+struct SearchableCaseListView: View {
   
   // MARK: - Properties
+  
   @Environment(\.managedObjectContext) private var viewContext
   @Environment(\.dismiss) private var dismiss
-  @Binding var caseSearchText: String
-  @Binding var createNewCase: String?
+  @State var caseSearchText: String = ""
   @State private var isSearchActive: Bool
   let casesPresentationState: CasesPresentationState
   let recordsRepo: RecordsRepo
   let onSelectCase: ((CaseModel) -> Void)?
-  var isSearchEnabled: Bool
-  var shouldSelectDefaultCase: Bool = false
-  @Binding var selectedCase: CaseModel?
   
   // MARK: - Init
+  
   init(
     recordsRepo: RecordsRepo,
     casesPresentationState: CasesPresentationState = .casesDisplay,
     isSearchActive: Bool = false,
-    isSearchEnabled: Bool,
-    caseSearchText: Binding<String> = .constant(""),
-    createNewCase: Binding<String?> = .constant(nil),
-    selectedCase: Binding<CaseModel?> = .constant(nil),
-    shouldSelectDefaultCase: Bool = false,
-    onSelectCase: ((CaseModel) -> Void)? = nil,
+    onSelectCase: ((CaseModel) -> Void)? = nil
   ) {
     self.recordsRepo = recordsRepo
     self.casesPresentationState = casesPresentationState
     self.onSelectCase = onSelectCase
-    self.isSearchEnabled = isSearchEnabled
-    self.shouldSelectDefaultCase = shouldSelectDefaultCase
     _isSearchActive = State(initialValue: isSearchActive)
-    _caseSearchText = caseSearchText
-    _createNewCase = createNewCase
-    _selectedCase = selectedCase
     // For preview to work
     EkaUI.registerFonts()
   }
@@ -59,16 +51,10 @@ struct CasesListViewOutSideSearch: View {
           predicate: generateCasesFetchRequest(),
           sortDescriptors: generateSortDescriptors()
         ) { (cases: FetchedResults<CaseModel>) in
+          
           if !caseSearchText.isEmpty {
-            if UIDevice.current.isIPad {
+            NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
               CreateNewCaseRowView()
-                .onTapGesture {
-                  createNewCase = caseSearchText
-                }
-            } else {
-              NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
-                CreateNewCaseRowView()
-              }
             }
           }
           
@@ -82,20 +68,11 @@ struct CasesListViewOutSideSearch: View {
             ForEach(cases) { caseModel in
               ItemView(caseModel)
             }
-
           }
-          Color.clear
-            .hidden()
-            .onAppear {
-              if selectedCase == nil, shouldSelectDefaultCase,  let first = cases.first {
-                selectedCase = first
-                onSelectCase?(first)
-              }
-            }
         }
       }
       .listStyle(.insetGrouped)
-      if !isSearchActive && !UIDevice.current.isIPad {
+      if !isSearchActive {
         EkaButtonView(
           iconImageString: "plus",
           title: "Add Case",
@@ -108,11 +85,11 @@ struct CasesListViewOutSideSearch: View {
         .padding(EkaSpacing.spacingM)
       }
     }
-    .modifier(SearchableIfNeeded(
-        isSearchable: isSearchEnabled,
-        searchText: $caseSearchText,
-        isPresented: $isSearchActive
-      ))
+    .searchable(
+      text: $caseSearchText,
+      isPresented: $isSearchActive,
+      prompt: "Search or add new case"
+    )
     .frame(
       maxWidth:  .infinity,
       maxHeight: .infinity,
@@ -124,63 +101,28 @@ struct CasesListViewOutSideSearch: View {
   }
 }
 
-struct SearchableIfNeeded: ViewModifier {
-  let isSearchable: Bool
-  @Binding var searchText: String
-  @Binding var isPresented: Bool
-
-  func body(content: Content) -> some View {
-    if isSearchable {
-      content.searchable(
-        text: $searchText,
-        isPresented: $isPresented,
-        prompt: "Search or add new case"
-      )
-    } else {
-      content
-    }
-  }
-}
-
 // MARK: - Subviews
 
-extension CasesListViewOutSideSearch {
+extension SearchableCaseListView {
   @ViewBuilder
   private func ItemView(_ caseModel: CaseModel) -> some View {
     let cardView = CaseCardView(
       caseName: caseModel.caseName ?? "",
       recordCount: caseModel.toRecord?.count ?? 0,
-      date: caseModel.updatedAt,
-      isSelected: selectedCase?.caseID == caseModel.caseID
+      date: caseModel.updatedAt
     )
     
     switch casesPresentationState {
     case .casesDisplay:
-      if UIDevice.current.isIPad {
+      NavigationLink(value: caseModel) {
         cardView
           .contextMenu {
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)
-              selectedCase = nil
             } label: {
-              Text("Archive")
+              Text("Delete")
             }
-          }.contentShape(Rectangle())
-          .onTapGesture {
-              selectedCase = caseModel
-              onSelectCase?(caseModel)
           }
-      } else {
-        NavigationLink(value: caseModel) {
-          cardView
-            .contextMenu {
-              Button(role: .destructive) {
-                recordsRepo.deleteCase(caseModel)
-              } label: {
-                Text("Archive")
-              }
-            }
-        }
       }
       
     case .editRecord:
@@ -216,7 +158,7 @@ extension CasesListViewOutSideSearch {
   }
 }
 
-extension CasesListViewOutSideSearch {
+extension SearchableCaseListView {
   private func generateCasesFetchRequest() -> NSPredicate {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else {
       return NSPredicate(value: false)
@@ -239,5 +181,17 @@ extension CasesListViewOutSideSearch {
 }
 
 #Preview {
-  CasesListViewOutSideSearch(recordsRepo: RecordsRepo(), isSearchEnabled: true)
+  SearchableCaseListView(recordsRepo: RecordsRepo())
 }
+
+
+
+extension UIDevice {
+  var isIPad: Bool {
+    return userInterfaceIdiom == .pad
+  }
+}
+
+
+//-----------------------------------
+
