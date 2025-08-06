@@ -53,47 +53,50 @@ struct CasesListView: View {
           predicate: generateCasesFetchRequest(),
           sortDescriptors: generateSortDescriptors()
         ) { (cases: FetchedResults<CaseModel>) in
-          if !caseSearchText.isEmpty {
-            if UIDevice.current.isIPad {
-              CreateNewCaseRowView()
-                .onTapGesture {
-                  createNewCase = caseSearchText
-                }
-            } else {
-              NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
-                CreateNewCaseRowView()
-              }
-            }
-          }
           
-          if cases.isEmpty {
-            ContentUnavailableView(
-              "No Medical Case Found",
-              systemImage: "doc",
-              description: Text("Create a new case to add and organize your medical records")
-            )
-          } else {
-            ForEach(cases) { caseModel in
-              ItemView(caseModel)
-            }
-
-          }
-          Color.clear
-            .hidden()
-            .onAppear {
-              if selectedCase == nil, shouldSelectDefaultCase,  let first = cases.first {
-                selectedCase = first
-                onSelectCase?(first)
+          Group {
+            // Create new case row
+            if !caseSearchText.isEmpty {
+              if UIDevice.current.isIPad {
+                CreateNewCaseRowView()
+                  .onTapGesture {
+                    createNewCase = caseSearchText
+                  }
+              } else {
+                NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
+                  CreateNewCaseRowView()
+                }
               }
             }
+            
+            // Content or empty state
+            if cases.isEmpty {
+              ContentUnavailableView(
+                "No Medical Case Found",
+                systemImage: "doc",
+                description: Text("Create a new case to add and organize your medical records")
+              )
+            } else {
+              ForEach(cases) { caseModel in
+                ItemView(caseModel)
+              }
+            }
+          }
+          .onAppear {
+            // Handle default case selection here
+            if selectedCase == nil, shouldSelectDefaultCase, let first = cases.first {
+              selectedCase = first
+              onSelectCase?(first)
+            }
+          }
         }
       }
       .listStyle(.insetGrouped)
     }
     .frame(
-      maxWidth:  .infinity,
+      maxWidth: .infinity,
       maxHeight: .infinity,
-      alignment: .bottomTrailing
+      alignment: .topLeading
     )
     .onAppear {
       resetView()
