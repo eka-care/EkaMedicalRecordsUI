@@ -366,11 +366,13 @@ extension RecordContainerView {
   
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
-    ToolbarItem(placement: .topBarLeading) {
-      Button("Close") {
-        dismiss()
+    if recordPresentationState.isDashboard || !viewModel.isSearchFocused {
+      ToolbarItem(placement: .topBarLeading) {
+        Button("Close") {
+          dismiss()
+        }
+        .foregroundStyle(Color(.systemBlue))
       }
-      .foregroundStyle(Color(.systemBlue))
     }
     
     ToolbarItem(placement: .principal) {

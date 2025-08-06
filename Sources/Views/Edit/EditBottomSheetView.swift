@@ -38,7 +38,14 @@ struct EditBottomSheetView: View {
           DocumentDatePickerView()
           /// If we are showing this outside the case related flow we show this
           if !recordPresentationState.isCaseRelated {
-            Section(header: Text("Assign a medical case").textCase(nil)) {
+            Section(header:HStack {
+              Text("Assign a medical case")
+                .font(.headline)
+              Spacer()
+              Text("Selected")
+                .font(.headline)
+            }
+            .textCase(nil)) {
               // Wrap AssignCaseView in NavigationLink
               NavigationLink(value: "SearchableCaseListView") {
                 AssignCaseView()
@@ -55,6 +62,7 @@ struct EditBottomSheetView: View {
           SearchableCaseListView(
             recordsRepo: recordsRepo,
             casesPresentationState: .editRecord,
+            isSearchActive: true,
             onSelectCase: { caseModel in
               assignCaseText = caseModel.caseName ?? ""
               selectedCaseModel = caseModel
@@ -157,7 +165,7 @@ extension EditBottomSheetView {
       Spacer()
       
       Text(assignCaseText)
-        .newTextStyle(ekaFont: .footnoteRegular, color: UIColor(resource: .labelsQuaternary))
+        .newTextStyle(ekaFont: .bodyRegular, color:  assignCaseText == "Select" ?  UIColor(resource: .labelsQuaternary): UIColor(resource: .ascent))
     }
   }
 }

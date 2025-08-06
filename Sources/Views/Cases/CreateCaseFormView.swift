@@ -49,7 +49,7 @@ struct CreateCaseFormView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Add") {
+          Button("Create") {
             addCase()
             dismiss()
           }
