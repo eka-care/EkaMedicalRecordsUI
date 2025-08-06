@@ -77,8 +77,15 @@ struct CasesListView: View {
                 description: Text("Create a new case to add and organize your medical records")
               )
             } else {
-              ForEach(cases) { caseModel in
-                ItemView(caseModel)
+              // Group cases by upload month
+              let groupedCases = groupCasesByMonth(Array(cases))
+              
+              ForEach(groupedCases.keys.sorted(by: >), id: \.self) { monthYear in
+                Section(header: Text(formatSectionHeader(monthYear))) {
+                  ForEach(groupedCases[monthYear] ?? []) { caseModel in
+                    ItemView(caseModel)
+                  }
+                }
               }
             }
           }
@@ -103,7 +110,6 @@ struct CasesListView: View {
     }
   }
 }
-
 // MARK: - Subviews
 
 extension CasesListView {
@@ -118,22 +124,6 @@ extension CasesListView {
     
     switch casesPresentationState {
     case .casesDisplay:
-      if UIDevice.current.isIPad {
-        cardView
-          .contextMenu {
-            Button(role: .destructive) {
-              recordsRepo.deleteCase(caseModel)
-              selectedCase = nil
-            } label: {
-              Text("Archive")
-            }
-          }.contentShape(Rectangle())
-          .onTapGesture {
-              selectedCase = caseModel
-              onSelectCase?(caseModel)
-          }
-      } else {
-        NavigationLink(value: caseModel) {
           cardView
             .contextMenu {
               Button(role: .destructive) {
@@ -142,9 +132,6 @@ extension CasesListView {
                 Text("Archive")
               }
             }
-        }
-      }
-      
     case .editRecord:
       cardView
         .contentShape(Rectangle())
@@ -197,6 +184,38 @@ extension CasesListView {
   
   func resetView() {
     caseSearchText = ""
+  }
+}
+
+extension CasesListView {
+  
+  // Helper function to group cases by month and year
+  private func groupCasesByMonth(_ cases: [CaseModel]) -> [Date: [CaseModel]] {
+    let calendar = Calendar.current
+    
+    return Dictionary(grouping: cases) { caseModel in
+      // Assuming CaseModel has a createdDate or uploadDate property
+      let date = caseModel.createdAt ?? Date()
+      
+      // Get the start of the month for grouping
+      return calendar.dateInterval(of: .month, for: date)?.start ?? date
+    }
+  }
+  
+  // Helper function to format section headers
+  private func formatSectionHeader(_ date: Date) -> String {
+    let calendar = Calendar.current
+    let now = Date()
+    
+    // Check if it's the current month
+    if calendar.isDate(date, equalTo: now, toGranularity: .month) {
+      return "This Month"
+    }
+    
+    // Format as "Month Year" for other months
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM yyyy"
+    return formatter.string(from: date)
   }
 }
 
