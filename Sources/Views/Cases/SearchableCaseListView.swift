@@ -17,7 +17,6 @@ enum CasesPresentationState {
 struct SearchableCaseListView: View {
   
   // MARK: - Properties
-  
   @Environment(\.managedObjectContext) private var viewContext
   @Environment(\.dismiss) private var dismiss
   @State var caseSearchText: String = ""
@@ -46,32 +45,39 @@ struct SearchableCaseListView: View {
   
   var body: some View {
     ZStack(alignment: .bottomTrailing) {
-      List {
-        QueryResponderView(
-          predicate: generateCasesFetchRequest(),
-          sortDescriptors: generateSortDescriptors()
-        ) { (cases: FetchedResults<CaseModel>) in
-          
-          if !caseSearchText.isEmpty {
-            NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
-              CreateNewCaseRowView()
+      HStack {
+        List {
+          QueryResponderView(
+            predicate: generateCasesFetchRequest(),
+            sortDescriptors: generateSortDescriptors()
+          ) { (cases: FetchedResults<CaseModel>) in
+            
+            if !caseSearchText.isEmpty {
+              NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
+                CreateNewCaseRowView()
+              }
             }
-          }
-          
-          if cases.isEmpty {
-            ContentUnavailableView(
-              "No Medical Case Found",
-              systemImage: "doc",
-              description: Text("Create a new case to add and organize your medical records")
-            )
-          } else {
-            ForEach(cases) { caseModel in
-              ItemView(caseModel)
+            
+            if cases.isEmpty {
+              ContentUnavailableView(
+                "No Medical Case Found",
+                systemImage: "doc",
+                description: Text("Create a new case to add and organize your medical records")
+              )
+            } else {
+              ForEach(cases) { caseModel in
+                ItemView(caseModel)
+              }
             }
           }
         }
+        .listStyle(.insetGrouped)
+        .searchable(
+          text: $caseSearchText,
+          isPresented: $isSearchActive,
+          prompt: "Search or add new case"
+        )
       }
-      .listStyle(.insetGrouped)
       if !isSearchActive {
         EkaButtonView(
           iconImageString: "plus",
@@ -85,11 +91,6 @@ struct SearchableCaseListView: View {
         .padding(EkaSpacing.spacingM)
       }
     }
-    .searchable(
-      text: $caseSearchText,
-      isPresented: $isSearchActive,
-      prompt: "Search or add new case"
-    )
     .frame(
       maxWidth:  .infinity,
       maxHeight: .infinity,
@@ -183,15 +184,4 @@ extension SearchableCaseListView {
 #Preview {
   SearchableCaseListView(recordsRepo: RecordsRepo())
 }
-
-
-
-extension UIDevice {
-  var isIPad: Bool {
-    return userInterfaceIdiom == .pad
-  }
-}
-
-
-//-----------------------------------
 

@@ -182,11 +182,13 @@ public struct RecordContainerView: View {
         }
       }
       if case let .newCase(name) = modal {
+        NavigationStack{
           CreateCaseFormView(
-              caseName: name,
-              recordsRepo: recordsRepo
+            caseName: name,
+            recordsRepo: recordsRepo
           )
           .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+        }
       }
     }
 

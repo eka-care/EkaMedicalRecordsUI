@@ -35,7 +35,6 @@ struct CreateCaseFormView: View {
   }
   
   var body: some View {
-    NavigationView {
       Form {
         Section {
           CaseNameView()
@@ -68,7 +67,6 @@ struct CreateCaseFormView: View {
           .presentationDetents([.medium])
           .padding()
       }
-    }
   }
   
   private var dateFormatted: String {
