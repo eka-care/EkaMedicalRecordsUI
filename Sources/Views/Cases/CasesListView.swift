@@ -124,14 +124,31 @@ extension CasesListView {
     
     switch casesPresentationState {
     case .casesDisplay:
-          cardView
-            .contextMenu {
-              Button(role: .destructive) {
-                recordsRepo.deleteCase(caseModel)
-              } label: {
-                Text("Archive")
-              }
+      if UIDevice.current.isIPad {
+        cardView
+          .contextMenu {
+            Button(role: .destructive) {
+              recordsRepo.deleteCase(caseModel)
+            } label: {
+              Text("Archive")
             }
+          }
+          .contentShape(Rectangle())
+          .onTapGesture {
+            selectedCase = caseModel
+            onSelectCase?(caseModel)
+        }
+      } else {
+        cardView
+          .contextMenu {
+            Button(role: .destructive) {
+              recordsRepo.deleteCase(caseModel)
+            } label: {
+              Text("Archive")
+            }
+          }
+      }
+
     case .editRecord:
       cardView
         .contentShape(Rectangle())
