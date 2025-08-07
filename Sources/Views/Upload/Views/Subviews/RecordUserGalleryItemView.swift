@@ -3,18 +3,14 @@
 import SwiftUI
 
 struct RecordUserGalleryItemView: View {
-  
   // MARK: - Properties
-  
   @State var imageData: RecordUploadImageData
   @Binding var currentlySelectedImageNumber: Int
   @Binding var galleryPhotos: [RecordUploadImageData]
   @Binding var shouldShowSelectionLimitMessage: Bool
   let selectionLimit: Int
   let itemMaxHeight: CGFloat = 105
-  
   // MARK: - Init
-  
   init(
     imageData: RecordUploadImageData,
     currentlySelectedImageNumber: Binding<Int>,
@@ -28,9 +24,7 @@ struct RecordUserGalleryItemView: View {
     self.selectionLimit = selectionLimit
     _shouldShowSelectionLimitMessage = shouldShowSelectionLimitMessage
   }
-  
   // MARK: - Body
-  
   var body: some View {
     ZStack(alignment: .top) {
       if imageData.selectedImageNumber != nil { /// If image is in selected state
@@ -58,7 +52,7 @@ struct RecordUserGalleryItemView: View {
             strokeWidth: 2
           )
       }
-      SelectionRadioView()
+      selectionRadioView()
         .padding([.top], EkaSpacing.spacingXs)
     }
     .frame(height: itemMaxHeight)
@@ -73,7 +67,7 @@ struct RecordUserGalleryItemView: View {
 // MARK: - Subviews
 
 extension RecordUserGalleryItemView {
-  private func SelectionRadioView() -> some View {
+  private func selectionRadioView() -> some View {
     return VStack {
       HStack {
         Spacer()
@@ -82,7 +76,6 @@ extension RecordUserGalleryItemView {
           Circle()
             .foregroundColor(imageData.selectedImageNumber != nil ? Color(.primary500) : Color.black)
             .frame(width: 18, height: 18)
-          
           if let selectedImageNumber = imageData.selectedImageNumber {
             Text("\(selectedImageNumber)")
               .textStyle(ekaFont: .calloutRegular, color: .white)
@@ -103,7 +96,6 @@ extension RecordUserGalleryItemView {
       selectImage()
     }
   }
-  
   // Unselection
   private func unselectImage(selectedImageNumber: Int) {
     imageData.selectedImageNumber = nil /// If image was already selected unselect it
@@ -112,7 +104,6 @@ extension RecordUserGalleryItemView {
     /// Also reduce the currently selected index by 1
     currentlySelectedImageNumber -= 1
   }
-  
   private func resetHigherNumberedImagesCount(selectedImageNumber: Int) {
     for (index, traversedImage) in galleryPhotos.enumerated() {
       /// Update the data source with nil if the image is unselected
@@ -133,7 +124,6 @@ extension RecordUserGalleryItemView {
       }
     }
   }
-  
   // Selection
   private func selectImage() {
     guard currentlySelectedImageNumber < selectionLimit else {

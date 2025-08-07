@@ -58,13 +58,13 @@ struct CasesListView: View {
             // Create new case row
             if !caseSearchText.isEmpty {
               if UIDevice.current.isIPad {
-                CreateNewCaseRowView()
+                createNewCaseRowView()
                   .onTapGesture {
                     createNewCase = caseSearchText
                   }
               } else {
                 NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
-                  CreateNewCaseRowView()
+                  createNewCaseRowView()
                 }
               }
             }
@@ -83,7 +83,7 @@ struct CasesListView: View {
               ForEach(groupedCases.keys.sorted(by: >), id: \.self) { monthYear in
                 Section(header: Text(formatSectionHeader(monthYear))) {
                   ForEach(groupedCases[monthYear] ?? []) { caseModel in
-                    ItemView(caseModel)
+                    itemView(caseModel)
                   }
                 }
               }
@@ -114,7 +114,7 @@ struct CasesListView: View {
 
 extension CasesListView {
   @ViewBuilder
-  private func ItemView(_ caseModel: CaseModel) -> some View {
+  private func itemView(_ caseModel: CaseModel) -> some View {
     let cardView = CaseCardView(
       caseName: caseModel.caseName ?? "",
       recordCount: caseModel.toRecord?.count ?? 0,
@@ -159,7 +159,7 @@ extension CasesListView {
     }
   }
   
-  private func CreateNewCaseRowView() -> some View {
+  private func createNewCaseRowView() -> some View {
     HStack(spacing: 12) {
       Circle()
         .fill(Color(.ascent))

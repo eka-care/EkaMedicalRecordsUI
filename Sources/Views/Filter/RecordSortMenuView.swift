@@ -21,11 +21,11 @@ struct RecordSortMenuView: View {
               .textStyle(ekaFont: .bodyRegular, color: .black)
             /// If no option is selected show checkmark on upload date new to old
             if selectedOption == nil, option == .dateOfUpload(sortingOrder: .newToOld) {
-              CheckMarkView()
+              checkMarkView()
             }
             /// If option is selected show that
             if option == selectedOption {
-              CheckMarkView()
+              checkMarkView()
             }
           }
         }
@@ -49,7 +49,7 @@ struct RecordSortMenuView: View {
 // MARK: - Subview
 
 extension RecordSortMenuView {
-  private func CheckMarkView() -> some View {
+  private func checkMarkView() -> some View {
     Image(systemName: "checkmark")
       .resizable()
       .scaledToFit()

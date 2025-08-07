@@ -37,12 +37,12 @@ struct CreateCaseFormView: View {
   var body: some View {
       Form {
         Section {
-          CaseNameView()
-          CaseTypeView()
-          CaseDateView()
+          caseNameView()
+          caseTypeView()
+          caseDateView()
         }
         
-        CaseInformationSection()
+        caseInformationSection()
       }
       .background(Color(.fillsTertiary))
       .navigationTitle("Create Case")
@@ -68,7 +68,6 @@ struct CreateCaseFormView: View {
           .padding()
       }
   }
-  
   private var dateFormatted: String {
     let formatter = DateFormatter()
     formatter.dateFormat = "dd MMMM yyyy"
@@ -81,7 +80,7 @@ struct CreateCaseFormView: View {
 extension CreateCaseFormView {
   /// Case Name VIew
   /// - Returns: View which has case name text field
-  private func CaseNameView() -> some View {
+  private func caseNameView() -> some View {
     HStack {
       Text("Case name")
       Text("*")
@@ -92,8 +91,7 @@ extension CreateCaseFormView {
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .ascent))
     }
   }
-  
-  private func CaseTypeView() -> some View {
+  private func caseTypeView() -> some View {
     HStack {
       Text("Case type")
       Spacer()
@@ -105,8 +103,7 @@ extension CreateCaseFormView {
       showCaseTypeSheet = true
     }
   }
-  
-  private func CaseDateView() -> some View {
+  private func caseDateView() -> some View {
     HStack {
       Text("Date")
       Spacer()
@@ -118,8 +115,7 @@ extension CreateCaseFormView {
       showDatePicker = true
     }
   }
-  
-  private func CaseInformationSection() -> some View {
+  private func caseInformationSection() -> some View {
     Section {
       HStack(alignment: .top, spacing: 10) {
         Image(systemName: "info.circle")

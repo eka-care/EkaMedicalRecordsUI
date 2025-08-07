@@ -54,7 +54,7 @@ struct SearchableCaseListView: View {
             
             if !caseSearchText.isEmpty {
               NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
-                CreateNewCaseRowView()
+                createNewCaseRowView()
               }
             }
             
@@ -66,7 +66,7 @@ struct SearchableCaseListView: View {
               )
             } else {
               ForEach(cases) { caseModel in
-                ItemView(caseModel)
+                itemView(caseModel)
               }
             }
           }
@@ -106,7 +106,7 @@ struct SearchableCaseListView: View {
 
 extension SearchableCaseListView {
   @ViewBuilder
-  private func ItemView(_ caseModel: CaseModel) -> some View {
+  private func itemView(_ caseModel: CaseModel) -> some View {
     let cardView = CaseCardView(
       caseName: caseModel.caseName ?? "",
       recordCount: caseModel.toRecord?.count ?? 0,
@@ -136,7 +136,7 @@ extension SearchableCaseListView {
     }
   }
   
-  private func CreateNewCaseRowView() -> some View {
+  private func createNewCaseRowView() -> some View {
     HStack(spacing: 12) {
       Circle()
         .fill(Color(.ascent))

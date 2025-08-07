@@ -34,8 +34,8 @@ struct EditBottomSheetView: View {
     NavigationStack {
       VStack {
         List {
-          TypeOfDocumentPickerView()
-          DocumentDatePickerView()
+          typeOfDocumentPickerView()
+          documentDatePickerView()
           /// If we are showing this outside the case related flow we show this
           if !recordPresentationState.isCaseRelated {
             Section(header:HStack {
@@ -48,7 +48,7 @@ struct EditBottomSheetView: View {
             .textCase(nil)) {
               // Wrap AssignCaseView in NavigationLink
               NavigationLink(value: "SearchableCaseListView") {
-                AssignCaseView()
+                assignCaseView()
               }
             }
           }
@@ -119,16 +119,13 @@ struct EditBottomSheetView: View {
 // MARK: - Subviews
 
 extension EditBottomSheetView {
-  private func TypeOfDocumentPickerView() -> some View {
+  private func typeOfDocumentPickerView() -> some View {
     HStack {
       Text("Type of document")
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
-      
       Text("*")
         .foregroundColor(.red) // Red asterisk
-      
       Spacer()
-      
       Picker("", selection: $selectedDocumentType) {
         Text("Select").tag(nil as RecordDocumentType?) // Empty selection
         ForEach(RecordDocumentType.allCases.filter { $0 != .typeAll}, id: \.self) { type in
@@ -142,7 +139,7 @@ extension EditBottomSheetView {
     }
   }
   
-  private func DocumentDatePickerView() -> some View {
+  private func documentDatePickerView() -> some View {
     HStack {
       Text("Document Date")
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
@@ -155,7 +152,7 @@ extension EditBottomSheetView {
     }
   }
   
-  private func AssignCaseView() -> some View {
+  private func assignCaseView() -> some View {
     HStack {
       VStack(alignment: .leading, spacing: 4) {
         Text("Select/Create case")

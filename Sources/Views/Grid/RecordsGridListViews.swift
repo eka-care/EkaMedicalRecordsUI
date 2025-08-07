@@ -114,7 +114,7 @@ public struct RecordsGridListView: View {
                   switch recordPresentationState.mode  {
                   case .dashboard, .displayAll:
                     if UIDevice.current.isIPad {
-                      ItemView(item: item)
+                      itemView(item: item)
                         .frame(
                           width: RecordsDocumentSize.itemWidth,
                           height: RecordsDocumentSize.getItemHeight()
@@ -124,7 +124,7 @@ public struct RecordsGridListView: View {
                         }
                     } else  {
                       NavigationLink(value: item) {
-                        ItemView(item: item)
+                        itemView(item: item)
                           .frame(
                             width: RecordsDocumentSize.itemWidth,
                             height: RecordsDocumentSize.getItemHeight()
@@ -132,7 +132,7 @@ public struct RecordsGridListView: View {
                       }
                     }
                   case .picker:
-                    ItemView(item: item)
+                    itemView(item: item)
                       .frame(
                         width: RecordsDocumentSize.itemWidth,
                         height: RecordsDocumentSize.getItemHeight()
@@ -196,7 +196,7 @@ public struct RecordsGridListView: View {
       }
     }
     /// On selection of images add a record to the storage
-    .onChange(of: uploadedImages) { oldValue, newValue in
+    .onChange(of: uploadedImages) { _ , newValue in
       let data = GalleryHelper.convertImagesToData(images: newValue)
       addRecord(
         data: data,
@@ -209,7 +209,7 @@ public struct RecordsGridListView: View {
 // MARK: - Subviews
 
 extension RecordsGridListView {
-  private func ItemView(
+  private func itemView(
     item: Record
   ) -> some View {
     RecordItemView(
@@ -227,7 +227,6 @@ extension RecordsGridListView {
 // MARK: - Helper Functions
 
 extension RecordsGridListView {
-  
   /// Used to add record in database and upload
   private func addRecord(
     data: [Data],
@@ -251,36 +250,30 @@ extension RecordsGridListView {
       }
     }
   }
-  
   /// To sync unuploaded records
   private func syncRecords() {
     recordsRepo.syncUnuploadedRecords()
   }
-  
   /// Used to refresh records
   private func refreshRecords() {
     isLoadingRecordsFromServer = true
-    recordsRepo.getUpdatedAtAndStartFetchRecords { success in
+    recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
       isLoadingRecordsFromServer = false
     }
   }
-  
   /// On tap delete open
   private func onTapDelete(record: Record) {
     itemToBeDeleted = record
     isDeleteAlertPresented = true
   }
-  
   /// On tap retry upload
   private func onTapRetry(record: Record) {
     recordsRepo.uploadRecord(record: record)
   }
-  
   /// Used to delete a grid item
   private func deleteItem(record: Record) {
     recordsRepo.deleteRecord(record: record)
   }
-  
   /// Used to edit an item
   private func editItem(record: Record) {
     recordSelectedForEdit = record
@@ -296,19 +289,15 @@ extension RecordsGridListView {
   ) -> NSPredicate {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
     let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
-    
     var predicates: [NSPredicate] = [oidPredicate]
-    
     if filter != .typeAll {
       let typePredicate = PredicateHelper.equals("documentType", value: Int64(filter.intValue))
       predicates.append(typePredicate)
     }
-    
     if let caseID = caseID {
       let casePredicate = NSPredicate(format: "ANY toCaseModel.caseID == %@", caseID)
       predicates.append(casePredicate)
     }
-    
     return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
   }
   

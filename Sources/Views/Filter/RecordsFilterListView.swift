@@ -5,24 +5,19 @@
 //  Created by Arya Vashisht on 10/04/25.
 //
 
-
 import SwiftUI
 import EkaMedicalRecordsCore
 import Combine
 
 struct RecordsFilterListView: View {
-  
   // MARK: - Properties
-  
   let recordsRepo: RecordsRepo
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
   @Binding var selectedSortFilter: RecordSortOptions?
   @Binding var caseID: String?
   @Environment(\.managedObjectContext) private var viewContext
-  
   // MARK: - Init
-  
   init(
     recordsRepo: RecordsRepo,
     selectedChip: Binding<RecordDocumentType>,
@@ -34,9 +29,8 @@ struct RecordsFilterListView: View {
     _selectedChip = selectedChip
     _selectedSortFilter = selectedSortFilter
   }
-  
   var body: some View {
-    ChipsView()
+    chipsView()
       .onReceive(NotificationCenter.default.publisher(
         for: .NSManagedObjectContextObjectsDidChange,
         object: viewContext // must match the one being merged into
@@ -52,7 +46,7 @@ struct RecordsFilterListView: View {
 // MARK: - Subviews
 
 extension RecordsFilterListView {
-  private func ChipsView() -> some View {
+  private func chipsView() -> some View {
     ScrollViewReader { scrollViewProxy in
       ScrollView(.horizontal, showsIndicators: false) {
         HStack {

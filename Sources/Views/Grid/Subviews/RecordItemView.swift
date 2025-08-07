@@ -22,9 +22,7 @@ enum RecordsDocumentSize {
 }
 
 struct RecordItemView: View {
-  
   // MARK: - Properties
-  
   let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
@@ -34,9 +32,7 @@ struct RecordItemView: View {
   var onTapRetry: (Record) -> Void
   @State private var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
-  
   // MARK: - Init
-  
   init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
@@ -54,53 +50,48 @@ struct RecordItemView: View {
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
   }
-  
   // MARK: - Body
-  
   var body: some View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
+        thumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
           .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
           .blur(radius: isThumbnailBlurred() ? 2 : 0)
           .frame(width: RecordsDocumentSize.itemWidth)
-        
         /// Show retry upload view
         if let record = itemData.record,
            let syncState = RecordSyncState(from: record.syncState ?? ""),
            syncState == .upload(success: false), isNetworkAvailable {
-          RetryUploadingView()
+          retryUploadingView()
             .contentShape(Rectangle())
             .onTapGesture {
               onTapRetry(record)
             }
             .frame(width: RecordsDocumentSize.itemWidth)
         }
-        
         if let record = itemData.record {
           VStack {
             HStack {
               /// Sync State
               if let syncState = RecordSyncState(from: record.syncState ?? ""),
                  syncState != .upload(success: true) {
-                TopLeftStateTileView(syncState: syncState)
+                topLeftStateTileView(syncState: syncState)
               } else if record.isSmart {
-                SmartReportView()
+                smartReportView()
               }
               Spacer()
             }
             Spacer()
           }
         }
-        
         /// Show tick view only in picker state
         if recordPresentationState.mode == .picker {
           /// Selection Tick View at Top-Right
           VStack {
             HStack {
               Spacer()
-              SelectionTickView().foregroundStyle(Color.yellow)
+              selectionTickView().foregroundStyle(Color.yellow)
                 .padding(.top, EkaSpacing.spacingM)
                 .padding(.trailing, EkaSpacing.spacingM)
             }
@@ -108,9 +99,8 @@ struct RecordItemView: View {
           }
         }
       }
-      
       /// Bottom Meta Data View 
-      BottomMetaDataView()
+      bottomMetaDataView()
     }
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight + RecordsDocumentSize.bottomMetaDataHeight)
     .background(Color.white)
@@ -149,7 +139,7 @@ struct RecordItemView: View {
 // MARK: - Subviews
 
 extension RecordItemView {
-  private func BottomMetaDataView() -> some View {
+  private func bottomMetaDataView() -> some View {
     HStack {
       /// Icon Image
       VStack {
@@ -167,7 +157,6 @@ extension RecordItemView {
           Spacer()
         }
       }
-      
       VStack(alignment: .leading) {
         /// Document type
         if let record = itemData.record,
@@ -182,41 +171,34 @@ extension RecordItemView {
         if let record = itemData.record {
           let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
           let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
-          
           let prefix = switch filterOption {
           case .dateOfUpload: "Added "
           default: ""
           }
-          
           Text(prefix + date)
             .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
         }
       }
-      
       Spacer()
-      
-      MenuView()
+      menuView()
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)
   }
-  
-  private func TopLeftStateTileView(syncState: RecordSyncState) -> some View {
+  private func topLeftStateTileView(syncState: RecordSyncState) -> some View {
     HStack {
       if !isNetworkAvailable {
-        NoNetworkStateView()
+        noNetworkStateView()
       } else if syncState == .uploading {
-        UploadingStateView()
+        uploadingStateView()
       }
     }
   }
-  
-  private func UploadingStateView() -> some View {
+  private func uploadingStateView() -> some View {
     HStack(alignment: .bottom) {
       ProgressView()
         .frame(width: 10, height: 10)
         .tint(Color(.yellow500))
-      
       Text("Uploading")
         .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
     }
@@ -225,8 +207,7 @@ extension RecordItemView {
     .background(.white)
     .cornerRadiusModifier(6, corners: [.bottomRight])
   }
-  
-  private func NoNetworkStateView() -> some View {
+  private func noNetworkStateView() -> some View {
     HStack {
       Image(systemName: "icloud.slash.fill")
         .resizable()
@@ -243,7 +224,7 @@ extension RecordItemView {
     .cornerRadiusModifier(6, corners: [.bottomRight])
   }
   
-  private func RetryUploadingView() -> some View {
+  private func retryUploadingView() -> some View {
     HStack {
       Image(systemName: "arrow.clockwise")
         .resizable()
@@ -261,7 +242,7 @@ extension RecordItemView {
   }
   
   /// Thumbnail
-  private func ThumbnailImageView(thumbnailImageUrl: URL?) -> some View {
+  private func thumbnailImageView(thumbnailImageUrl: URL?) -> some View {
     ZStack {
       AsyncImage(url: thumbnailImageUrl) { image in
         image.resizable()
@@ -276,13 +257,13 @@ extension RecordItemView {
     .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
-  private func ThumbnailImageLoadingView() -> some View {
+  private func thumbnailImageLoadingView() -> some View {
     Color.black.opacity(0.6)
       .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
       .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
-  private func SelectionTickView() -> some View {
+  private func selectionTickView() -> some View {
     VStack {
       if itemData.isSelected { /// If the item is selected show checkmark
         Image(systemName: "checkmark.circle.fill")
@@ -305,7 +286,7 @@ extension RecordItemView {
     }
   }
   
-  private func SmartReportView() -> some View {
+  private func smartReportView() -> some View {
     HStack(spacing: EkaSpacing.spacingXxs) {
       Image(systemName: "sparkle")
         .resizable()
@@ -322,7 +303,7 @@ extension RecordItemView {
     .cornerRadiusModifier(6, corners: [.bottomRight])
   }
   
-  private func MenuView() -> some View {
+  private func menuView() -> some View {
     // Menu that opens on tap (instead of long press)
     Menu {
       Button {
