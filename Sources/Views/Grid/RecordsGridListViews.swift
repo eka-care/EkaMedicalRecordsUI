@@ -12,7 +12,6 @@ import EkaMedicalRecordsCore
 
 public struct RecordsGridListView: View {
   // MARK: - Properties
-  
   let recordsRepo: RecordsRepo
   let columns = [
     GridItem(
@@ -53,8 +52,8 @@ public struct RecordsGridListView: View {
   var didSelectPickerDataObjects: RecordItemsCallback
   @Binding private var selectedRecord: Record?
   // MARK: - Init
-  @State private var currentCaseID: String? =  nil
-  
+  @State private var currentCaseID: String?
+  @State private var isSyncing = false
   public init(
     recordsRepo: RecordsRepo = RecordsRepo(),
     recordPresentationState: RecordPresentationState,
@@ -71,9 +70,7 @@ public struct RecordsGridListView: View {
     self._selectedRecord = selectedRecord
     self.currentCaseID = recordPresentationState.associatedCaseID
   }
-  
   // MARK: - View
-  
   public var body: some View {
     ZStack(alignment: .bottomTrailing) {
       QueryResponderView(
@@ -87,18 +84,15 @@ public struct RecordsGridListView: View {
             if records.isEmpty {
               VStack(spacing: 16) {
                 Spacer(minLength: 100)
-                
                 ContentUnavailableView(
                   "No documents found",
                   systemImage: "doc",
                   description: Text("Upload documents to see them here")
                 )
-                
                 Spacer()
               }
               .frame(maxWidth: .infinity)
             } else {
-              
               RecordsFilterListView(
                 recordsRepo: recordsRepo,
                 selectedChip: $selectedFilter,
@@ -107,11 +101,10 @@ public struct RecordsGridListView: View {
               )
               .padding([.leading, .vertical], EkaSpacing.spacingM)
               .environment(\.managedObjectContext, viewContext)
-              
               // Grid
               LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                 ForEach(records, id: \.objectID) { item in
-                  switch recordPresentationState.mode  {
+                  switch recordPresentationState.mode {
                   case .dashboard, .displayAll:
                     if UIDevice.current.isIPad {
                       itemView(item: item)
@@ -122,7 +115,7 @@ public struct RecordsGridListView: View {
                         .onTapGesture {
                           selectedRecord = item
                         }
-                    } else  {
+                    } else {
                       NavigationLink(value: item) {
                         itemView(item: item)
                           .frame(
@@ -146,9 +139,6 @@ public struct RecordsGridListView: View {
             }
           }
       }
-      
-      
-      
       // Upload menu floating bottom-right
       RecordUploadMenuView(
         images: $uploadedImages,
@@ -158,12 +148,17 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
+      refreshRecords()
     }
-    .onChange(of: recordPresentationState.associatedCaseID) { oldValue, newValue in
+    .onReceive(networkMonitor.$isOnline) { isOnline in
+      if isOnline {
+        syncRecords()
+      }
+    }
+    .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
     }
     .background(Color(.neutrals50))
-    
     // alert box
     .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
       Button("Yes", role: .destructive) {
@@ -186,8 +181,15 @@ public struct RecordsGridListView: View {
     .onAppear {
       refreshRecords()
     }
+    
+    .onChange(of: isEditBottomSheetPresented, { _, newValue in
+      if !newValue {
+        refreshRecords()
+      }
+    })
+
     /// On selection of PDF add a record to the storage
-    .onChange(of: selectedPDFData) { oldValue, newValue in
+    .onChange(of: selectedPDFData) { _,newValue in
       if let newValue {
         addRecord(
           data: [newValue],
@@ -196,7 +198,7 @@ public struct RecordsGridListView: View {
       }
     }
     /// On selection of images add a record to the storage
-    .onChange(of: uploadedImages) { _ , newValue in
+    .onChange(of: uploadedImages) { _,newValue in
       let data = GalleryHelper.convertImagesToData(images: newValue)
       addRecord(
         data: data,
@@ -252,7 +254,15 @@ extension RecordsGridListView {
   }
   /// To sync unuploaded records
   private func syncRecords() {
+    guard !isSyncing else { return }
+    isSyncing = true
+    
     recordsRepo.syncUnuploadedRecords()
+    
+    // Reset after a reasonable delay or use completion callback
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+      isSyncing = false
+    }
   }
   /// Used to refresh records
   private func refreshRecords() {

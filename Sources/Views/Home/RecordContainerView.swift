@@ -402,13 +402,8 @@ extension RecordContainerView {
   }
   
   private var searchPrompt: String {
-    switch viewModel.selectedTab {
-    case .records:
-      return "Search records"
-    case .cases:
       return "Search or add new case"
     }
-  }
 }
 
 // MARK: - Navigation Destinations
