@@ -359,7 +359,7 @@ extension RecordContainerView {
   
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
-    if recordPresentationState.isDashboard || !viewModel.isSearchFocused {
+    if !recordPresentationState.isDashboard || !viewModel.isSearchFocused {
       ToolbarItem(placement: .topBarLeading) {
         Button("Close") {
           dismiss()
