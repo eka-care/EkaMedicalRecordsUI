@@ -12,7 +12,7 @@ import EkaMedicalRecordsCore
 
 public struct RecordsGridListView: View {
   // MARK: - Properties
-  let recordsRepo: RecordsRepo
+  let recordsRepo: RecordsRepo = RecordsRepo.shared
   let columns = [
     GridItem(
       .adaptive(
@@ -55,14 +55,12 @@ public struct RecordsGridListView: View {
   @State private var currentCaseID: String?
   @State private var isSyncing = false
   public init(
-    recordsRepo: RecordsRepo = RecordsRepo(),
     recordPresentationState: RecordPresentationState,
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     title: String,
     pickerSelectedRecords: Binding<[Record]> = .constant([]),
     selectedRecord: Binding<Record?> = .constant(nil),
     ) {
-    self.recordsRepo = recordsRepo
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self._pickerSelectedRecords = pickerSelectedRecords
@@ -94,7 +92,6 @@ public struct RecordsGridListView: View {
               .frame(maxWidth: .infinity)
             } else {
               RecordsFilterListView(
-                recordsRepo: recordsRepo,
                 selectedChip: $selectedFilter,
                 selectedSortFilter: $selectedSortFilter,
                 caseID: $currentCaseID
@@ -254,15 +251,7 @@ extension RecordsGridListView {
   }
   /// To sync unuploaded records
   private func syncRecords() {
-    guard !isSyncing else { return }
-    isSyncing = true
-    
     recordsRepo.syncUnuploadedRecords()
-    
-    // Reset after a reasonable delay or use completion callback
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-      isSyncing = false
-    }
   }
   /// Used to refresh records
   private func refreshRecords() {
@@ -278,7 +267,8 @@ extension RecordsGridListView {
   }
   /// On tap retry upload
   private func onTapRetry(record: Record) {
-    recordsRepo.uploadRecord(record: record)
+    recordsRepo.uploadRecord(record: record) { _ in
+    }
   }
   /// Used to delete a grid item
   private func deleteItem(record: Record) {

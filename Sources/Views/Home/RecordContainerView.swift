@@ -131,7 +131,7 @@ public struct RecordContainerView: View {
   @Environment(\.verticalSizeClass) private var verticalSizeClass
   
   // MARK: - Properties
-  private let recordsRepo = RecordsRepo()
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
   @State var recordPresentationState: RecordPresentationState
   
@@ -185,7 +185,6 @@ public struct RecordContainerView: View {
         NavigationStack{
           CreateCaseFormView(
             caseName: name,
-            recordsRepo: recordsRepo
           )
           .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
         }
@@ -223,7 +222,6 @@ public struct RecordContainerView: View {
     
     .onAppear {
       viewModel.configure(
-        recordsRepo: recordsRepo,
         presentationState: recordPresentationState
       )
     }
@@ -252,7 +250,6 @@ extension RecordContainerView {
       Group {
       if viewModel.isSearchFocused {
         CasesListView(
-          recordsRepo: recordsRepo,
           caseSearchText: $viewModel.searchText,
           createNewCase: $viewModel.createNewCase,
           selectedCase: $viewModel.selectedCase,
@@ -302,7 +299,6 @@ extension RecordContainerView {
       
     case .cases:
       CasesListView(
-        recordsRepo: recordsRepo,
         selectedCase: $viewModel.selectedCase,
         shouldSelectDefaultCase: viewModel.isSearchFocused ? false : true,
         onSelectCase: { caseModel in
@@ -320,7 +316,6 @@ extension RecordContainerView {
       Text("A case needs to be created first.")
     } else {
       RecordsGridListView(
-        recordsRepo: recordsRepo,
         recordPresentationState: recordPresentationState,
         title: "Documents",
         pickerSelectedRecords: $viewModel.pickerSelectedRecords,
@@ -336,7 +331,6 @@ extension RecordContainerView {
     switch viewModel.selectedTab {
     case .records:
       RecordsGridListView(
-        recordsRepo: recordsRepo,
         recordPresentationState: recordPresentationState,
         title: recordPresentationState.title,
         pickerSelectedRecords: $viewModel.pickerSelectedRecords
@@ -344,7 +338,7 @@ extension RecordContainerView {
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       
     case .cases:
-      SearchableCaseListView(recordsRepo: recordsRepo)
+      SearchableCaseListView()
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
     }
   }
@@ -411,7 +405,6 @@ extension RecordContainerView {
   @ViewBuilder
   private func caseDestination(for model: CaseModel) -> some View {
     RecordsGridListView(
-      recordsRepo: recordsRepo,
       recordPresentationState: RecordPresentationState(mode: recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
       title: model.caseName ?? "Documents",
       pickerSelectedRecords: $viewModel.pickerSelectedRecords
@@ -423,7 +416,6 @@ extension RecordContainerView {
   private func caseFormDestination(for route: CaseFormRoute) -> some View {
     CreateCaseFormView(
       caseName: route.prefilledName,
-      recordsRepo: recordsRepo
     )
     .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
   }
@@ -494,11 +486,10 @@ final class RecordContainerViewModel: ObservableObject {
   @Published var selectedRecord: Record?
   @Published var createNewCase: String? = nil
   @Published var activeModal: FullScreenModal?
-  private var recordsRepo: RecordsRepo?
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private var presentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   
-  func configure(recordsRepo: RecordsRepo, presentationState: RecordPresentationState) {
-    self.recordsRepo = recordsRepo
+  func configure(presentationState: RecordPresentationState) {
     self.presentationState = presentationState
   }
 }

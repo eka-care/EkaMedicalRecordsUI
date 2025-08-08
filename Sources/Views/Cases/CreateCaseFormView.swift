@@ -22,14 +22,12 @@ struct CreateCaseFormView: View {
   @State private var showCaseTypeSheet = false
   @State private var showDatePicker = false
   let caseName: String
-  let recordsRepo: RecordsRepo
+  let recordsRepo: RecordsRepo = RecordsRepo.shared
   
   init(
     caseName: String,
-    recordsRepo: RecordsRepo
   ) {
     self.caseName = caseName
-    self.recordsRepo = recordsRepo
     // For preview to work
     EkaUI.registerFonts()
   }
@@ -57,7 +55,7 @@ struct CreateCaseFormView: View {
         }
       }
       .sheet(isPresented: $showCaseTypeSheet) {
-        CaseTypeSelectionView(selectedCase: $caseType, recordsRepo: recordsRepo)
+        CaseTypeSelectionView(selectedCase: $caseType)
           .environment(\.managedObjectContext, viewContext)
       }
       .sheet(isPresented: $showDatePicker) {
@@ -147,5 +145,5 @@ extension CreateCaseFormView {
 }
 
 #Preview {
-  CreateCaseFormView(caseName: "", recordsRepo: RecordsRepo())
+  CreateCaseFormView(caseName: "")
 }

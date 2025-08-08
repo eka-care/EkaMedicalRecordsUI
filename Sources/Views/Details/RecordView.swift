@@ -6,7 +6,7 @@ struct RecordView: View {
   // MARK: - Properties
   
   private let record: Record
-  private let recordsRepo = RecordsRepo()
+  private let recordsRepo = RecordsRepo.shared
   @State private var selectedTab: Tab = .smartReport
   @State private var documents: [DocumentMimeType] = []
   @State private var smartReportInfo: SmartReportInfo?

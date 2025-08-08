@@ -18,14 +18,13 @@ struct CasesListView: View {
   @Binding var caseSearchText: String
   @Binding var createNewCase: String?
   let casesPresentationState: CasesPresentationState
-  let recordsRepo: RecordsRepo
+  let recordsRepo: RecordsRepo = RecordsRepo.shared
   let onSelectCase: ((CaseModel) -> Void)?
   var shouldSelectDefaultCase: Bool = false
   @Binding var selectedCase: CaseModel?
   
   // MARK: - Init
   init(
-    recordsRepo: RecordsRepo,
     casesPresentationState: CasesPresentationState = .casesDisplay,
     caseSearchText: Binding<String> = .constant(""),
     createNewCase: Binding<String?> = .constant(nil),
@@ -33,7 +32,6 @@ struct CasesListView: View {
     shouldSelectDefaultCase: Bool = false,
     onSelectCase: ((CaseModel) -> Void)? = nil,
   ) {
-    self.recordsRepo = recordsRepo
     self.casesPresentationState = casesPresentationState
     self.onSelectCase = onSelectCase
     self.shouldSelectDefaultCase = shouldSelectDefaultCase
@@ -237,5 +235,5 @@ extension CasesListView {
 }
 
 #Preview {
-  CasesListView(recordsRepo: RecordsRepo())
+  CasesListView()
 }

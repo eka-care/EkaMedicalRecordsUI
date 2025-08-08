@@ -11,7 +11,7 @@ struct EditBottomSheetView: View {
   @State private var showAlert: Bool = false // Alert state
   @Binding var isEditBottomSheetPresented: Bool
   @Binding var record: Record?
-  private let recordsRepo = RecordsRepo()
+  private let recordsRepo = RecordsRepo.shared
   private let recordPresentationState: RecordPresentationState
   @State private var assignCaseText: String = "Select"
   @State private var selectedCaseModel: CaseModel?
@@ -60,7 +60,6 @@ struct EditBottomSheetView: View {
       .navigationDestination(for: String.self) { destination in
         if destination == "SearchableCaseListView" {
           SearchableCaseListView(
-            recordsRepo: recordsRepo,
             casesPresentationState: .editRecord,
             isSearchActive: true,
             onSelectCase: { caseModel in
@@ -74,13 +73,11 @@ struct EditBottomSheetView: View {
       .navigationDestination(for: CaseFormRoute.self) { route in
         CreateCaseFormView(
           caseName: route.prefilledName,
-          recordsRepo: recordsRepo
         )
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       }
       .navigationDestination(for: CaseModel.self) { model in
         RecordsGridListView(
-          recordsRepo: recordsRepo,
           recordPresentationState:RecordPresentationState(
             mode: recordPresentationState.mode,
             filters: RecordFilter(caseID: model.caseID)

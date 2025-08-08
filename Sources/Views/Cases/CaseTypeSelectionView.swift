@@ -15,11 +15,10 @@ struct CaseTypeSelectionView: View {
   @Binding var selectedCase: String
   @State private var showingAlert = false
   @State private var newCaseType = ""
-  let recordsRepo: RecordsRepo
+  let recordsRepo: RecordsRepo = RecordsRepo.shared
   
-  init(selectedCase: Binding<String>, recordsRepo: RecordsRepo) {
+  init(selectedCase: Binding<String>) {
     self._selectedCase = selectedCase
-    self.recordsRepo = recordsRepo
   }
   
   var body: some View {

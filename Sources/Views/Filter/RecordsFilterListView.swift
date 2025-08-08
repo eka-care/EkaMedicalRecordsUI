@@ -11,7 +11,7 @@ import Combine
 
 struct RecordsFilterListView: View {
   // MARK: - Properties
-  let recordsRepo: RecordsRepo
+  let recordsRepo: RecordsRepo = RecordsRepo.shared
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
   @Binding var selectedSortFilter: RecordSortOptions?
@@ -19,12 +19,10 @@ struct RecordsFilterListView: View {
   @Environment(\.managedObjectContext) private var viewContext
   // MARK: - Init
   init(
-    recordsRepo: RecordsRepo,
     selectedChip: Binding<RecordDocumentType>,
     selectedSortFilter: Binding<RecordSortOptions?>,
     caseID: Binding<String?>
   ) {
-    self.recordsRepo = recordsRepo
     _caseID = caseID
     _selectedChip = selectedChip
     _selectedSortFilter = selectedSortFilter
@@ -106,7 +104,6 @@ extension RecordsFilterListView {
 
 #Preview {
   RecordsFilterListView(
-    recordsRepo: RecordsRepo(),
     selectedChip: .constant(
       .typeAll
     ),

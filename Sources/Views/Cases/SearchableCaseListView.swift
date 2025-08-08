@@ -22,18 +22,16 @@ struct SearchableCaseListView: View {
   @State var caseSearchText: String = ""
   @State private var isSearchActive: Bool
   let casesPresentationState: CasesPresentationState
-  let recordsRepo: RecordsRepo
+  let recordsRepo: RecordsRepo = RecordsRepo.shared
   let onSelectCase: ((CaseModel) -> Void)?
   
   // MARK: - Init
   
   init(
-    recordsRepo: RecordsRepo,
     casesPresentationState: CasesPresentationState = .casesDisplay,
     isSearchActive: Bool = false,
     onSelectCase: ((CaseModel) -> Void)? = nil
   ) {
-    self.recordsRepo = recordsRepo
     self.casesPresentationState = casesPresentationState
     self.onSelectCase = onSelectCase
     _isSearchActive = State(initialValue: isSearchActive)
@@ -182,6 +180,6 @@ extension SearchableCaseListView {
 }
 
 #Preview {
-  SearchableCaseListView(recordsRepo: RecordsRepo())
+  SearchableCaseListView()
 }
 
