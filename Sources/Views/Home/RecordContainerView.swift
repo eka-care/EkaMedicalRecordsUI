@@ -175,7 +175,10 @@ public struct RecordContainerView: View {
     .navigationDestination(for: CaseFormRoute.self, destination: caseFormDestination)
     .navigationDestination(for: Record.self, destination: recordDestination)
    
-    .fullScreenCover(item: $viewModel.activeModal) { modal in
+    .fullScreenCover(item: $viewModel.activeModal, onDismiss: {
+      viewModel.activeModal = nil
+      viewModel.selectedRecord = nil
+    }) { modal in
       if case let .record(record) = modal {
         NavigationStack{
           RecordView(record: record)
@@ -215,10 +218,6 @@ public struct RecordContainerView: View {
           viewModel.activeModal = .newCase(name)
         }
     }
-    
-//    .onChange(of: viewModel.pickerSelectedRecords, { oldValue, newValue in
-//      print(viewModel.presentationState.count)
-//    })
     
     .onAppear {
       viewModel.configure(
