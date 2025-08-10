@@ -24,8 +24,9 @@ public struct RecordPresentationState: Equatable {
       return ""
     case .displayAll:
       return InitConfiguration.shared.recordsTitle ?? "All"
-    case .picker:
-      return InitConfiguration.shared.recordsTitle ?? "Select"
+    case .picker(let maxCount):
+      let baseTitle = InitConfiguration.shared.recordsTitle ?? "Select"
+      return "\(baseTitle) (Max: \(maxCount))"
     }
   }
 
@@ -34,7 +35,17 @@ public struct RecordPresentationState: Equatable {
   }
 
   public var isPicker: Bool {
-    mode == .picker
+    if case .picker = mode {
+      return true
+    }
+    return false
+  }
+  
+  public var pickerMaxCount: Int? {
+    if case .picker(let maxCount) = mode {
+      return maxCount
+    }
+    return nil
   }
 
   public var isCaseRelated: Bool {
@@ -42,17 +53,23 @@ public struct RecordPresentationState: Equatable {
   }
 
   public var isDashboard: Bool {
-    mode == .dashboard
+    if case .dashboard = mode {
+      return true
+    }
+    return false
   }
 
   public var isDisplayAll: Bool {
-    mode == .displayAll
+    if case .displayAll = mode {
+      return true
+    }
+    return false
   }
 }
 
 public struct RecordFilter: Equatable {
   public var caseID: String?
-  public var userID: String?  
+  public var userID: String?
   public var tags: [String]?
 
   public init(caseID: String? = nil, userID: String? = nil, tags: [String]? = nil) {
@@ -65,9 +82,16 @@ public struct RecordFilter: Equatable {
 public enum RecordMode: Equatable {
   case dashboard
   case displayAll
-  case picker
+  case picker(maxCount: Int)
 }
 
+// MARK: - Convenience Initializers
+extension RecordPresentationState {
+  /// Creates a picker state with a maximum selection count
+  public static func picker(maxCount: Int, filters: RecordFilter = RecordFilter()) -> RecordPresentationState {
+    return RecordPresentationState(mode: .picker(maxCount: maxCount), filters: filters)
+  }
+}
 
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
 
@@ -369,7 +393,7 @@ extension RecordContainerView {
     }
     
     ToolbarItem(placement: .principal) {
-      Text(InitConfiguration.shared.recordsTitle ?? recordPresentationState.title)
+      Text(titleWithSelectionInfo)
         .font(.headline)
     }
     
@@ -381,6 +405,17 @@ extension RecordContainerView {
         .fontWeight(.semibold)
       }
     }
+  }
+  
+  private var titleWithSelectionInfo: String {
+    let baseTitle = "Select Records"
+    
+    if recordPresentationState.isPicker,
+       case .picker(let maxCount) = recordPresentationState.mode {
+      return "\(baseTitle) (\(viewModel.pickerSelectedRecords.count)/\(maxCount))"
+    }
+    
+    return baseTitle
   }
 }
 

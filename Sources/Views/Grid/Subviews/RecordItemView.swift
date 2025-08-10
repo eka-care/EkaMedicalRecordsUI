@@ -86,7 +86,7 @@ struct RecordItemView: View {
           }
         }
         /// Show tick view only in picker state
-        if recordPresentationState.mode == .picker {
+        if recordPresentationState.isPicker {
           /// Selection Tick View at Top-Right
           VStack {
             HStack {
@@ -348,17 +348,27 @@ extension RecordItemView {
   
   /// Update item data on picker selection
   private func updateItemDataOnPickerSelection() {
-    guard let record = itemData.record else { return }
-    itemData.isSelected.toggle()
-    /// If item is selected add it in picker selected records
-    if itemData.isSelected {
-      pickerSelectedRecords.append(record)
-    } else {
-      /// If item is unselected remove it from picker selected records
-      if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.objectID == record.objectID}) {
-        pickerSelectedRecords.remove(at: itemIndex)
+      guard let record = itemData.record else { return }
+      
+      // Check if we're in picker mode and get max count
+      guard case .picker(let maxCount) = recordPresentationState.mode else { return }
+      
+      // If trying to select and already at max capacity, don't allow selection
+      if !itemData.isSelected && pickerSelectedRecords.count >= maxCount {
+          return // Don't allow selection beyond max count
       }
-    }
+      
+      itemData.isSelected.toggle()
+      
+      /// If item is selected add it in picker selected records
+      if itemData.isSelected {
+          pickerSelectedRecords.append(record)
+      } else {
+          /// If item is unselected remove it from picker selected records
+          if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.objectID == record.objectID}) {
+              pickerSelectedRecords.remove(at: itemIndex)
+          }
+      }
   }
   
   private func isThumbnailBlurred() -> Bool {
