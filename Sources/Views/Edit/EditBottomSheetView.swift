@@ -42,8 +42,10 @@ struct EditBottomSheetView: View {
               Text("Assign a medical case")
                 .font(.headline)
               Spacer()
-              Text("Selected")
-                .font(.headline)
+              if assignCaseText != "Select"  {
+                Text("Selected")
+                  .font(.headline)
+              }
             }
             .textCase(nil)) {
               // Wrap AssignCaseView in NavigationLink
