@@ -189,6 +189,7 @@ extension EditBottomSheetView {
       documentID: record.documentID,
       documentDate: documentDate,
       documentType: selectedDocumentType?.intValue,
+      isEdited: true,
       caseModel: selectedCaseModel
     )
     /// Close edit bottom sheet
