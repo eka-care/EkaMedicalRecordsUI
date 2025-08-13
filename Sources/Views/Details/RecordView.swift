@@ -52,15 +52,16 @@ struct RecordView: View {
         // Non-smart records - just show documents
         DocumentViewer(documents: $documents)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .toolbar {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-              ToolbarItem(placement: .cancellationAction) {
-                Button("Close") {
-                  dismiss()
-                }
-              }
-            }
+
+      }
+    }
+    .toolbar {
+      if UIDevice.current.userInterfaceIdiom == .pad {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Close") {
+            dismiss()
           }
+        }
       }
     }
     .navigationBarItems(trailing: Button(action: {

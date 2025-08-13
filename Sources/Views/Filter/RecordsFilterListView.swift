@@ -33,10 +33,10 @@ struct RecordsFilterListView: View {
         for: .NSManagedObjectContextObjectsDidChange,
         object: viewContext // must match the one being merged into
       )) { _ in
-        refeshFilters()
+        refreshFilters()
       }
       .onChange(of: caseID) { oldValue, newValue in
-        refeshFilters()
+        refreshFilters()
       }
   }
 }
@@ -85,7 +85,7 @@ extension RecordsFilterListView {
     return filter.filterName + filterCountString
   }
   
-  private func refeshFilters() {
+  private func refreshFilters() {
     /// Wait for merge changes
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
       updateFiltersCount()

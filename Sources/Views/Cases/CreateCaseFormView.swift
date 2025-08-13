@@ -140,7 +140,7 @@ extension CreateCaseFormView {
       name: caseName,
       updatedAt: Date()
     )
-    let addedModel = recordsRepo.addCase(caseArguementModel: caseModel)
+    recordsRepo.addCase(caseArguementModel: caseModel)
   }
 }
 

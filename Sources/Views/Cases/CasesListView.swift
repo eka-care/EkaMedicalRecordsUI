@@ -104,6 +104,8 @@ struct CasesListView: View {
       alignment: .topLeading
     )
     .onAppear {
+      recordsRepo.getUpdatedAtAndStartCases{ _ in
+      }
       resetView()
     }
   }
