@@ -20,9 +20,13 @@ struct CreateCaseFormView: View {
   @Environment(\.dismiss) private var dismiss
   
   @State private var showCaseTypeSheet = false
-  @State private var showDatePicker = false
   let caseName: String
   let recordsRepo: RecordsRepo = RecordsRepo.shared
+  
+  // Computed property to check if form is valid
+  private var isFormValid: Bool {
+    !caseType.isEmpty
+  }
   
   init(
     caseName: String,
@@ -51,19 +55,13 @@ struct CreateCaseFormView: View {
             addCase()
             dismiss()
           }
-          .foregroundStyle(Color(.ascent))
+          .foregroundStyle(isFormValid ? Color(.ascent) : Color(.gray))
+          .disabled(!isFormValid)
         }
       }
       .sheet(isPresented: $showCaseTypeSheet) {
         CaseTypeSelectionView(selectedCase: $caseType)
           .environment(\.managedObjectContext, viewContext)
-      }
-      .sheet(isPresented: $showDatePicker) {
-        DatePicker("Select Date", selection: $date, displayedComponents: .date)
-          .datePickerStyle(.wheel)
-          .labelsHidden()
-          .presentationDetents([.medium])
-          .padding()
       }
   }
   private var dateFormatted: String {
@@ -92,6 +90,8 @@ extension CreateCaseFormView {
   private func caseTypeView() -> some View {
     HStack {
       Text("Case type")
+      Text("*")
+        .foregroundStyle(.red)
       Spacer()
       Text(caseType.isEmpty ? "Select/add" : caseType)
         .foregroundColor(caseType.isEmpty ? .gray : Color(.ascent))
@@ -106,12 +106,9 @@ extension CreateCaseFormView {
       Text("Date")
       Spacer()
       Text(dateFormatted)
-        .foregroundColor(Color(.ascent))
+        .foregroundColor(.gray)
     }
     .contentShape(Rectangle())
-    .onTapGesture {
-      showDatePicker = true
-    }
   }
   private func caseInformationSection() -> some View {
     Section {
