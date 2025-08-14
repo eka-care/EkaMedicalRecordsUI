@@ -135,7 +135,8 @@ extension CreateCaseFormView {
       oid: CoreInitConfigurations.shared.primaryFilterID,
       createdAt: Date(),
       name: caseName,
-      updatedAt: Date()
+      updatedAt: Date(),
+      status: .active
     )
     recordsRepo.addCase(caseArguementModel: caseModel)
   }
