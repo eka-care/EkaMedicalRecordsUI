@@ -179,14 +179,15 @@ extension EditBottomSheetView {
   
   /// Save document details
   private func saveDocumentDetails() {
-    guard let record else {
+    guard let record , let documentID = record.documentID else {
       debugPrint("Record being uploaded not found for edit")
       return
     }
     /// Update record in database
+    ///
     recordsRepo.updateRecord(
       recordID: record.objectID,
-      documentID: record.documentID,
+      documentID: documentID,
       documentDate: documentDate,
       documentType: selectedDocumentType?.intValue,
       isEdited: true,
