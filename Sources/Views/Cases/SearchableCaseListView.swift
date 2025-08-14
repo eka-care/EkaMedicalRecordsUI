@@ -164,12 +164,17 @@ extension SearchableCaseListView {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else {
       return NSPredicate(value: false)
     }
+    
     let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
+    let statusPredicate = NSPredicate(format: "status == %@", "A")
+    
     if caseSearchText.isEmpty {
-      return oidPredicate
+      // Only filter by IDs + active status
+      return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, statusPredicate])
     }
+    
     let namePredicate = NSPredicate(format: "caseName CONTAINS[cd] %@", caseSearchText)
-    return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, namePredicate])
+    return NSCompoundPredicate(andPredicateWithSubpredicates: [oidPredicate, statusPredicate, namePredicate])
   }
   
   func generateSortDescriptors() -> [NSSortDescriptor] {
