@@ -146,7 +146,7 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
-//      refreshRecords()
+      refreshRecords()
     }
     .onReceive(networkMonitor.$isOnline) { isOnline in
 //      if isOnline {
