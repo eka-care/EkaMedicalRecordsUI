@@ -146,7 +146,7 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
-      refreshRecords()
+//      refreshRecords()
     }
     .onReceive(networkMonitor.$isOnline) { isOnline in
 //      if isOnline {
@@ -176,15 +176,15 @@ public struct RecordsGridListView: View {
       )
       .presentationDragIndicator(.visible)
     }
-    .onAppear {
+//    .onAppear {
 //      refreshRecords()
-    }
+//    }
     
-    .onChange(of: isEditBottomSheetPresented, { _, newValue in
-      if !newValue {
-        refreshRecords()
-      }
-    })
+//    .onChange(of: isEditBottomSheetPresented, { _, newValue in
+//      if !newValue {
+//        refreshRecords()
+//      }
+//    })
 
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { _,newValue in
@@ -255,12 +255,12 @@ extension RecordsGridListView {
     recordsRepo.syncUnuploadedRecords()
   }
   /// Used to refresh records
-  private func refreshRecords() {
-    isLoadingRecordsFromServer = true
-    recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
-      isLoadingRecordsFromServer = false
-    }
-  }
+//  private func refreshRecords() {
+//    isLoadingRecordsFromServer = true
+//    recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
+//      isLoadingRecordsFromServer = false
+//    }
+//  }
   /// On tap delete open
   private func onTapDelete(record: Record) {
     itemToBeDeleted = record

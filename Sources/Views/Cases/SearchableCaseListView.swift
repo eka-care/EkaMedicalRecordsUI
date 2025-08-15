@@ -95,8 +95,6 @@ struct SearchableCaseListView: View {
       alignment: .bottomTrailing
     )
     .onAppear {
-      recordsRepo.getUpdatedAtAndStartCases { _ in
-      }
       resetView()
     }
   }

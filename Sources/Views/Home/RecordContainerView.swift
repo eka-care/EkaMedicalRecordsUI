@@ -247,6 +247,10 @@ public struct RecordContainerView: View {
       viewModel.configure(
         presentationState: recordPresentationState
       )
+      recordsRepo.getUpdatedAtAndStartCases{ _ in
+        recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
+        }
+      }
     }
     
   }
