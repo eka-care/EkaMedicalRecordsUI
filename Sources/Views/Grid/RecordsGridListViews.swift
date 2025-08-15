@@ -10,6 +10,7 @@ import PhotosUI
 import CoreData
 import EkaMedicalRecordsCore
 
+//TODO: - Shekhar: commented blocking unnecessay api calls
 public struct RecordsGridListView: View {
   // MARK: - Properties
   let recordsRepo: RecordsRepo = RecordsRepo.shared
@@ -145,12 +146,12 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
-      refreshRecords()
+//      refreshRecords()
     }
     .onReceive(networkMonitor.$isOnline) { isOnline in
-      if isOnline {
-        syncRecords()
-      }
+//      if isOnline {
+//        syncRecords()
+//      }
     }
     .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
@@ -176,7 +177,7 @@ public struct RecordsGridListView: View {
       .presentationDragIndicator(.visible)
     }
     .onAppear {
-      refreshRecords()
+//      refreshRecords()
     }
     
     .onChange(of: isEditBottomSheetPresented, { _, newValue in
