@@ -158,7 +158,7 @@ public struct RecordContainerView: View {
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
   @State var recordPresentationState: RecordPresentationState
-  
+  @StateObject private var networkMonitor = NetworkMonitor.shared
   // MARK: - Computed Properties
   private var isCompact: Bool {
     horizontalSizeClass == .compact
@@ -242,6 +242,9 @@ public struct RecordContainerView: View {
           viewModel.activeModal = .newCase(name)
         }
     }
+    .onChange(of: networkMonitor.isOnline) { _ , _ in
+      recordsRepo.syncUnuploadedRecords()
+    }
     
     .onAppear {
       viewModel.configure(
@@ -251,8 +254,10 @@ public struct RecordContainerView: View {
         recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
         }
       }
+      recordsRepo.syncUnsyncedCases {
+      }
+      recordsRepo.syncUnuploadedRecords()
     }
-    
   }
 }
 
