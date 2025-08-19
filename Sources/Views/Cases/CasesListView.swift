@@ -9,7 +9,6 @@ import SwiftUI
 import EkaUI
 import EkaMedicalRecordsCore
 
-//TODO: - Shekhar optimize code
 struct CasesListView: View {
   
   // MARK: - Properties
@@ -17,10 +16,10 @@ struct CasesListView: View {
   @Environment(\.dismiss) private var dismiss
   @Binding var caseSearchText: String
   @Binding var createNewCase: String?
-  let casesPresentationState: CasesPresentationState
-  let recordsRepo: RecordsRepo = RecordsRepo.shared
-  let onSelectCase: ((CaseModel) -> Void)?
-  var shouldSelectDefaultCase: Bool = false
+  private let casesPresentationState: CasesPresentationState
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
+  private let onSelectCase: ((CaseModel) -> Void)?
+  private var shouldSelectDefaultCase: Bool = false
   @Binding var selectedCase: CaseModel?
   
   // MARK: - Init

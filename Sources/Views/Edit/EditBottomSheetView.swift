@@ -104,8 +104,11 @@ struct EditBottomSheetView: View {
     .onAppear {
       updateData()
     }
-    .onChange(of: record) { _, _ in
-      updateData()
+    .onChange(of: record) { oldValue, newValue in
+      // Only update if the record actually changed to prevent unnecessary resets
+      if oldValue?.objectID != newValue?.objectID {
+        updateData()
+      }
     }
     .alert("Error", isPresented: $showAlert) {
       Button("OK", role: .cancel) { }
