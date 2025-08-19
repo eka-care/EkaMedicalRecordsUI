@@ -168,7 +168,9 @@ public struct RecordsGridListView: View {
     } message: {
       Text("Are you sure you want to delete this record?")
     }
-    .sheet(isPresented: $isEditBottomSheetPresented) {
+    .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
+      refreshRecords()
+    }) {
       EditBottomSheetView(
         isEditBottomSheetPresented: $isEditBottomSheetPresented,
         record: $recordSelectedForEdit,
@@ -176,15 +178,6 @@ public struct RecordsGridListView: View {
       )
       .presentationDragIndicator(.visible)
     }
-//    .onAppear {
-//      refreshRecords()
-//    }
-    
-    .onChange(of: isEditBottomSheetPresented, { _, newValue in
-      if !newValue {
-        refreshRecords()
-      }
-    })
 
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { _,newValue in

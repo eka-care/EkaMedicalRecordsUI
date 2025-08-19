@@ -23,13 +23,13 @@ enum RecordsDocumentSize {
 
 struct RecordItemView: View {
   // MARK: - Properties
-  let recordPresentationState: RecordPresentationState
+  private let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
   @Binding var selectedFilterOption: RecordSortOptions?
-  var onTapEdit: (Record) -> Void
-  var onTapDelete: (Record) -> Void
-  var onTapRetry: (Record) -> Void
+  private var onTapEdit: (Record) -> Void
+  private var onTapDelete: (Record) -> Void
+  private var onTapRetry: (Record) -> Void
   @State private var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
   // MARK: - Init

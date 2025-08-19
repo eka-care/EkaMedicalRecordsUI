@@ -11,7 +11,7 @@ import Combine
 
 struct RecordsFilterListView: View {
   // MARK: - Properties
-  let recordsRepo: RecordsRepo = RecordsRepo.shared
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
   @Binding var selectedSortFilter: RecordSortOptions?

@@ -21,9 +21,9 @@ struct SearchableCaseListView: View {
   @Environment(\.dismiss) private var dismiss
   @State var caseSearchText: String = ""
   @State private var isSearchActive: Bool
-  let casesPresentationState: CasesPresentationState
-  let recordsRepo: RecordsRepo = RecordsRepo.shared
-  let onSelectCase: ((CaseModel) -> Void)?
+  private let casesPresentationState: CasesPresentationState
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
+  private let onSelectCase: ((CaseModel) -> Void)?
   
   // MARK: - Init
   

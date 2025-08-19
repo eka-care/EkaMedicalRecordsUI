@@ -20,8 +20,8 @@ struct CreateCaseFormView: View {
   @Environment(\.dismiss) private var dismiss
   
   @State private var showCaseTypeSheet = false
-  let caseName: String
-  let recordsRepo: RecordsRepo = RecordsRepo.shared
+  private let caseName: String
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
   
   // Computed property to check if form is valid
   private var isFormValid: Bool {
