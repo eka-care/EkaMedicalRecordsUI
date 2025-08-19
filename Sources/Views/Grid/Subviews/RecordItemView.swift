@@ -8,6 +8,7 @@
 import SwiftUI
 import EkaMedicalRecordsCore
 import Combine
+import SDWebImageSwiftUI
 
 public typealias Record = EkaMedicalRecordsCore.Record
 
@@ -231,17 +232,17 @@ extension RecordItemView {
       if let url = thumbnailImageUrl,
          let _ = itemData.record?.thumbnail {
         // ✅ Show only the thumbnail
-        AsyncImage(url: url) { image in
-          image.resizable()
-            .scaledToFill()
-            .frame(width: RecordsDocumentSize.itemWidth,
-                   height: RecordsDocumentSize.thumbnailHeight)
-            .clipped()
-        } placeholder: {
-          Color.gray.opacity(0.2)
-            .frame(width: RecordsDocumentSize.itemWidth,
-                   height: RecordsDocumentSize.thumbnailHeight)
-        }
+        WebImage(url: url)
+          .resizable()
+          .placeholder {
+            Color.gray.opacity(0.2)
+              .frame(width: RecordsDocumentSize.itemWidth,
+                     height: RecordsDocumentSize.thumbnailHeight)
+          }
+          .scaledToFill()
+          .frame(width: RecordsDocumentSize.itemWidth,
+                 height: RecordsDocumentSize.thumbnailHeight)
+          .clipped()
         
       } else {
         // ✅ No thumbnail → gray background + centered icon
@@ -255,7 +256,7 @@ extension RecordItemView {
             Image(uiImage: recordType.imageIcon)
               .resizable()
               .scaledToFit()
-              .frame(width: 40, height: 40) // adjust as needed
+              .frame(width: 40, height: 40)
               .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
           }
         }
@@ -263,6 +264,7 @@ extension RecordItemView {
     }
     .cornerRadiusModifier(12, corners: [.topLeft, .topRight])
   }
+
   
   private func thumbnailImageLoadingView() -> some View {
     Color.black.opacity(0.6)
