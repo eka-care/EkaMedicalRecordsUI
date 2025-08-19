@@ -180,11 +180,11 @@ public struct RecordsGridListView: View {
 //      refreshRecords()
 //    }
     
-//    .onChange(of: isEditBottomSheetPresented, { _, newValue in
-//      if !newValue {
-//        refreshRecords()
-//      }
-//    })
+    .onChange(of: isEditBottomSheetPresented, { _, newValue in
+      if !newValue {
+        refreshRecords()
+      }
+    })
 
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { _,newValue in
@@ -255,12 +255,10 @@ extension RecordsGridListView {
     recordsRepo.syncUnuploadedRecords()
   }
   /// Used to refresh records
-//  private func refreshRecords() {
-//    isLoadingRecordsFromServer = true
-//    recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
-//      isLoadingRecordsFromServer = false
-//    }
-//  }
+  private func refreshRecords() {
+    recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
+    }
+  }
   /// On tap delete open
   private func onTapDelete(record: Record) {
     itemToBeDeleted = record
