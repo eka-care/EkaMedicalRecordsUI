@@ -79,14 +79,14 @@ struct CaseTypeSelectionView: View {
             dismiss()
           }
         }
-        //MARK: - shekhar commented because requirement is on hold
-//        ToolbarItem(placement: .navigationBarTrailing) {
-//          Button {
-//            showingAlert = true
-//          } label: {
-//            Image(systemName: "plus")
-//          }
-//        }
+
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button {
+            showingAlert = true
+          } label: {
+            Image(systemName: "plus")
+          }
+        }
       }
       .onAppear {
         //check preload data is avaliable in DataBase
