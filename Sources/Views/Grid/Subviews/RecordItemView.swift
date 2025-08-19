@@ -141,22 +141,6 @@ struct RecordItemView: View {
 extension RecordItemView {
   private func bottomMetaDataView() -> some View {
     HStack {
-      /// Icon Image
-      VStack {
-        if let record = itemData.record,
-           let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
-          Image(uiImage: recordType.imageIcon)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 12, height: 12)
-            .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
-            .padding(4)
-            .background(Color(uiColor: recordType.imageIconBackgroundColor))
-            .cornerRadius(2)
-            .padding(.top, EkaSpacing.spacingXs)
-          Spacer()
-        }
-      }
       VStack(alignment: .leading) {
         /// Document type
         if let record = itemData.record,
@@ -244,17 +228,40 @@ extension RecordItemView {
   /// Thumbnail
   private func thumbnailImageView(thumbnailImageUrl: URL?) -> some View {
     ZStack {
-      AsyncImage(url: thumbnailImageUrl) { image in
-        image.resizable()
-          .scaledToFill()
-          .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight)
-          .foregroundStyle(Color.gray.opacity(0.2))
-      } placeholder: {
-        Color.gray.opacity(0.2)
+      if let url = thumbnailImageUrl,
+         let _ = itemData.record?.thumbnail {
+        // ✅ Show only the thumbnail
+        AsyncImage(url: url) { image in
+          image.resizable()
+            .scaledToFill()
+            .frame(width: RecordsDocumentSize.itemWidth,
+                   height: RecordsDocumentSize.thumbnailHeight)
+            .clipped()
+        } placeholder: {
+          Color.gray.opacity(0.2)
+            .frame(width: RecordsDocumentSize.itemWidth,
+                   height: RecordsDocumentSize.thumbnailHeight)
+        }
+        
+      } else {
+        // ✅ No thumbnail → gray background + centered icon
+        ZStack {
+          Color.gray.opacity(0.2)
+            .frame(width: RecordsDocumentSize.itemWidth,
+                   height: RecordsDocumentSize.thumbnailHeight)
+          
+          if let record = itemData.record,
+             let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
+            Image(uiImage: recordType.imageIcon)
+              .resizable()
+              .scaledToFit()
+              .frame(width: 40, height: 40) // adjust as needed
+              .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
+          }
+        }
       }
     }
-    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
-    .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
+    .cornerRadiusModifier(12, corners: [.topLeft, .topRight])
   }
   
   private func thumbnailImageLoadingView() -> some View {
