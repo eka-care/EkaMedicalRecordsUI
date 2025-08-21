@@ -58,9 +58,9 @@ struct SearchableCaseListView: View {
             
             if cases.isEmpty {
               ContentUnavailableView(
-                "No Medical Case Found",
+                "No Encounter Found",
                 systemImage: "doc",
-                description: Text("Create a new case to add and organize your medical records")
+                description: Text("Create a new Encounter to add and organize your medical records")
               )
             } else {
               ForEach(cases) { caseModel in
@@ -73,7 +73,7 @@ struct SearchableCaseListView: View {
         .searchable(
           text: $caseSearchText,
           isPresented: $isSearchActive,
-          prompt: "Search or add new case"
+          prompt: "Search or add new Encounter"
         )
       }
       if !isSearchActive {
@@ -108,7 +108,8 @@ extension SearchableCaseListView {
     let cardView = CaseCardView(
       caseName: caseModel.caseName ?? "",
       recordCount: caseModel.toRecord?.count ?? 0,
-      date: caseModel.updatedAt
+      date: caseModel.updatedAt,
+      caseTypeEnum: CaseTypesEnum.getCaseType(for: caseModel.caseType ?? "")
     )
     
     switch casesPresentationState {

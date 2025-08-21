@@ -47,7 +47,7 @@ struct CreateCaseFormView: View {
         caseInformationSection()
       }
       .background(Color(.fillsTertiary))
-      .navigationTitle("Create Case")
+      .navigationTitle("Create Encounter")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -89,9 +89,7 @@ extension CreateCaseFormView {
   }
   private func caseTypeView() -> some View {
     HStack {
-      Text("Case type")
-      Text("*")
-        .foregroundStyle(.red)
+      Text("Encounter type")
       Spacer()
       Text(caseType.isEmpty ? "Select/add" : caseType)
         .foregroundColor(caseType.isEmpty ? .gray : Color(.ascent))

@@ -69,9 +69,9 @@ struct CasesListView: View {
             // Content or empty state
             if cases.isEmpty {
               ContentUnavailableView(
-                "No Medical Case Found",
+                "No Encounters",
                 systemImage: "doc",
-                description: Text("Create a new case to add and organize your medical records")
+                description: Text("Create a new Encounter to add and organize your medical records")
               )
             } else {
               // Group cases by upload month
@@ -116,6 +116,7 @@ extension CasesListView {
       caseName: caseModel.caseName ?? "",
       recordCount: caseModel.toRecord?.count ?? 0,
       date: caseModel.updatedAt,
+      caseTypeEnum: CaseTypesEnum.getCaseType(for: caseModel.caseType ?? ""),
       isSelected: selectedCase?.caseID == caseModel.caseID
     )
     

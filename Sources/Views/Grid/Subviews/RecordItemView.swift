@@ -231,7 +231,7 @@ extension RecordItemView {
     ZStack {
       if let url = thumbnailImageUrl,
          let _ = itemData.record?.thumbnail {
-        // ✅ Show only the thumbnail
+        // Show only the thumbnail
         WebImage(url: url)
           .resizable()
           .placeholder {
@@ -245,7 +245,7 @@ extension RecordItemView {
           .clipped()
         
       } else {
-        // ✅ No thumbnail → gray background + centered icon
+        // No thumbnail → gray background + centered icon
         ZStack {
           Color.gray.opacity(0.2)
             .frame(width: RecordsDocumentSize.itemWidth,

@@ -12,27 +12,20 @@ struct CaseCardView: View {
   let caseName: String
   let recordCount: Int
   let date: Date?
+  let caseTypeEnum: CaseTypesEnum
   var isSelected: Bool = false
   
   var body: some View {
     HStack(spacing: 0) {
       HStack(spacing: 16) {
-        ZStack {
-          Circle()
-            .fill(Color.yellow)
-            .frame(width: 40, height: 40)
-          
-          Image(systemName: "folder.fill")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 18, height: 18)
-            .foregroundColor(.white)
-        }
+        
+        AvatarView(caseTypeEnum: caseTypeEnum)
         
         VStack(alignment: .leading, spacing: 4) {
           Text(caseName)
             .font(.system(.body, weight: .semibold))
             .foregroundColor(isSelected ? .white : .black)
+          
           Text("\(recordCount) Medical record\(recordCount == 1 ? "" : "s")")
             .font(.footnote)
             .foregroundColor(isSelected ? .white : .gray)

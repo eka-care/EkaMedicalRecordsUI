@@ -32,10 +32,7 @@ struct CaseTypeSelectionView: View {
           ) { (caseTypes: FetchedResults<CaseType>) in
             ForEach(caseTypes, id: \.self) { type in
               HStack {
-                Image(type.icon ?? "other", bundle: .module) // Fallback if nil
-                  .resizable()
-                  .scaledToFit()
-                  .frame(width: 36, height: 36)
+                AvatarView(caseTypeEnum: CaseTypesEnum.getCaseType(for: type.name ?? ""))
                 
                 Text(type.name ?? "")
                   .foregroundColor(.primary)
@@ -102,9 +99,7 @@ struct CaseTypeSelectionView: View {
         }
         Button("Add") {
           let newType = CaseTypeModel(
-            name: newCaseType,
-            icon: CaseIcon.other.rawValue
-          )
+            name: newCaseType          )
           let _ = recordsRepo.createCaseType(caseTypeModel: newType)
           selectedCase = newType.name
           newCaseType = ""

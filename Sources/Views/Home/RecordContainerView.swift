@@ -104,7 +104,7 @@ enum RecordTab: CaseIterable, Hashable {
     case .records:
       return "All files"
     case .cases:
-      return "Medical Cases"
+      return "Encounters"
     }
   }
   
@@ -439,7 +439,7 @@ extension RecordContainerView {
   }
   
   private var searchPrompt: String {
-      return "Search or add new case"
+      return "Search or add new Encounter"
     }
 }
 

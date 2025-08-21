@@ -6,34 +6,101 @@
 //
 
 import EkaMedicalRecordsCore
+import SwiftUICore
 
 struct CaseTypePreloadData {
   static let all: [CaseTypeModel] = [
-    CaseTypeModel(name: "OPConsultation", icon: CaseIcon.doctor.rawValue),
-    CaseTypeModel(name: "DischargeSummary", icon: CaseIcon.hospital.rawValue),
-    CaseTypeModel(name: "Prescription", icon: CaseIcon.checkup.rawValue),
-    CaseTypeModel(name: "DiagnosticReport", icon: CaseIcon.home.rawValue),
-    CaseTypeModel(name: "ImmunizationRecord", icon: CaseIcon.teleconsult.rawValue),
-    CaseTypeModel(name: "HealthDocumentRecord", icon: CaseIcon.emergency.rawValue),
-    CaseTypeModel(name: "WellnessRecord", icon: CaseIcon.dental.rawValue),
-//    CaseTypeModel(name: "Doctor Visit (OPD)", icon: CaseIcon.doctor.rawValue),
-//    CaseTypeModel(name: "Hospital Visit (IPD)", icon: CaseIcon.hospital.rawValue),
-//    CaseTypeModel(name: "Health Checkup", icon: CaseIcon.checkup.rawValue),
-//    CaseTypeModel(name: "Home Visit", icon: CaseIcon.home.rawValue),
-//    CaseTypeModel(name: "Teleconsultation", icon: CaseIcon.teleconsult.rawValue),
-//    CaseTypeModel(name: "Emergency", icon: CaseIcon.emergency.rawValue),
-//    CaseTypeModel(name: "Dental", icon: CaseIcon.dental.rawValue),
-//    CaseTypeModel(name: "Other", icon: CaseIcon.other.rawValue)
+    CaseTypeModel(name: "EM"),
+    CaseTypeModel(name: "IPD"),
+    CaseTypeModel(name: "OPD"),
+    CaseTypeModel(name: "DayCare"),
+    CaseTypeModel(name: "Other")
   ]
 }
 
-enum CaseIcon: String {
-  case doctor = "doctor_visit"
-  case hospital = "hospital_visit"
-  case checkup = "health_checkup"
-  case home = "home_visit"
-  case teleconsult = "teleconsultation"
-  case emergency = "emergency"
-  case dental = "dental"
-  case other = "other"
+
+enum CaseTypesEnum {
+  case daycare
+  case inpatient      // In-patient Department
+  case outpatient     // Out-patient Department
+  case emergency
+  case custom(title: String)
+  
+  var typeString: String {
+    switch self {
+    case .daycare:
+      return "DC"
+    case .inpatient:
+      return "IP"
+    case .outpatient:
+      return "OP"
+    case .emergency:
+      return "EM"
+    case .custom(let title):
+      return title
+    }
+  }
+  
+  var name: String {
+    switch self {
+    case .daycare:
+      return "DayCare"
+    case .inpatient:
+      return "IPD"
+    case .outpatient:
+      return "OPD"
+    case .emergency:
+      return "Emergency"
+    case .custom(title: let title):
+      return title
+    }
+  }
+  
+  static func getCaseType(for caseTypeString: String) -> CaseTypesEnum {
+    switch caseTypeString {
+    case CaseTypesEnum.daycare.name:
+      return .daycare
+    case CaseTypesEnum.inpatient.name:
+      return .inpatient
+    case CaseTypesEnum.outpatient.name:
+      return .outpatient
+    case CaseTypesEnum.emergency.name:
+      return .emergency
+    default:
+      return .custom(title: caseTypeString)
+    }
+  }
+  
+  var initialsString: String? {
+    switch self {
+    case .daycare, .inpatient, .outpatient, .emergency:
+      return typeString
+    case .custom(let title):
+      return title
+    }
+  }
+  
+  var backgroundColor: Color {
+    switch self {
+    case .daycare:
+      return Color(hex: "#C2D08E") ?? .yellow
+    case .inpatient:
+      return Color(hex: "#C792E7") ?? .yellow
+    case .outpatient:
+      return Color(hex: "#83CDA1") ?? .yellow
+    case .emergency:
+      return Color(hex: "#FF8D77") ?? .yellow
+    case .custom:
+      return Color(hex: "#F6DA6D") ?? .yellow
+    }
+  }
+  
+  var iconImage: Image? {
+    switch self {
+    case .custom:
+      return Image(systemName: "folder.fill")
+    default:
+      return nil
+    }
+  }
 }

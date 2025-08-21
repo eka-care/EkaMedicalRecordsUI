@@ -39,7 +39,7 @@ struct EditBottomSheetView: View {
           /// If we are showing this outside the case related flow we show this
           if !recordPresentationState.isCaseRelated {
             Section(header:HStack {
-              Text("Assign a medical case")
+              Text("Assign a Encounter")
                 .font(.headline)
               Spacer()
               if assignCaseText != "Select"  {
