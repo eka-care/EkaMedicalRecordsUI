@@ -23,11 +23,6 @@ struct CreateCaseFormView: View {
   private let caseName: String
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   
-  // Computed property to check if form is valid
-  private var isFormValid: Bool {
-    !caseType.isEmpty
-  }
-  
   init(
     caseName: String,
   ) {
@@ -50,13 +45,19 @@ struct CreateCaseFormView: View {
       .navigationTitle("Create Encounter")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Cancel") {
+            dismiss()
+          }
+          .foregroundStyle(Color(.ascent))
+        }
+        
         ToolbarItem(placement: .navigationBarTrailing) {
           Button("Create") {
             addCase()
             dismiss()
           }
-          .foregroundStyle(isFormValid ? Color(.ascent) : Color(.gray))
-          .disabled(!isFormValid)
+          .foregroundStyle(Color(.ascent))
         }
       }
       .sheet(isPresented: $showCaseTypeSheet) {
