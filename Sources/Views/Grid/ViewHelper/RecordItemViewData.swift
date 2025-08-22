@@ -30,7 +30,7 @@ extension RecordItemViewData {
     )
   }
   
-  static func formRecordItemViewData(from model: Record) -> RecordItemViewData {
-    RecordItemViewData(record: model)
+  static func formRecordItemViewData(from model: Record, isSelected: Bool = false) -> RecordItemViewData {
+    RecordItemViewData(record: model, isSelected: isSelected)
   }
 }

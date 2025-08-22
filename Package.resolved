@@ -1,5 +1,5 @@
 {
-  "originHash" : "a16de38146237722da66d75a53891d31c04fc2fd9b0be8cbdb74ec13cf75e7f6",
+  "originHash" : "bd1aebca5728e3553e7ddec3e8bd35778f36aaf077f38dcfbd4ced1436cad3a0",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -22,7 +22,7 @@
     {
       "identity" : "ekaui",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:eka-care/EkaUI.git",
+      "location" : "https://github.com/eka-care/EkaUI.git",
       "state" : {
         "branch" : "main",
         "revision" : "f46d200e4e17ae0c8b6774258e6581a285ebb89c"

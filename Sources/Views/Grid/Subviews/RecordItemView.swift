@@ -8,8 +8,9 @@
 import SwiftUI
 import EkaMedicalRecordsCore
 import Combine
+import SDWebImageSwiftUI
 
-typealias Record = EkaMedicalRecordsCore.Record
+public typealias Record = EkaMedicalRecordsCore.Record
 
 enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
@@ -22,21 +23,17 @@ enum RecordsDocumentSize {
 }
 
 struct RecordItemView: View {
-  
   // MARK: - Properties
-  
-  let recordPresentationState: RecordPresentationState
+  private let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
   @Binding var selectedFilterOption: RecordSortOptions?
-  var onTapEdit: (Record) -> Void
-  var onTapDelete: (Record) -> Void
-  var onTapRetry: (Record) -> Void
+  private var onTapEdit: (Record) -> Void
+  private var onTapDelete: (Record) -> Void
+  private var onTapRetry: (Record) -> Void
   @State private var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
-  
   // MARK: - Init
-  
   init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
@@ -54,53 +51,48 @@ struct RecordItemView: View {
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
   }
-  
   // MARK: - Body
-  
   var body: some View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        ThumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
+        thumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
           .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
           .blur(radius: isThumbnailBlurred() ? 2 : 0)
           .frame(width: RecordsDocumentSize.itemWidth)
-        
         /// Show retry upload view
         if let record = itemData.record,
            let syncState = RecordSyncState(from: record.syncState ?? ""),
            syncState == .upload(success: false), isNetworkAvailable {
-          RetryUploadingView()
+          retryUploadingView()
             .contentShape(Rectangle())
             .onTapGesture {
               onTapRetry(record)
             }
             .frame(width: RecordsDocumentSize.itemWidth)
         }
-        
         if let record = itemData.record {
           VStack {
             HStack {
               /// Sync State
               if let syncState = RecordSyncState(from: record.syncState ?? ""),
                  syncState != .upload(success: true) {
-                TopLeftStateTileView(syncState: syncState)
+                topLeftStateTileView(syncState: syncState)
               } else if record.isSmart {
-                SmartReportView()
+                smartReportView()
               }
               Spacer()
             }
             Spacer()
           }
         }
-        
         /// Show tick view only in picker state
-        if recordPresentationState == .picker {
+        if recordPresentationState.isPicker {
           /// Selection Tick View at Top-Right
           VStack {
             HStack {
               Spacer()
-              SelectionTickView().foregroundStyle(Color.yellow)
+              selectionTickView().foregroundStyle(Color.yellow)
                 .padding(.top, EkaSpacing.spacingM)
                 .padding(.trailing, EkaSpacing.spacingM)
             }
@@ -108,9 +100,8 @@ struct RecordItemView: View {
           }
         }
       }
-      
       /// Bottom Meta Data View 
-      BottomMetaDataView()
+      bottomMetaDataView()
     }
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight + RecordsDocumentSize.bottomMetaDataHeight)
     .background(Color.white)
@@ -149,25 +140,8 @@ struct RecordItemView: View {
 // MARK: - Subviews
 
 extension RecordItemView {
-  private func BottomMetaDataView() -> some View {
+  private func bottomMetaDataView() -> some View {
     HStack {
-      /// Icon Image
-      VStack {
-        if let record = itemData.record,
-           let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
-          Image(uiImage: recordType.imageIcon)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 12, height: 12)
-            .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
-            .padding(4)
-            .background(Color(uiColor: recordType.imageIconBackgroundColor))
-            .cornerRadius(2)
-            .padding(.top, EkaSpacing.spacingXs)
-          Spacer()
-        }
-      }
-      
       VStack(alignment: .leading) {
         /// Document type
         if let record = itemData.record,
@@ -182,41 +156,34 @@ extension RecordItemView {
         if let record = itemData.record {
           let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
           let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
-          
           let prefix = switch filterOption {
           case .dateOfUpload: "Added "
           default: ""
           }
-          
           Text(prefix + date)
             .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
         }
       }
-      
       Spacer()
-      
-      MenuView()
+      menuView()
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)
   }
-  
-  private func TopLeftStateTileView(syncState: RecordSyncState) -> some View {
+  private func topLeftStateTileView(syncState: RecordSyncState) -> some View {
     HStack {
       if !isNetworkAvailable {
-        NoNetworkStateView()
+        noNetworkStateView()
       } else if syncState == .uploading {
-        UploadingStateView()
+        uploadingStateView()
       }
     }
   }
-  
-  private func UploadingStateView() -> some View {
+  private func uploadingStateView() -> some View {
     HStack(alignment: .bottom) {
       ProgressView()
         .frame(width: 10, height: 10)
         .tint(Color(.yellow500))
-      
       Text("Uploading")
         .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
     }
@@ -225,8 +192,7 @@ extension RecordItemView {
     .background(.white)
     .cornerRadiusModifier(6, corners: [.bottomRight])
   }
-  
-  private func NoNetworkStateView() -> some View {
+  private func noNetworkStateView() -> some View {
     HStack {
       Image(systemName: "icloud.slash.fill")
         .resizable()
@@ -243,7 +209,7 @@ extension RecordItemView {
     .cornerRadiusModifier(6, corners: [.bottomRight])
   }
   
-  private func RetryUploadingView() -> some View {
+  private func retryUploadingView() -> some View {
     HStack {
       Image(systemName: "arrow.clockwise")
         .resizable()
@@ -261,28 +227,52 @@ extension RecordItemView {
   }
   
   /// Thumbnail
-  private func ThumbnailImageView(thumbnailImageUrl: URL?) -> some View {
+  private func thumbnailImageView(thumbnailImageUrl: URL?) -> some View {
     ZStack {
-      AsyncImage(url: thumbnailImageUrl) { image in
-        image.resizable()
+      if let url = thumbnailImageUrl,
+         let _ = itemData.record?.thumbnail {
+        // Show only the thumbnail
+        WebImage(url: url)
+          .resizable()
+          .placeholder {
+            Color.gray.opacity(0.2)
+              .frame(width: RecordsDocumentSize.itemWidth,
+                     height: RecordsDocumentSize.thumbnailHeight)
+          }
           .scaledToFill()
-          .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight)
-          .foregroundStyle(Color.gray.opacity(0.2))
-      } placeholder: {
-        Color.gray.opacity(0.2)
+          .frame(width: RecordsDocumentSize.itemWidth,
+                 height: RecordsDocumentSize.thumbnailHeight)
+          .clipped()
+        
+      } else {
+        // No thumbnail → gray background + centered icon
+        ZStack {
+          Color.gray.opacity(0.2)
+            .frame(width: RecordsDocumentSize.itemWidth,
+                   height: RecordsDocumentSize.thumbnailHeight)
+          
+          if let record = itemData.record,
+             let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
+            Image(uiImage: recordType.imageIcon)
+              .resizable()
+              .scaledToFit()
+              .frame(width: 40, height: 40)
+              .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
+          }
+        }
       }
     }
-    .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
-    .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
+    .cornerRadiusModifier(12, corners: [.topLeft, .topRight])
   }
+
   
-  private func ThumbnailImageLoadingView() -> some View {
+  private func thumbnailImageLoadingView() -> some View {
     Color.black.opacity(0.6)
       .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.thumbnailHeight, alignment: .top)
       .cornerRadiusModifier(12, corners: .topLeft.union(.topRight))
   }
   
-  private func SelectionTickView() -> some View {
+  private func selectionTickView() -> some View {
     VStack {
       if itemData.isSelected { /// If the item is selected show checkmark
         Image(systemName: "checkmark.circle.fill")
@@ -305,7 +295,7 @@ extension RecordItemView {
     }
   }
   
-  private func SmartReportView() -> some View {
+  private func smartReportView() -> some View {
     HStack(spacing: EkaSpacing.spacingXxs) {
       Image(systemName: "sparkle")
         .resizable()
@@ -322,7 +312,7 @@ extension RecordItemView {
     .cornerRadiusModifier(6, corners: [.bottomRight])
   }
   
-  private func MenuView() -> some View {
+  private func menuView() -> some View {
     // Menu that opens on tap (instead of long press)
     Menu {
       Button {
@@ -349,7 +339,7 @@ extension RecordItemView {
 //
 extension RecordItemView {
   private func onTapRecord() {
-    switch recordPresentationState {
+    switch recordPresentationState.mode {
     case .dashboard:
       print("Click on record in dashboard state")
     case .displayAll:
@@ -359,23 +349,35 @@ extension RecordItemView {
     }
   }
   
-  
   /// On tap of document we open document viewer
-  private func onTapDocument() {}
+  /// Note: - This is not being used. We use navigation link.
+  private func onTapDocument() {
+    
+  }
   
   /// Update item data on picker selection
   private func updateItemDataOnPickerSelection() {
-    guard let record = itemData.record else { return }
-    itemData.isSelected.toggle()
-    /// If item is selected add it in picker selected records
-    if itemData.isSelected {
-      pickerSelectedRecords.append(record)
-    } else {
-      /// If item is unselected remove it from picker selected records
-      if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.objectID == record.objectID}) {
-        pickerSelectedRecords.remove(at: itemIndex)
+      guard let record = itemData.record else { return }
+      
+      // Check if we're in picker mode and get max count
+      guard case .picker(let maxCount) = recordPresentationState.mode else { return }
+      
+      // If trying to select and already at max capacity, don't allow selection
+      if !itemData.isSelected && pickerSelectedRecords.count >= maxCount {
+          return // Don't allow selection beyond max count
       }
-    }
+      
+      itemData.isSelected.toggle()
+      
+      /// If item is selected add it in picker selected records
+      if itemData.isSelected {
+          pickerSelectedRecords.append(record)
+      } else {
+          /// If item is unselected remove it from picker selected records
+          if let itemIndex = pickerSelectedRecords.firstIndex(where: { $0.objectID == record.objectID}) {
+              pickerSelectedRecords.remove(at: itemIndex)
+          }
+      }
   }
   
   private func isThumbnailBlurred() -> Bool {
@@ -387,7 +389,7 @@ extension RecordItemView {
 #Preview {
   RecordItemView(
     itemData: RecordItemViewData.formRecordItemPreviewData(),
-    recordPresentationState: .displayAll,
+    recordPresentationState: RecordPresentationState(mode: .displayAll),
     pickerSelectedRecords: .constant([]),
     selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
     onTapEdit: {_ in},

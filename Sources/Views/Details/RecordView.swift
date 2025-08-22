@@ -6,12 +6,13 @@ struct RecordView: View {
   // MARK: - Properties
   
   private let record: Record
-  private let recordsRepo = RecordsRepo()
+  private let recordsRepo = RecordsRepo.shared
   @State private var selectedTab: Tab = .smartReport
   @State private var documents: [DocumentMimeType] = []
   @State private var smartReportInfo: SmartReportInfo?
   @State private var isLoading: Bool = false
   @State private var isShareSheetPresented: Bool = false
+  @Environment(\.dismiss) private var dismiss
   
   enum Tab: Int {
     case smartReport = 0
@@ -51,6 +52,16 @@ struct RecordView: View {
         // Non-smart records - just show documents
         DocumentViewer(documents: $documents)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+      }
+    }
+    .toolbar {
+      if UIDevice.current.userInterfaceIdiom == .pad {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Close") {
+            dismiss()
+          }
+        }
       }
     }
     .navigationBarItems(trailing: Button(action: {

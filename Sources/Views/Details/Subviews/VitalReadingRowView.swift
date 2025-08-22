@@ -45,9 +45,9 @@ struct VitalReadingRowView: View {
   var body: some View {
     VStack {
       HStack {
-        LeftStackView()
+        leftStackView()
         Spacer()
-        RightStackView()
+        rightStackView()
       }
       .padding(.top, EkaSpacing.spacingXs)
       .padding(.horizontal, EkaSpacing.spacingM)
@@ -59,7 +59,7 @@ struct VitalReadingRowView: View {
 }
 
 extension VitalReadingRowView {
-  private func LeftStackView() -> some View {
+  private func leftStackView() -> some View {
     VStack(alignment: .leading, spacing: EkaSpacing.spacingXxxs) {
       /// Vital Name
       if let name = itemData.name {
@@ -75,7 +75,7 @@ extension VitalReadingRowView {
     }
   }
   
-  private func RightStackView() -> some View {
+  private func rightStackView() -> some View {
     VStack(alignment: .trailing, spacing: EkaSpacing.spacingXxxs) {
       /// Vital Interpretation Eg: High, Low
       if let displayResult = itemData.displayResult {

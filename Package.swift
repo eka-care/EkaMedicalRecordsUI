@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
   name: "EkaMedicalRecordsUI",
   platforms: [
-    .iOS(.v17)
+    .iOS(.v17),
+    .macOS(.v10_15)
   ],
   products: [
     // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -15,15 +16,19 @@ let package = Package(
       targets: ["EkaMedicalRecordsUI"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", branch: "main"),
-    .package(url: "git@github.com:eka-care/EkaUI.git", branch: "main")
+    .package(url: "https://github.com/SnapKit/SnapKit.git", exact: Version(stringLiteral: "5.0.1")),
+    .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.0.0"),
+    .package(url: "https://github.com/eka-care/EkaMedicalRecordsCore.git", from: "1.1.0"),
+    .package(url: "https://github.com/eka-care/EkaUI.git", branch: "main")
   ],
   targets: [
     .target(
       name: "EkaMedicalRecordsUI",
       dependencies: [
+        .product(name: "SnapKit", package: "SnapKit"),
+        .product(name: "SDWebImageSwiftUI", package: "SDWebImageSwiftUI"),
         .product(name: "EkaMedicalRecordsCore", package: "EkaMedicalRecordsCore"),
-        .product(name: "EkaUI", package: "EkaUI")
+        .product(name: "EkaUI", package: "EkaUI"),
       ],
       resources: [
         .process("Resources")

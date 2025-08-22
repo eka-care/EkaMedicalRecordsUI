@@ -23,9 +23,7 @@ enum ChipType: Int, CaseIterable {
 }
 
 struct SmartReportView: View {
-  
   // MARK: - Properties
-  
   @State private var selectedChip: ChipType = .all {
     didSet {
       formSmartReportListData(verifiedData: smartReportInfo?.verified)
@@ -33,29 +31,25 @@ struct SmartReportView: View {
   }
   @State private var listData: [Verified] = []
   @Binding var smartReportInfo: SmartReportInfo?
-  
   // MARK: - Init
-  
   init(
     smartReportInfo: Binding<SmartReportInfo?>
   ) {
     _smartReportInfo = smartReportInfo
   }
-  
   // MARK: - Body
-  
   var body: some View {
     ScrollView {
       VStack(spacing: 0) {
-        ChipsView()
+        chipsView()
         if listData.isEmpty {
           HStack {
             Spacer() /// For aligning towards center horizontally
-            SmartReportVitalListEmptyView()
+            smartReportVitalListEmptyView()
             Spacer() /// For aligning towards center horizontally
           }
         } else {
-          SmartReportVitalListView(vitalsData: listData)
+          smartReportVitalListView(vitalsData: listData)
         }
       }
       .frame(maxHeight: .infinity)
@@ -64,7 +58,7 @@ struct SmartReportView: View {
     .onAppear {
       formSmartReportListData(verifiedData: smartReportInfo?.verified)
     }
-    .onChange(of: smartReportInfo) { oldValue, newValue in
+    .onChange(of: smartReportInfo) { _ , newValue in
       formSmartReportListData(verifiedData: newValue?.verified)
     }
   }
@@ -73,15 +67,14 @@ struct SmartReportView: View {
 // MARK: - Subviews
 
 extension SmartReportView {
-  private func SmartReportVitalListEmptyView() -> some View {
+  private func smartReportVitalListEmptyView() -> some View {
     ContentUnavailableView {
       Label("No out of range vitals found", image: "")
     } description: {
       Text("Take care of your health and stay healthly")
     }
   }
-  
-  private func SmartReportVitalListView(vitalsData: [Verified]) -> some View {
+  private func smartReportVitalListView(vitalsData: [Verified]) -> some View {
     VStack(alignment: .leading, spacing: 0) {
       ForEach(vitalsData) { data in
         VitalReadingRowView(itemData: data)
@@ -91,7 +84,7 @@ extension SmartReportView {
 }
 
 extension SmartReportView {
-  private func ChipsView() -> some View {
+  private func chipsView() -> some View {
     HStack {
       ForEach(ChipType.allCases, id: \.self) { chip in
         ChipView(

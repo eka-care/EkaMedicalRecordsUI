@@ -5,47 +5,38 @@
 //  Created by Arya Vashisht on 10/04/25.
 //
 
-
 import SwiftUI
 import EkaMedicalRecordsCore
 import Combine
 
 struct RecordsFilterListView: View {
-  
   // MARK: - Properties
-  
-  let recordsRepo: RecordsRepo
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
   @State var recordsFilter: [RecordDocumentType: Int] = [:]
   @Binding var selectedChip: RecordDocumentType
   @Binding var selectedSortFilter: RecordSortOptions?
+  @Binding var caseID: String?
   @Environment(\.managedObjectContext) private var viewContext
-  
   // MARK: - Init
-  
   init(
-    recordsRepo: RecordsRepo,
     selectedChip: Binding<RecordDocumentType>,
-    selectedSortFilter: Binding<RecordSortOptions?>
+    selectedSortFilter: Binding<RecordSortOptions?>,
+    caseID: Binding<String?>
   ) {
-    self.recordsRepo = recordsRepo
+    _caseID = caseID
     _selectedChip = selectedChip
     _selectedSortFilter = selectedSortFilter
   }
-  
   var body: some View {
-    ChipsView()
+    chipsView()
       .onReceive(NotificationCenter.default.publisher(
         for: .NSManagedObjectContextObjectsDidChange,
         object: viewContext // must match the one being merged into
       )) { _ in
-        /// Wait for merge changes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-          updateFiltersCount()
-          /// if chip
-          if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
-            selectedChip = .typeAll
-          }
-        }
+        refreshFilters()
+      }
+      .onChange(of: caseID) { oldValue, newValue in
+        refreshFilters()
       }
   }
 }
@@ -53,7 +44,7 @@ struct RecordsFilterListView: View {
 // MARK: - Subviews
 
 extension RecordsFilterListView {
-  private func ChipsView() -> some View {
+  private func chipsView() -> some View {
     ScrollViewReader { scrollViewProxy in
       ScrollView(.horizontal, showsIndicators: false) {
         HStack {
@@ -94,15 +85,25 @@ extension RecordsFilterListView {
     return filter.filterName + filterCountString
   }
   
+  private func refreshFilters() {
+    /// Wait for merge changes
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+      updateFiltersCount()
+      /// if chip
+      if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
+        selectedChip = .typeAll
+      }
+    }
+  }
+  
   /// Update filters count
   private func updateFiltersCount() {
-    recordsFilter = recordsRepo.getRecordDocumentTypeCount()
+    recordsFilter = recordsRepo.getRecordDocumentTypeCount(caseID: caseID)
   }
 }
 
 #Preview {
   RecordsFilterListView(
-    recordsRepo: RecordsRepo(),
     selectedChip: .constant(
       .typeAll
     ),
@@ -110,6 +111,6 @@ extension RecordsFilterListView {
       .dateOfUpload(
         sortingOrder: .newToOld
       )
-    )
+    ), caseID: .constant(nil)
   )
 }
