@@ -136,6 +136,9 @@ public struct RecordsGridListView: View {
               .padding(.bottom, 140) // Space for floating button
             }
           }
+          .refreshable {
+            refreshRecords()
+          }
       }
       // Upload menu floating bottom-right
       RecordUploadMenuView(
@@ -248,7 +251,8 @@ extension RecordsGridListView {
   }
   /// Used to refresh records
   private func refreshRecords() {
-    recordsRepo.getUpdatedAtAndStartFetchRecords { _ in
+    recordsRepo.getUpdatedAtAndStartCases { _ in
+      recordsRepo.getUpdatedAtAndStartFetchRecords { _, _ in }
     }
   }
   /// On tap delete open

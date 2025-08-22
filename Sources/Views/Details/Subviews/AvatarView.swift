@@ -25,7 +25,7 @@ struct AvatarView: View {
           .foregroundColor(.white)
       } else {
         Text(caseTypeEnum.typeString)
-          .font(.system(size: 14, weight: .bold))
+          .newTextStyle(ekaFont: .title3Regular, color: .white)
           .foregroundColor(.white)
       }
     }
