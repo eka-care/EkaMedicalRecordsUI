@@ -159,10 +159,8 @@ public struct RecordContainerView: View {
   private let didSelectPickerDataObjects: RecordItemsCallback
   @State var recordPresentationState: RecordPresentationState
   @StateObject private var networkMonitor = NetworkMonitor.shared
-  @State private var lastSourceRefreshedAt: Date? =  Date()
+  @State private var lastSourceRefreshedAt: Date?
   @State private var isForceRefreshing = false
-  @State private var timeRemaining = 15
-  @State private var timer: Timer?
   
   private var isCompact: Bool {
     horizontalSizeClass == .compact
@@ -204,15 +202,21 @@ public struct RecordContainerView: View {
     .navigationDestination(for: Record.self, destination: recordDestination)
     .onChange(of: isForceRefreshing) { _, newValue in
       if newValue {
-        startTimer()
         recordsRepo.requestForceRefresh { respnonse, apiCode in
           if apiCode != 202 {
-            resetTimer()
-            isForceRefreshing = false
+//            isForceRefreshing = false
           }
         }
       } else {
-        resetTimer()
+        recordsRepo.getUpdatedAtAndStartCases { _ in
+          recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
+            if let dateAndTime = lastSourceRefreshedTime {
+              self.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
+            } else {
+              self.lastSourceRefreshedAt = nil
+            }
+          }
+        }
       }
     }
    
@@ -284,11 +288,6 @@ public struct RecordContainerView: View {
       }
       recordsRepo.syncUnuploadedRecords()
     }
-    .onDisappear {
-      // Clean up timer when view disappears
-      timer?.invalidate()
-      timer = nil
-    }
   }
 }
 
@@ -345,10 +344,7 @@ extension RecordContainerView {
         .padding(.trailing, 16)
         .padding(.bottom, 16)
       sidebarMainContent
-      if let date = lastSourceRefreshedAt {
-        LastUpdatedView(isRefreshing: $isForceRefreshing, lastUpdated: $lastSourceRefreshedAt)
-      }
-      
+      LastUpdatedView(isRefreshing: $isForceRefreshing, lastUpdated: $lastSourceRefreshedAt)
     }
     .background(Color(.systemGroupedBackground))
   }
@@ -549,41 +545,6 @@ extension RecordContainerView {
       }
       completion?(pickerObjects)
     }
-  }
-}
-
-extension RecordContainerView {
-  func resetTimer(to seconds: Int = 15) {
-      timeRemaining = seconds
-      timer?.invalidate()
-      timer = nil
-  }
-  
-  func startTimer(from seconds: Int = 15) {
-    timeRemaining = seconds
-    
-    // Invalidate any existing timer
-    timer?.invalidate()
-    
-    // Create new timer
-    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-      if self.timeRemaining > 0 {
-        debugPrint(timeRemaining)
-        self.timeRemaining -= 1
-      } else {
-        self.stopTimer()
-        self.isForceRefreshing = false
-        
-        self.recordsRepo.getUpdatedAtAndStartCases { _ in
-          self.recordsRepo.getUpdatedAtAndStartFetchRecords { _, _ in }
-        }
-      }
-    }
-  }
-  
-  func stopTimer() {
-      timer?.invalidate()
-      timer = nil
   }
 }
 
