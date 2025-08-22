@@ -213,12 +213,21 @@ extension CasesListView {
   private func groupCasesByMonth(_ cases: [CaseModel]) -> [Date: [CaseModel]] {
     let calendar = Calendar.current
     
-    return Dictionary(grouping: cases) { caseModel in
+    let grouped = Dictionary(grouping: cases) { caseModel in
       // Assuming CaseModel has a createdDate or uploadDate property
-      let date = caseModel.createdAt ?? Date()
+      let date = caseModel.updatedAt ?? Date()
       
       // Get the start of the month for grouping
       return calendar.dateInterval(of: .month, for: date)?.start ?? date
+    }
+    
+    // Sort cases within each month by date in descending order
+    return grouped.mapValues { cases in
+      cases.sorted { (case1, case2) in
+        let date1 = case1.updatedAt ?? Date()
+        let date2 = case2.updatedAt ?? Date()
+        return date1 > date2 // Descending order (newest first)
+      }
     }
   }
   
