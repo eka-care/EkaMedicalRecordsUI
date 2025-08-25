@@ -449,14 +449,12 @@ extension RecordContainerView {
   }
   
   private var titleWithSelectionInfo: String {
-    let baseTitle = "Select Records"
-    
     if recordPresentationState.isPicker,
        case .picker(let maxCount) = recordPresentationState.mode {
+      let baseTitle = "Select Records"
       return "\(baseTitle) (\(viewModel.pickerSelectedRecords.count)/\(maxCount))"
     }
-    
-    return baseTitle
+    return recordPresentationState.title
   }
 }
 
