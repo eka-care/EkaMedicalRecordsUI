@@ -53,7 +53,7 @@ struct CasesListView: View {
           
           Group {
             // Create new case row
-            if !caseSearchText.isEmpty {
+            if !caseSearchText.isEmpty && !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases) {
               if UIDevice.current.isIPad {
                 createNewCaseRowView()
                   .onTapGesture {
