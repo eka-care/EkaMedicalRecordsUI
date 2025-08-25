@@ -200,7 +200,7 @@ extension CasesListView {
   }
   
   func generateSortDescriptors() -> [NSSortDescriptor] {
-    return [NSSortDescriptor(keyPath: \CaseModel.createdAt, ascending: true)]
+    return [NSSortDescriptor(keyPath: \CaseModel.occuredAt, ascending: true)]
   }
   
   func resetView() {
