@@ -53,7 +53,7 @@ struct CasesListView: View {
           
           Group {
             // Create new case row
-            if !caseSearchText.isEmpty {
+            if !caseSearchText.isEmpty && !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases) {
               if UIDevice.current.isIPad {
                 createNewCaseRowView()
                   .onTapGesture {
@@ -87,11 +87,12 @@ struct CasesListView: View {
             }
           }
           .onAppear {
-            // Handle default case selection here
-            if selectedCase == nil, shouldSelectDefaultCase, let first = cases.first {
-              selectedCase = first
-              onSelectCase?(first)
-            }
+            guard selectedCase == nil, shouldSelectDefaultCase else { return }
+            let groupedCases = groupCasesByMonth(Array(cases))
+            guard let firstMonth = groupedCases.keys.sorted(by: >).first,
+                  let firstCase = groupedCases[firstMonth]?.first else { return }
+            selectedCase = firstCase
+            onSelectCase?(firstCase)
           }
         }
       }

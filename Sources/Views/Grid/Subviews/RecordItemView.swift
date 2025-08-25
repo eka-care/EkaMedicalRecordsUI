@@ -155,12 +155,8 @@ extension RecordItemView {
         /// Date
         if let record = itemData.record {
           let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
-          let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy") ?? "NA"
-          let prefix = switch filterOption {
-          case .dateOfUpload: "Added "
-          default: ""
-          }
-          Text(prefix + date)
+          let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy, hh:mm a") ?? "NA"
+          Text(date)
             .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
         }
       }

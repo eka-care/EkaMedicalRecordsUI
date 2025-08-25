@@ -3,6 +3,7 @@
 import SwiftUI
 import PhotosUI
 import EkaUI
+import EkaMedicalRecordsCore
 
 struct RecordUploadMenuView: View {
   
@@ -50,13 +51,15 @@ struct RecordUploadMenuView: View {
         }
       }
     } label: {
-      EkaButtonView(
-        iconImageString: "plus",
-        title: "Add Records",
-        size: .large,
-        style: .filled,
-        isEnabled: true
-      ) {}
+      if !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.uploadRecords) {
+        EkaButtonView(
+          iconImageString: "plus",
+          title: "Add Records",
+          size: .large,
+          style: .filled,
+          isEnabled: true
+        ) {}
+      }
     }
     .shadow(color: .black.opacity(0.3), radius: 36, x: 0, y: 0)
     .padding([.trailing, .bottom], EkaSpacing.spacingM)

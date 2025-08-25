@@ -50,7 +50,7 @@ struct SearchableCaseListView: View {
             sortDescriptors: generateSortDescriptors()
           ) { (cases: FetchedResults<CaseModel>) in
             
-            if !caseSearchText.isEmpty {
+            if !caseSearchText.isEmpty  && !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases){
               NavigationLink(value: CaseFormRoute(prefilledName: caseSearchText)) {
                 createNewCaseRowView()
               }
