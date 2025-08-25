@@ -87,10 +87,13 @@ struct CasesListView: View {
             }
           }
           .onAppear {
-            // Handle default case selection here
-            if selectedCase == nil, shouldSelectDefaultCase, let first = cases.first {
-              selectedCase = first
-              onSelectCase?(first)
+            if selectedCase == nil, shouldSelectDefaultCase {
+              let groupedCases = groupCasesByMonth(Array(cases))
+              if let firstMonth = groupedCases.keys.sorted(by: >).first,
+                 let firstCase = groupedCases[firstMonth]?.first {
+                selectedCase = firstCase
+                onSelectCase?(firstCase)
+              }
             }
           }
         }
