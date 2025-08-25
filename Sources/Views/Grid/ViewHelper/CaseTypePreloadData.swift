@@ -44,13 +44,13 @@ enum CaseTypesEnum {
   var name: String {
     switch self {
     case .daycare:
-      return "DayCare"
+      return "DC"
     case .inpatient:
-      return "IPD"
+      return "IP"
     case .outpatient:
-      return "OPD"
+      return "OP"
     case .emergency:
-      return "Emergency"
+      return "EM"
     case .custom(title: let title):
       return title
     }
