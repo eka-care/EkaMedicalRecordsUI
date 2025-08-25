@@ -116,7 +116,7 @@ extension CasesListView {
     let cardView = CaseCardView(
       caseName: caseModel.caseName ?? "",
       recordCount: caseModel.toRecord?.count ?? 0,
-      date: caseModel.updatedAt,
+      date: caseModel.occuredAt,
       caseTypeEnum: CaseTypesEnum.getCaseType(for: caseModel.caseType ?? ""),
       isSelected: selectedCase?.caseID == caseModel.caseID
     )
