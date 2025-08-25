@@ -216,7 +216,7 @@ extension CasesListView {
     
     let grouped = Dictionary(grouping: cases) { caseModel in
       // Assuming CaseModel has a createdDate or uploadDate property
-      let date = caseModel.updatedAt ?? Date()
+      let date = caseModel.occuredAt ?? Date()
       
       // Get the start of the month for grouping
       return calendar.dateInterval(of: .month, for: date)?.start ?? date
