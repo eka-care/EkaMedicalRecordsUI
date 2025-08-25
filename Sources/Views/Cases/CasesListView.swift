@@ -225,8 +225,8 @@ extension CasesListView {
     // Sort cases within each month by date in descending order
     return grouped.mapValues { cases in
       cases.sorted { (case1, case2) in
-        let date1 = case1.updatedAt ?? Date()
-        let date2 = case2.updatedAt ?? Date()
+        let date1 = case1.occuredAt ?? Date()
+        let date2 = case2.occuredAt ?? Date()
         return date1 > date2 // Descending order (newest first)
       }
     }
