@@ -235,7 +235,7 @@ extension RecordsGridListView {
       let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(
         data: data,
         contentType: contentType,
-        caseModel: cases.first
+        caseModels: cases
       )
       DispatchQueue.main.async {
         recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in

@@ -194,7 +194,7 @@ extension EditBottomSheetView {
       documentDate: documentDate,
       documentType: selectedDocumentType?.intValue,
       isEdited: true,
-      caseModel: selectedCaseModel
+      caseModels: selectedCaseModel.map { [$0] } ?? []
     )
     /// Close edit bottom sheet
     isEditBottomSheetPresented = false
