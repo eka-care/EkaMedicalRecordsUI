@@ -214,7 +214,8 @@ extension RecordsGridListView {
       selectedFilterOption: $selectedSortFilter,
       onTapEdit: editItem(record:),
       onTapDelete: onTapDelete(record:),
-      onTapRetry: onTapRetry(record:)
+      onTapRetry: onTapRetry(record:),
+      onTapDelinkCCase: onTapDelinkCCase(record: delinkCaseId:)
     )
   }
 }
@@ -235,7 +236,7 @@ extension RecordsGridListView {
       let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(
         data: data,
         contentType: contentType,
-        caseModel: cases.first
+        caseModels: cases
       )
       DispatchQueue.main.async {
         recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
@@ -247,7 +248,7 @@ extension RecordsGridListView {
   }
   /// To sync unuploaded records
   private func syncRecords() {
-    recordsRepo.syncUnuploadedRecords()
+    recordsRepo.syncUnuploadedRecords{_ in }
   }
   /// Used to refresh records
   private func refreshRecords() {
@@ -273,6 +274,11 @@ extension RecordsGridListView {
   private func editItem(record: Record) {
     recordSelectedForEdit = record
     isEditBottomSheetPresented = true
+  }
+  /// Used to delink case an item
+  private func onTapDelinkCCase(record: Record, delinkCaseId: String) {
+    recordsRepo.delinkCaseFromRecord(record: record, caseId: delinkCaseId) { _ in
+    }
   }
 }
 

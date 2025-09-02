@@ -266,7 +266,10 @@ public struct RecordContainerView: View {
         }
     }
     .onChange(of: networkMonitor.isOnline) { _ , _ in
-      recordsRepo.syncUnuploadedRecords()
+      recordsRepo.syncUnsyncedCases { _ in
+        recordsRepo.syncUnuploadedRecords {  _ in
+        }
+      }
     }
     
     .onAppear {
@@ -284,9 +287,9 @@ public struct RecordContainerView: View {
           }
         }
       }
-      recordsRepo.syncUnsyncedCases {
+      recordsRepo.syncUnsyncedCases { _ in
+        recordsRepo.syncUnuploadedRecords{ _ in }
       }
-      recordsRepo.syncUnuploadedRecords()
     }
   }
 }

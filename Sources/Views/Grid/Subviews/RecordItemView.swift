@@ -31,6 +31,7 @@ struct RecordItemView: View {
   private var onTapEdit: (Record) -> Void
   private var onTapDelete: (Record) -> Void
   private var onTapRetry: (Record) -> Void
+  private var onTapDelinkCCase: (Record, String) -> Void
   @State private var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
   // MARK: - Init
@@ -41,7 +42,8 @@ struct RecordItemView: View {
     selectedFilterOption: Binding<RecordSortOptions?>,
     onTapEdit: @escaping (Record) -> Void,
     onTapDelete: @escaping (Record) -> Void,
-    onTapRetry: @escaping (Record) -> Void
+    onTapRetry: @escaping (Record) -> Void,
+    onTapDelinkCCase: @escaping (Record, String) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -50,6 +52,7 @@ struct RecordItemView: View {
     self.onTapEdit = onTapEdit
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
+    self.onTapDelinkCCase = onTapDelinkCCase
   }
   // MARK: - Body
   var body: some View {
@@ -115,6 +118,15 @@ struct RecordItemView: View {
       } label: {
         Text("Edit")
       }
+      
+      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
+        Button {
+          onTapDelinkCCase(record , caseId)
+        } label: {
+          Text("Unassign encounter")
+        }
+      }
+      
       Button(role: .destructive) {
         if let record = itemData.record {
           onTapDelete(record)
@@ -318,6 +330,15 @@ extension RecordItemView {
       } label: {
         Text("Edit")
       }
+      
+      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
+        Button {
+          onTapDelinkCCase(record , caseId)
+        } label: {
+          Text("Unassign encounter")
+        }
+      }
+      
       Button(role: .destructive) {
         if let record = itemData.record {
           onTapDelete(record)
@@ -390,6 +411,7 @@ extension RecordItemView {
     selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
     onTapEdit: {_ in},
     onTapDelete: {_ in},
-    onTapRetry: {_ in}
+    onTapRetry: {_ in},
+    onTapDelinkCCase: {_, _ in}
   )
 }
