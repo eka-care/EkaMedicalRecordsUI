@@ -255,17 +255,15 @@ extension RecordItemView {
       } else {
         // No thumbnail → gray background + centered icon
         ZStack {
-          Color.gray.opacity(0.2)
+          Color(hex: "#EBEDF0")
             .frame(width: RecordsDocumentSize.itemWidth,
                    height: RecordsDocumentSize.thumbnailHeight)
           
-          if let record = itemData.record,
-             let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
-            Image(uiImage: recordType.imageIcon)
+          if itemData.record != nil {
+            Image(uiImage: UIImage(resource: .docWithPlus))
               .resizable()
               .scaledToFit()
               .frame(width: 40, height: 40)
-              .foregroundStyle(Color(uiColor: recordType.imageIconForegroundColor))
           }
         }
       }
