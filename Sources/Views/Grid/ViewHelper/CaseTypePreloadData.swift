@@ -11,9 +11,9 @@ import SwiftUICore
 struct CaseTypePreloadData {
   static let all: [CaseTypeModel] = [
     CaseTypeModel(name: "EM"),
-    CaseTypeModel(name: "IPD"),
-    CaseTypeModel(name: "OPD"),
-    CaseTypeModel(name: "DayCare"),
+    CaseTypeModel(name: "IP"),
+    CaseTypeModel(name: "OP"),
+    CaseTypeModel(name: "DC"),
     CaseTypeModel(name: "Other")
   ]
 }
