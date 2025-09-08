@@ -13,6 +13,7 @@ struct RecordView: View {
   @State private var isLoading: Bool = false
   @State private var isShareSheetPresented: Bool = false
   @Environment(\.dismiss) private var dismiss
+  private let onCopyAllToRx: (([Verified]) -> Void)?
   
   enum Tab: Int {
     case smartReport = 0
@@ -30,8 +31,9 @@ struct RecordView: View {
   
   // MARK: - Init
   
-  init(record: Record) {
+  init(record: Record, onCopyAllToRx: (([Verified]) -> Void)? = nil) {
     self.record = record
+    self.onCopyAllToRx = onCopyAllToRx
   }
   
   // MARK: - Body
@@ -98,7 +100,7 @@ struct RecordView: View {
           .background(Color(.systemBackground))
         
         // Right Side - Smart Report (2/5 of width)
-        SmartReportView(smartReportInfo: $smartReportInfo)
+        SmartReportView(smartReportInfo: $smartReportInfo, onCopyAllToRx: onCopyAllToRx)
           .frame(width: geometry.size.width * 0.3, height: geometry.size.height)
           .background(Color(.systemBackground))
       }
@@ -122,7 +124,7 @@ struct RecordView: View {
       Group {
         switch selectedTab {
         case .smartReport:
-          SmartReportView(smartReportInfo: $smartReportInfo)
+          SmartReportView(smartReportInfo: $smartReportInfo, onCopyAllToRx: onCopyAllToRx)
         case .documents:
           DocumentViewer(documents: $documents)
         }

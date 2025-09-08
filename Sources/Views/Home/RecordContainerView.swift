@@ -94,6 +94,7 @@ extension RecordPresentationState {
 }
 
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
+public typealias CopyToRxCallback = (([Verified]) -> Void)?
 
 enum RecordTab: CaseIterable, Hashable {
   case records
@@ -157,6 +158,7 @@ public struct RecordContainerView: View {
   // MARK: - Properties
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
+  private let onCopyToRx: CopyToRxCallback
   @State var recordPresentationState: RecordPresentationState
   @StateObject private var networkMonitor = NetworkMonitor.shared
   @State private var lastSourceRefreshedAt: Date?
@@ -177,9 +179,11 @@ public struct RecordContainerView: View {
   // MARK: - Initializer
   public init(
     didSelectPickerDataObjects: RecordItemsCallback = nil,
+    onCopyToRx: CopyToRxCallback = nil,
     recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
+    self.onCopyToRx = onCopyToRx
     self.recordPresentationState = recordPresentationState
     EkaUI.registerFonts()
   }
@@ -226,7 +230,7 @@ public struct RecordContainerView: View {
     }) { modal in
       if case let .record(record) = modal {
         NavigationStack{
-          RecordView(record: record)
+          RecordView(record: record, onCopyAllToRx: onCopyToRx)
         }
       }
       if case let .newCase(name) = modal {
@@ -498,7 +502,7 @@ extension RecordContainerView {
   
   @ViewBuilder
   private func recordDestination(for record: Record) -> some View {
-    RecordView(record: record)
+    RecordView(record: record, onCopyAllToRx: onCopyToRx)
   }
 }
 

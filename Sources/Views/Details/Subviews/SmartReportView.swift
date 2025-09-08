@@ -35,11 +35,15 @@ struct SmartReportView: View {
   @State private var showToast: Bool = false
   @State private var toastMessage: String = ""
   @Binding var smartReportInfo: SmartReportInfo?
+  private let onCopyAllToRx: (([Verified]) -> Void)?
+  
   // MARK: - Init
   init(
-    smartReportInfo: Binding<SmartReportInfo?>
+    smartReportInfo: Binding<SmartReportInfo?>,
+    onCopyAllToRx: (([Verified]) -> Void)? = nil
   ) {
     _smartReportInfo = smartReportInfo
+    self.onCopyAllToRx = onCopyAllToRx
   }
   // MARK: - Body
   var body: some View {
@@ -143,7 +147,7 @@ extension SmartReportView {
       
       // Copy Selected button (Blue style)
       Button("Copy selected to Rx (\(selectedItemData.count))") {
-        handleCopyAllTapped(message: "Copied to Rx Pad")
+        handleCopySelectedTapped(message: "Copied to Rx Pad")
       }
       .textStyle(ekaFont: .subheadlineRegular, color: UIColor.white)
       .multilineTextAlignment(.center)
@@ -161,6 +165,23 @@ extension SmartReportView {
   private func handleCopyAllTapped(message: String) {
     toastMessage = message
     showToast = true
+    
+    // Call the callback with the current list data
+    onCopyAllToRx?(listData)
+    
+    // Auto-hide toast after 2 seconds
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+      showToast = false
+    }
+  }
+  
+  /// Handles the copy selected button tap action
+  private func handleCopySelectedTapped(message: String) {
+    toastMessage = message
+    showToast = true
+    
+    // Call the callback with the selected items
+    onCopyAllToRx?(Array(selectedItemData))
     
     // Auto-hide toast after 2 seconds
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
