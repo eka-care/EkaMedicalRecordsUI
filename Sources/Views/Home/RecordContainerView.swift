@@ -76,12 +76,10 @@ public struct RecordPresentationState: Equatable {
 
 public struct RecordFilter: Equatable {
   public var caseID: String?
-  public var userID: String?
   public var tags: [String]?
 
-  public init(caseID: String? = nil, userID: String? = nil, tags: [String]? = nil) {
+  public init(caseID: String? = nil,tags: [String]? = nil) {
     self.caseID = caseID
-    self.userID = userID
     self.tags = tags
   }
 }
