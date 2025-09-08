@@ -37,17 +37,17 @@ struct SmartReportView: View {
   @Binding var smartReportInfo: SmartReportInfo?
   @State var determinedListData: [Verified] = []
   
-  private let onCopyAllToRx: (([Verified]) -> Void)?
+  private let onCopyVitals: (([Verified]) -> Void)?
   private let recordPresentationState: RecordPresentationState
   // MARK: - Init
   init(
     smartReportInfo: Binding<SmartReportInfo?>,
     recordPresentationState: RecordPresentationState,
-    onCopyAllToRx: (([Verified]) -> Void)? = nil
+    onCopyVitals: (([Verified]) -> Void)? = nil
   ) {
     _smartReportInfo = smartReportInfo
     self.recordPresentationState = recordPresentationState
-    self.onCopyAllToRx = onCopyAllToRx
+    self.onCopyVitals = onCopyVitals
   }
   // MARK: - Body
   var body: some View {
@@ -179,7 +179,7 @@ extension SmartReportView {
     showToast = true
     
     // Call the callback with the determinedListData data
-    onCopyAllToRx?(determinedListData)
+    onCopyVitals?(determinedListData)
     
     // Auto-hide toast after 2 seconds
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -193,7 +193,7 @@ extension SmartReportView {
     showToast = true
     
     // Call the callback with the selected items
-    onCopyAllToRx?(Array(selectedItemData))
+    onCopyVitals?(Array(selectedItemData))
     
     // Auto-hide toast after 2 seconds
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
