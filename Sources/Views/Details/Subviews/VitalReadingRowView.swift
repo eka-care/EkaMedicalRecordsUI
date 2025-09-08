@@ -152,6 +152,5 @@ extension VitalReadingRowView {
 // TODO: - To be added later
 
 //#Preview {
-//  @State var selectedItems: Set<Verified> = []
-//  VitalReadingRowView(itemData: <#Verified#>, selectedItemData: $selectedItems)
+// VitalReadingRowView(itemData: <#Verified#>)
 //}
