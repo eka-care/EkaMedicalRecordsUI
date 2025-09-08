@@ -355,9 +355,7 @@ extension RecordItemView {
 extension RecordItemView {
   private func onTapRecord() {
     switch recordPresentationState.mode {
-    case .dashboard:
-      print("Click on record in dashboard state")
-    case .displayAll:
+    case .displayAll, .copyVitals, .dashboard:
       onTapDocument()
     case .picker:
       updateItemDataOnPickerSelection()

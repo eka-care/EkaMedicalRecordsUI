@@ -35,15 +35,18 @@ struct SmartReportView: View {
   @State private var showToast: Bool = false
   @State private var toastMessage: String = ""
   @Binding var smartReportInfo: SmartReportInfo?
-  private let onCopyAllToRx: (([Verified]) -> Void)?
   @State var determinedListData: [Verified] = []
   
+  private let onCopyAllToRx: (([Verified]) -> Void)?
+  private let recordPresentationState: RecordPresentationState
   // MARK: - Init
   init(
     smartReportInfo: Binding<SmartReportInfo?>,
+    recordPresentationState: RecordPresentationState,
     onCopyAllToRx: (([Verified]) -> Void)? = nil
   ) {
     _smartReportInfo = smartReportInfo
+    self.recordPresentationState = recordPresentationState
     self.onCopyAllToRx = onCopyAllToRx
   }
   // MARK: - Body
@@ -59,19 +62,24 @@ struct SmartReportView: View {
               Spacer() /// For aligning towards center horizontally
             }
           } else {
-            HStack {
-              Text("Selected vitals (\(selectedItemData.count))")
-                .textStyle(ekaFont: .subheadlineRegular, color: .gray)
-              Spacer()
+            if recordPresentationState.isCopyVitals {
+              HStack {
+                Text("Selected vitals (\(selectedItemData.count))")
+                  .textStyle(ekaFont: .subheadlineRegular, color: .gray)
+                Spacer()
+              }
+              .padding(.horizontal)
             }
-            .padding(.horizontal)
+            
             smartReportVitalListView(vitalsData: listData)
               .padding()
           }
         }
         .frame(maxHeight: .infinity)
       }
-      CopyButtonsView()
+      if recordPresentationState.isCopyVitals {
+        CopyButtonsView()
+      }
     }
     .background(Color(.neutrals50))
     .overlay(
@@ -110,7 +118,7 @@ extension SmartReportView {
   private func smartReportVitalListView(vitalsData: [Verified]) -> some View {
     VStack(alignment: .leading, spacing: 0) {
       ForEach(vitalsData) { data in
-        VitalReadingRowView(itemData: data, selectedItemData: $selectedItemData)
+        VitalReadingRowView(itemData: data,selectedItemData: $selectedItemData, recordPresentationState: recordPresentationState)
       }
     }
     .cornerRadiusModifier(12, corners: .allCorners)
@@ -243,5 +251,5 @@ extension SmartReportView {
 }
 
 #Preview {
-  SmartReportView(smartReportInfo: .constant(nil))
+  SmartReportView(smartReportInfo: .constant(nil), recordPresentationState: RecordPresentationState(mode: .dashboard))
 }

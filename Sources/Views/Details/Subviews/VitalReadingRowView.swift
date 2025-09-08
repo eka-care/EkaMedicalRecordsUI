@@ -42,7 +42,7 @@ struct VitalReadingRowView: View {
   @Binding var selectedItemData: Set<Verified>
   
   // MARK: - Computed Properties
-  
+  let recordPresentationState: RecordPresentationState
   private var isSelected: Bool {
     return selectedItemData.contains(itemData)
   }
@@ -60,7 +60,9 @@ struct VitalReadingRowView: View {
   var body: some View {
     VStack {
       HStack {
-        checkboxView()
+        if recordPresentationState.isCopyVitals {
+          checkboxView()
+        }
         leftStackView()
         Spacer()
         rightStackView()

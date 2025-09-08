@@ -7,6 +7,7 @@ struct RecordView: View {
   
   private let record: Record
   private let recordsRepo = RecordsRepo.shared
+  private let recordPresentationState: RecordPresentationState
   @State private var selectedTab: Tab = .smartReport
   @State private var documents: [DocumentMimeType] = []
   @State private var smartReportInfo: SmartReportInfo?
@@ -31,8 +32,9 @@ struct RecordView: View {
   
   // MARK: - Init
   
-  init(record: Record, onCopyAllToRx: (([Verified]) -> Void)? = nil) {
+  init(record: Record, recordPresentationState: RecordPresentationState, onCopyAllToRx: (([Verified]) -> Void)? = nil) {
     self.record = record
+    self.recordPresentationState = recordPresentationState
     self.onCopyAllToRx = onCopyAllToRx
   }
   
@@ -100,7 +102,7 @@ struct RecordView: View {
           .background(Color(.systemBackground))
         
         // Right Side - Smart Report (2/5 of width)
-        SmartReportView(smartReportInfo: $smartReportInfo, onCopyAllToRx: onCopyAllToRx)
+        SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyAllToRx: onCopyAllToRx)
           .frame(width: geometry.size.width * 0.3, height: geometry.size.height)
           .background(Color(.systemBackground))
       }
@@ -124,7 +126,7 @@ struct RecordView: View {
       Group {
         switch selectedTab {
         case .smartReport:
-          SmartReportView(smartReportInfo: $smartReportInfo, onCopyAllToRx: onCopyAllToRx)
+          SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyAllToRx: onCopyAllToRx)
         case .documents:
           DocumentViewer(documents: $documents)
         }

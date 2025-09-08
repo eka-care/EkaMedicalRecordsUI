@@ -22,7 +22,7 @@ public struct RecordPresentationState: Equatable {
     switch mode {
     case .dashboard:
       return ""
-    case .displayAll:
+    case .displayAll, .copyVitals:
       return InitConfiguration.shared.recordsTitle ?? "All"
     case .picker(let maxCount):
       let baseTitle = InitConfiguration.shared.recordsTitle ?? "Select"
@@ -36,6 +36,13 @@ public struct RecordPresentationState: Equatable {
 
   public var isPicker: Bool {
     if case .picker = mode {
+      return true
+    }
+    return false
+  }
+  
+  public var isCopyVitals: Bool {
+    if case .copyVitals = mode {
       return true
     }
     return false
@@ -82,6 +89,7 @@ public struct RecordFilter: Equatable {
 public enum RecordMode: Equatable {
   case dashboard
   case displayAll
+  case copyVitals
   case picker(maxCount: Int)
 }
 
@@ -230,7 +238,7 @@ public struct RecordContainerView: View {
     }) { modal in
       if case let .record(record) = modal {
         NavigationStack{
-          RecordView(record: record, onCopyAllToRx: onCopyToRx)
+          RecordView(record: record, recordPresentationState: recordPresentationState ,onCopyAllToRx: onCopyToRx)
         }
       }
       if case let .newCase(name) = modal {
@@ -502,7 +510,7 @@ extension RecordContainerView {
   
   @ViewBuilder
   private func recordDestination(for record: Record) -> some View {
-    RecordView(record: record, onCopyAllToRx: onCopyToRx)
+    RecordView(record: record,recordPresentationState: recordPresentationState ,onCopyAllToRx: onCopyToRx)
   }
 }
 
