@@ -36,6 +36,7 @@ struct SmartReportView: View {
   @State private var toastMessage: String = ""
   @Binding var smartReportInfo: SmartReportInfo?
   private let onCopyAllToRx: (([Verified]) -> Void)?
+  @State var determinedListData: [Verified] = []
   
   // MARK: - Init
   init(
@@ -86,9 +87,11 @@ struct SmartReportView: View {
       .padding(.top, 50)
     )
     .onAppear {
+      initializeDeterminedListData(verifiedData: smartReportInfo?.verified)
       formSmartReportListData(verifiedData: smartReportInfo?.verified)
     }
     .onChange(of: smartReportInfo) { _ , newValue in
+      initializeDeterminedListData(verifiedData: newValue?.verified)
       formSmartReportListData(verifiedData: newValue?.verified)
     }
   }
@@ -136,13 +139,14 @@ extension SmartReportView {
   private func CopyButtonsView() -> some View {
     HStack(spacing: 0) {
       // Copy All button (Grey style)
-        Button("Copy all to Rx (\(listData.count))") {
+        Button("Copy all to Rx (\(determinedListData.count))") {
           handleCopyAllTapped(message: "Copied to Rx Pad")
       }
       .textStyle(ekaFont: .subheadlineRegular, color: .systemBlue)
       .multilineTextAlignment(.center)
       .buttonStyle(.bordered)
       .tint(.gray)
+      .disabled(determinedListData.count == 0)
       .frame(maxWidth: .infinity)
       
       // Copy Selected button (Blue style)
@@ -166,8 +170,8 @@ extension SmartReportView {
     toastMessage = message
     showToast = true
     
-    // Call the callback with the current list data
-    onCopyAllToRx?(listData)
+    // Call the callback with the determinedListData data
+    onCopyAllToRx?(determinedListData)
     
     // Auto-hide toast after 2 seconds
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -222,6 +226,19 @@ extension SmartReportView {
       }.count ?? 0
       return outOfRangeCount
     }
+  }
+  
+  /// Initialize determinedListData
+  private func  initializeDeterminedListData(verifiedData: [Verified]?) {
+    guard let verifiedData else { return }
+    determinedListData = verifiedData.filter { data in
+        if let resultID = data.resultID,
+           let interpretationType = LabParameterResultType(rawValue: resultID) {
+          return interpretationType != .undetermined
+        }
+      return false
+    }
+   print( determinedListData.count)
   }
 }
 
