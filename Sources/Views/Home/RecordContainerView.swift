@@ -556,7 +556,7 @@ extension RecordContainerView {
     progressTimer?.invalidate()
     
     // Create incremental progress updates
-    let totalDuration: Double = 15.0 // 15 seconds
+    let totalDuration: Double = 10.0 // 10 seconds
     let updateInterval: Double = 0.1 // Update every 100ms
     let increment = 1.0 / (totalDuration / updateInterval) // Progress increment per update
     

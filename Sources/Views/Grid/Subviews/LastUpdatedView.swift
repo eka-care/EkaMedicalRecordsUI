@@ -15,7 +15,7 @@ struct LastUpdatedView: View {
   
   let progressDuration: Double
   
-  init(isRefreshing: Binding<Bool>, lastUpdated: Binding<Date?>, progressDuration: Double = 15.0) {
+  init(isRefreshing: Binding<Bool>, lastUpdated: Binding<Date?>, progressDuration: Double = 10.0) {
     self._isRefreshing = isRefreshing
     self._lastUpdated = lastUpdated
     self.progressDuration = progressDuration
