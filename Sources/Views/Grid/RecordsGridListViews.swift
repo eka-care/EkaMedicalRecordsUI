@@ -84,8 +84,8 @@ public struct RecordsGridListView: View {
       ) { (records: FetchedResults<Record>) in
           ScrollView {
             if records.isEmpty {
-              if /*let lastSourceRefreshedAt = lastSourceRefreshedAt ,*/ UIDevice.current.userInterfaceIdiom == .phone{
-                Text(formattedDate(Date()))
+              if let lastSourceRefreshedAt = lastSourceRefreshedAt , UIDevice.current.userInterfaceIdiom == .phone{
+                Text(formattedDate(lastSourceRefreshedAt))
                   .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
               }
               
@@ -109,17 +109,13 @@ public struct RecordsGridListView: View {
               .environment(\.managedObjectContext, viewContext)
               
                 HStack {
-                  if /*let lastSourceRefreshedAt = lastSourceRefreshedAt ,*/ UIDevice.current.userInterfaceIdiom == .phone{
+                  if let lastSourceRefreshedAt = lastSourceRefreshedAt , UIDevice.current.userInterfaceIdiom == .phone{
                     Text("Last updated:")
                       .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .grey600))
                     
-                    Text(formattedDate(Date()))
-                      .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
-                  } else {
-                    Text("Refresh")
+                    Text(formattedDate(lastSourceRefreshedAt))
                       .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
                   }
-                  
                   Spacer()
                 }
                 .padding(.leading , EkaSpacing.spacingM)
