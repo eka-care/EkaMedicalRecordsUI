@@ -107,18 +107,19 @@ public struct RecordsGridListView: View {
               )
               .padding([.leading, .vertical], EkaSpacing.spacingM)
               .environment(\.managedObjectContext, viewContext)
-              
+              if let lastSourceRefreshedAt = lastSourceRefreshedAt , UIDevice.current.userInterfaceIdiom == .phone{
                 HStack {
-                  if let lastSourceRefreshedAt = lastSourceRefreshedAt , UIDevice.current.userInterfaceIdiom == .phone{
-                    Text("Last updated:")
-                      .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .grey600))
-                    
-                    Text(formattedDate(lastSourceRefreshedAt))
-                      .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
-                  }
+                  Text("Last updated:")
+                    .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .grey600))
+                  
+                  Text(formattedDate(lastSourceRefreshedAt))
+                    .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
                   Spacer()
                 }
                 .padding(.leading , EkaSpacing.spacingM)
+                
+              }
+               
               // Grid
               LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                 ForEach(records, id: \.objectID) { item in
