@@ -582,7 +582,9 @@ extension RecordContainerView {
     }
     
     // Add timer to RunLoop with common mode to prevent pausing during scrolling
-    RunLoop.main.add(progressTimer!, forMode: .common)
+    if let timer = progressTimer {
+      RunLoop.main.add(timer, forMode: .common)
+    }
   }
   
   private func handleSearchFocusChange(_ oldValue: Bool, _ newValue: Bool) {
