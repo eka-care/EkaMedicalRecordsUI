@@ -201,13 +201,6 @@ public struct RecordContainerView: View {
   public var body: some View {
     VStack(spacing: 0) {
       // Progress view for iPhone only
-      if showProgress && !UIDevice.current.isIPad {
-        ProgressView(value: refreshProgress, total: 1.0)
-          .progressViewStyle(LinearProgressViewStyle())
-          .padding(2)
-          .transition(.opacity)
-      }
-      
       Group {
         if shouldUseTabView {
           compactLayout
@@ -316,6 +309,7 @@ public struct RecordContainerView: View {
     }
     .onDisappear {
       // Clean up timer to prevent memory leaks
+      showProgress = false
       progressTimer?.invalidate()
       progressTimer = nil
     }
@@ -331,6 +325,12 @@ extension RecordContainerView {
         .padding(.leading, 16)
         .padding(.trailing, 16)
         .padding(.bottom, 16)
+      if showProgress {
+        ProgressView(value: refreshProgress, total: 1.0)
+          .progressViewStyle(LinearProgressViewStyle())
+          .padding(2)
+          .transition(.opacity)
+      }
       contentView
     }
   }
@@ -478,7 +478,7 @@ extension RecordContainerView {
           }) {
             Image(systemName: "arrow.clockwise")
           }
-          .disabled(isForceRefreshing)
+          .disabled(showProgress)
         }
         
         if viewModel.pickerSelectedRecords.count > 0 {
@@ -560,7 +560,7 @@ extension RecordContainerView {
     let updateInterval: Double = 0.1 // Update every 100ms
     let increment = 1.0 / (totalDuration / updateInterval) // Progress increment per update
     
-    progressTimer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { timer in
+    progressTimer = Timer(timeInterval: updateInterval, repeats: true) { timer in
       withAnimation(.easeInOut(duration: updateInterval)) {
         refreshProgress = min(refreshProgress + increment, 1.0)
       }
@@ -580,6 +580,9 @@ extension RecordContainerView {
         }
       }
     }
+    
+    // Add timer to RunLoop with common mode to prevent pausing during scrolling
+    RunLoop.main.add(progressTimer!, forMode: .common)
   }
   
   private func handleSearchFocusChange(_ oldValue: Bool, _ newValue: Bool) {

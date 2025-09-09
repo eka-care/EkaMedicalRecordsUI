@@ -84,7 +84,7 @@ struct LastUpdatedView: View {
   
   private func startProgress() {
     progress = 0.0
-    progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+    progressTimer = Timer(timeInterval: 0.1, repeats: true) { _ in
       withAnimation(.linear(duration: 0.1)) {
         progress += 0.1 / progressDuration
         if progress >= 1.0 {
@@ -93,6 +93,11 @@ struct LastUpdatedView: View {
           isRefreshing = false
         }
       }
+    }
+    
+    // Add timer to RunLoop with common mode to prevent pausing during scrolling
+    if let timer = progressTimer {
+      RunLoop.main.add(timer, forMode: .common)
     }
   }
   
