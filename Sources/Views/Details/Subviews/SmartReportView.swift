@@ -158,7 +158,7 @@ extension SmartReportView {
       .frame(maxWidth: .infinity)
       
       // Copy Selected button (Blue style)
-      Button("Copy selected to Rx (\(selectedItemData.count))") {
+      Button("Copy to Rx (\(selectedItemData.count))") {
         handleCopySelectedTapped(message: "Copied to Rx Pad")
       }
       .textStyle(ekaFont: .subheadlineRegular, color: UIColor.white)

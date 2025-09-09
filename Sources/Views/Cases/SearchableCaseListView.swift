@@ -63,8 +63,15 @@ struct SearchableCaseListView: View {
                 description: Text("Create a new Encounter to add and organize your medical records")
               )
             } else {
-              ForEach(cases) { caseModel in
-                itemView(caseModel)
+              // Group cases by upload month
+              let groupedCases = groupCasesByMonth(Array(cases))
+              
+              ForEach(groupedCases.keys.sorted(by: >), id: \.self) { monthYear in
+                Section(header: Text(formatSectionHeader(monthYear))) {
+                  ForEach(groupedCases[monthYear] ?? []) { caseModel in
+                    itemView(caseModel)
+                  }
+                }
               }
             }
           }
@@ -182,6 +189,48 @@ extension SearchableCaseListView {
   
   func resetView() {
     caseSearchText = ""
+  }
+}
+
+
+extension SearchableCaseListView {
+  
+  // Helper function to group cases by month and year
+  private func groupCasesByMonth(_ cases: [CaseModel]) -> [Date: [CaseModel]] {
+    let calendar = Calendar.current
+    
+    let grouped = Dictionary(grouping: cases) { caseModel in
+      // Assuming CaseModel has a createdDate or uploadDate property
+      let date = caseModel.occuredAt ?? Date()
+      
+      // Get the start of the month for grouping
+      return calendar.dateInterval(of: .month, for: date)?.start ?? date
+    }
+    
+    // Sort cases within each month by date in descending order
+    return grouped.mapValues { cases in
+      cases.sorted { (case1, case2) in
+        let date1 = case1.occuredAt ?? Date()
+        let date2 = case2.occuredAt ?? Date()
+        return date1 > date2 // Descending order (newest first)
+      }
+    }
+  }
+  
+  // Helper function to format section headers
+  private func formatSectionHeader(_ date: Date) -> String {
+    let calendar = Calendar.current
+    let now = Date()
+    
+    // Check if it's the current month
+    if calendar.isDate(date, equalTo: now, toGranularity: .month) {
+      return "This Month"
+    }
+    
+    // Format as "Month Year" for other months
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM yyyy"
+    return formatter.string(from: date)
   }
 }
 

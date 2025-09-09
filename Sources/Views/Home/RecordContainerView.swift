@@ -169,6 +169,9 @@ public struct RecordContainerView: View {
   @StateObject private var networkMonitor = NetworkMonitor.shared
   @State private var lastSourceRefreshedAt: Date?
   @State private var isForceRefreshing = false
+  @State private var refreshProgress: Double = 0.0
+  @State private var showProgress = false
+  @State private var progressTimer: Timer?
   
   private var isCompact: Bool {
     horizontalSizeClass == .compact
@@ -196,11 +199,21 @@ public struct RecordContainerView: View {
   
   // MARK: - Body
   public var body: some View {
-    Group {
-      if shouldUseTabView {
-        compactLayout
-      } else {
-        regularLayout
+    VStack(spacing: 0) {
+      // Progress view for iPhone only
+      if showProgress && !UIDevice.current.isIPad {
+        ProgressView(value: refreshProgress, total: 1.0)
+          .progressViewStyle(LinearProgressViewStyle())
+          .padding(2)
+          .transition(.opacity)
+      }
+      
+      Group {
+        if shouldUseTabView {
+          compactLayout
+        } else {
+          regularLayout
+        }
       }
     }
     .navigationBarTitleDisplayMode(.inline)
@@ -300,6 +313,11 @@ public struct RecordContainerView: View {
       recordsRepo.syncUnsyncedCases { _ in
         recordsRepo.syncUnuploadedRecords{ _ in }
       }
+    }
+    .onDisappear {
+      // Clean up timer to prevent memory leaks
+      progressTimer?.invalidate()
+      progressTimer = nil
     }
   }
 }
@@ -452,11 +470,23 @@ extension RecordContainerView {
     }
     
     ToolbarItem(placement: .topBarTrailing) {
-      if viewModel.pickerSelectedRecords.count > 0 {
-        Button("Done") {
-          handleDoneButtonPressed()
+      HStack {
+        // Refresh button for iPhone only
+        if !UIDevice.current.isIPad {
+          Button(action: {
+            startRefreshWithProgress()
+          }) {
+            Image(systemName: "arrow.clockwise")
+          }
+          .disabled(isForceRefreshing)
         }
-        .fontWeight(.semibold)
+        
+        if viewModel.pickerSelectedRecords.count > 0 {
+          Button("Done") {
+            handleDoneButtonPressed()
+          }
+          .fontWeight(.semibold)
+        }
       }
     }
   }
@@ -514,6 +544,44 @@ extension RecordContainerView {
 
 // MARK: - Event Handlers
 extension RecordContainerView {
+  private func startRefreshWithProgress() {
+    // Start the refresh process
+    isForceRefreshing = true
+    
+    // Reset and show progress
+    refreshProgress = 0.0
+    showProgress = true
+    
+    // Cancel any existing timer
+    progressTimer?.invalidate()
+    
+    // Create incremental progress updates
+    let totalDuration: Double = 15.0 // 15 seconds
+    let updateInterval: Double = 0.1 // Update every 100ms
+    let increment = 1.0 / (totalDuration / updateInterval) // Progress increment per update
+    
+    progressTimer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { timer in
+      withAnimation(.easeInOut(duration: updateInterval)) {
+        refreshProgress = min(refreshProgress + increment, 1.0)
+      }
+      
+      // Check if we've reached completion
+      if refreshProgress >= 1.0 {
+        timer.invalidate()
+        refreshProgress = 1.0
+        
+        // Hide progress after a brief delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+          withAnimation(.easeOut(duration: 0.3)) {
+            showProgress = false
+            refreshProgress = 0.0
+          }
+          isForceRefreshing = false
+        }
+      }
+    }
+  }
+  
   private func handleSearchFocusChange(_ oldValue: Bool, _ newValue: Bool) {
     if isRegular {
       viewModel.columnVisibility = newValue ? .detailOnly : .doubleColumn
