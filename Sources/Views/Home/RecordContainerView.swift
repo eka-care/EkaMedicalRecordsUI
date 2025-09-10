@@ -22,7 +22,7 @@ public struct RecordPresentationState: Equatable {
     switch mode {
     case .dashboard:
       return ""
-    case .displayAll:
+    case .displayAll, .copyVitals:
       return InitConfiguration.shared.recordsTitle ?? "All"
     case .picker(let maxCount):
       let baseTitle = InitConfiguration.shared.recordsTitle ?? "Select"
@@ -36,6 +36,13 @@ public struct RecordPresentationState: Equatable {
 
   public var isPicker: Bool {
     if case .picker = mode {
+      return true
+    }
+    return false
+  }
+  
+  public var isCopyVitals: Bool {
+    if case .copyVitals = mode {
       return true
     }
     return false
@@ -69,12 +76,10 @@ public struct RecordPresentationState: Equatable {
 
 public struct RecordFilter: Equatable {
   public var caseID: String?
-  public var userID: String?
   public var tags: [String]?
 
-  public init(caseID: String? = nil, userID: String? = nil, tags: [String]? = nil) {
+  public init(caseID: String? = nil,tags: [String]? = nil) {
     self.caseID = caseID
-    self.userID = userID
     self.tags = tags
   }
 }
@@ -82,6 +87,7 @@ public struct RecordFilter: Equatable {
 public enum RecordMode: Equatable {
   case dashboard
   case displayAll
+  case copyVitals
   case picker(maxCount: Int)
 }
 
@@ -94,6 +100,7 @@ extension RecordPresentationState {
 }
 
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
+public typealias CopyVitalsCallback = (([Verified]) -> Void)?
 
 enum RecordTab: CaseIterable, Hashable {
   case records
@@ -157,10 +164,14 @@ public struct RecordContainerView: View {
   // MARK: - Properties
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
+  private let onCopyVitals: CopyVitalsCallback
   @State var recordPresentationState: RecordPresentationState
   @StateObject private var networkMonitor = NetworkMonitor.shared
   @State private var lastSourceRefreshedAt: Date?
   @State private var isForceRefreshing = false
+  @State private var refreshProgress: Double = 0.0
+  @State private var showProgress = false
+  @State private var progressTimer: Timer?
   
   private var isCompact: Bool {
     horizontalSizeClass == .compact
@@ -177,20 +188,25 @@ public struct RecordContainerView: View {
   // MARK: - Initializer
   public init(
     didSelectPickerDataObjects: RecordItemsCallback = nil,
+    onCopyVitals: CopyVitalsCallback = nil,
     recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
+    self.onCopyVitals = onCopyVitals
     self.recordPresentationState = recordPresentationState
     EkaUI.registerFonts()
   }
   
   // MARK: - Body
   public var body: some View {
-    Group {
-      if shouldUseTabView {
-        compactLayout
-      } else {
-        regularLayout
+    VStack(spacing: 0) {
+      // Progress view for iPhone only
+      Group {
+        if shouldUseTabView {
+          compactLayout
+        } else {
+          regularLayout
+        }
       }
     }
     .navigationBarTitleDisplayMode(.inline)
@@ -226,7 +242,7 @@ public struct RecordContainerView: View {
     }) { modal in
       if case let .record(record) = modal {
         NavigationStack{
-          RecordView(record: record)
+          RecordView(record: record, recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
         }
       }
       if case let .newCase(name) = modal {
@@ -291,6 +307,12 @@ public struct RecordContainerView: View {
         recordsRepo.syncUnuploadedRecords{ _ in }
       }
     }
+    .onDisappear {
+      // Clean up timer to prevent memory leaks
+      showProgress = false
+      progressTimer?.invalidate()
+      progressTimer = nil
+    }
   }
 }
 
@@ -303,6 +325,12 @@ extension RecordContainerView {
         .padding(.leading, 16)
         .padding(.trailing, 16)
         .padding(.bottom, 16)
+      if showProgress {
+        ProgressView(value: refreshProgress, total: 1.0)
+          .progressViewStyle(LinearProgressViewStyle())
+          .padding(2)
+          .transition(.opacity)
+      }
       contentView
     }
   }
@@ -442,11 +470,23 @@ extension RecordContainerView {
     }
     
     ToolbarItem(placement: .topBarTrailing) {
-      if viewModel.pickerSelectedRecords.count > 0 {
-        Button("Done") {
-          handleDoneButtonPressed()
+      HStack {
+        // Refresh button for iPhone only
+        if !UIDevice.current.isIPad {
+          Button(action: {
+            startRefreshWithProgress()
+          }) {
+            Image(systemName: "arrow.clockwise")
+          }
+          .disabled(showProgress)
         }
-        .fontWeight(.semibold)
+        
+        if viewModel.pickerSelectedRecords.count > 0 {
+          Button("Done") {
+            handleDoneButtonPressed()
+          }
+          .fontWeight(.semibold)
+        }
       }
     }
   }
@@ -498,12 +538,55 @@ extension RecordContainerView {
   
   @ViewBuilder
   private func recordDestination(for record: Record) -> some View {
-    RecordView(record: record)
+    RecordView(record: record,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
   }
 }
 
 // MARK: - Event Handlers
 extension RecordContainerView {
+  private func startRefreshWithProgress() {
+    // Start the refresh process
+    isForceRefreshing = true
+    
+    // Reset and show progress
+    refreshProgress = 0.0
+    showProgress = true
+    
+    // Cancel any existing timer
+    progressTimer?.invalidate()
+    
+    // Create incremental progress updates
+    let totalDuration: Double = 10.0 // 10 seconds
+    let updateInterval: Double = 0.1 // Update every 100ms
+    let increment = 1.0 / (totalDuration / updateInterval) // Progress increment per update
+    
+    progressTimer = Timer(timeInterval: updateInterval, repeats: true) { timer in
+      withAnimation(.easeInOut(duration: updateInterval)) {
+        refreshProgress = min(refreshProgress + increment, 1.0)
+      }
+      
+      // Check if we've reached completion
+      if refreshProgress >= 1.0 {
+        timer.invalidate()
+        refreshProgress = 1.0
+        
+        // Hide progress after a brief delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+          withAnimation(.easeOut(duration: 0.3)) {
+            showProgress = false
+            refreshProgress = 0.0
+          }
+          isForceRefreshing = false
+        }
+      }
+    }
+    
+    // Add timer to RunLoop with common mode to prevent pausing during scrolling
+    if let timer = progressTimer {
+      RunLoop.main.add(timer, forMode: .common)
+    }
+  }
+  
   private func handleSearchFocusChange(_ oldValue: Bool, _ newValue: Bool) {
     if isRegular {
       viewModel.columnVisibility = newValue ? .detailOnly : .doubleColumn

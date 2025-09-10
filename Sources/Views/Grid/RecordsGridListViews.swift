@@ -52,6 +52,7 @@ public struct RecordsGridListView: View {
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
   @Binding private var selectedRecord: Record?
+  @Binding private var lastSourceRefreshedAt: Date?
   // MARK: - Init
   @State private var currentCaseID: String?
   @State private var isSyncing = false
@@ -61,12 +62,14 @@ public struct RecordsGridListView: View {
     title: String,
     pickerSelectedRecords: Binding<[Record]> = .constant([]),
     selectedRecord: Binding<Record?> = .constant(nil),
+    lastSourceRefreshedAt: Binding<Date?> = .constant(nil),
     ) {
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self._pickerSelectedRecords = pickerSelectedRecords
     self.title = title
     self._selectedRecord = selectedRecord
+    self._lastSourceRefreshedAt = lastSourceRefreshedAt
     self.currentCaseID = recordPresentationState.associatedCaseID
   }
   // MARK: - View
@@ -81,6 +84,11 @@ public struct RecordsGridListView: View {
       ) { (records: FetchedResults<Record>) in
           ScrollView {
             if records.isEmpty {
+              if let lastSourceRefreshedAt = lastSourceRefreshedAt , UIDevice.current.userInterfaceIdiom == .phone{
+                Text(formattedDate(lastSourceRefreshedAt))
+                  .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
+              }
+              
               VStack(spacing: 16) {
                 Spacer(minLength: 100)
                 ContentUnavailableView(
@@ -99,11 +107,24 @@ public struct RecordsGridListView: View {
               )
               .padding([.leading, .vertical], EkaSpacing.spacingM)
               .environment(\.managedObjectContext, viewContext)
+              if let lastSourceRefreshedAt = lastSourceRefreshedAt , UIDevice.current.userInterfaceIdiom == .phone{
+                HStack {
+                  Text("Last updated:")
+                    .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .grey600))
+                  
+                  Text(formattedDate(lastSourceRefreshedAt))
+                    .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
+                  Spacer()
+                }
+                .padding(.leading , EkaSpacing.spacingM)
+                
+              }
+               
               // Grid
               LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                 ForEach(records, id: \.objectID) { item in
                   switch recordPresentationState.mode {
-                  case .dashboard, .displayAll:
+                  case .dashboard, .displayAll, .copyVitals:
                     if UIDevice.current.isIPad {
                       itemView(item: item)
                         .frame(
@@ -310,6 +331,25 @@ extension RecordsGridListView {
       return [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: order == .oldToNew)]
     case .documentDate(let order):
       return [NSSortDescriptor(keyPath: \Record.documentDate, ascending: order == .oldToNew)]
+    }
+  }
+  private func formattedDate(_ date: Date?) -> String {
+    guard let date = date else { return "" }
+    
+    let calendar = Calendar.current
+    let timeFormatter = DateFormatter()
+    timeFormatter.timeStyle = .short
+    
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateStyle = .medium
+    dateFormatter.timeStyle = .short
+    
+    if calendar.isDateInToday(date) {
+      return "Today, \(timeFormatter.string(from: date))"
+    } else if calendar.isDateInYesterday(date) {
+      return "Yesterday, \(timeFormatter.string(from: date))"
+    } else {
+      return dateFormatter.string(from: date)
     }
   }
 }

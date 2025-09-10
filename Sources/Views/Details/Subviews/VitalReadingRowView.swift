@@ -39,12 +39,30 @@ struct VitalReadingRowView: View {
   // MARK: - Properties
   
   let itemData: Verified
+  @Binding var selectedItemData: Set<Verified>
+  
+  // MARK: - Computed Properties
+  let recordPresentationState: RecordPresentationState
+  private var isSelected: Bool {
+    return selectedItemData.contains(itemData)
+  }
+  
+  private var isSelectable: Bool {
+    if let resultID = itemData.resultID,
+       let interpretationType = LabParameterResultType(rawValue: resultID) {
+      return interpretationType != .undetermined
+    }
+    return true
+  }
   
   // MARK: - Body
   
   var body: some View {
     VStack {
       HStack {
+        if recordPresentationState.isCopyVitals {
+          checkboxView()
+        }
         leftStackView()
         Spacer()
         rightStackView()
@@ -55,10 +73,39 @@ struct VitalReadingRowView: View {
       Divider()
     }
     .background(Color.white)
+    .onTapGesture {
+      if isSelectable {
+        toggleSelection()
+      }
+    }
   }
 }
 
 extension VitalReadingRowView {
+  private func checkboxView() -> some View {
+    Button(action: {
+      if isSelectable {
+        toggleSelection()
+      }
+    }) {
+      Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+        .foregroundColor(isSelected ? Color.blue : (isSelectable ? Color.gray : Color.gray.opacity(0.3)))
+        .font(.title2)
+    }
+    .buttonStyle(PlainButtonStyle())
+    .disabled(!isSelectable)
+  }
+  
+  private func toggleSelection() {
+    guard isSelectable else { return }
+    
+    if selectedItemData.contains(itemData) {
+      selectedItemData.remove(itemData)
+    } else {
+      selectedItemData.insert(itemData)
+    }
+  }
+  
   private func leftStackView() -> some View {
     VStack(alignment: .leading, spacing: EkaSpacing.spacingXxxs) {
       /// Vital Name
@@ -105,5 +152,5 @@ extension VitalReadingRowView {
 // TODO: - To be added later
 
 //#Preview {
-//  VitalReadingRowView(itemData: <#Verified#>)
+// VitalReadingRowView(itemData: <#Verified#>)
 //}
