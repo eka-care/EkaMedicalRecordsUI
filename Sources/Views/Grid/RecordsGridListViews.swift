@@ -325,13 +325,27 @@ extension RecordsGridListView {
   }
   
   func generateSortDescriptors(for sortType: RecordSortOptions?) -> [NSSortDescriptor] {
-    guard let sortType else { return [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false)] }
-    switch sortType {
-    case .dateOfUpload(let order):
-      return [NSSortDescriptor(keyPath: \Record.uploadDate, ascending: order == .oldToNew)]
-    case .documentDate(let order):
-      return [NSSortDescriptor(keyPath: \Record.documentDate, ascending: order == .oldToNew)]
-    }
+      let objectIDSort = NSSortDescriptor(keyPath: \Record.objectID, ascending: true)
+
+      guard let sortType else {
+          return [
+              NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false),
+              objectIDSort
+          ]
+      }
+
+      switch sortType {
+      case .dateOfUpload(let order):
+          return [
+              NSSortDescriptor(keyPath: \Record.uploadDate, ascending: order == .oldToNew),
+              objectIDSort
+          ]
+      case .documentDate(let order):
+          return [
+              NSSortDescriptor(keyPath: \Record.documentDate, ascending: order == .oldToNew),
+              objectIDSort
+          ]
+      }
   }
   private func formattedDate(_ date: Date?) -> String {
     guard let date = date else { return "" }
