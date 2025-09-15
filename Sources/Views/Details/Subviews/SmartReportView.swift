@@ -85,12 +85,12 @@ struct SmartReportView: View {
     .overlay(
       // Toast overlay
       VStack {
+        Spacer()
         if showToast {
           ToastView(toastType: .active(sfSymbolString: "doc.on.doc"), toastDescription: toastMessage)
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .animation(.easeInOut(duration: 0.3), value: showToast)
         }
-        Spacer()
       }
       .padding(.top, 50)
     )
