@@ -93,6 +93,12 @@ struct RecordUploadMenuView: View {
       
       print("Selected URL: \(url)")
       
+      // Check if we already have PDF data to prevent duplicate processing
+      if selectedPDFData != nil {
+        print("⚠️ PDF data already selected, ignoring duplicate selection")
+        return
+      }
+      
       // Start accessing security scoped resource
       guard url.startAccessingSecurityScopedResource() else {
         print("❌ Failed to access security scoped resource")
