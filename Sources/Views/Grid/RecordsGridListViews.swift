@@ -210,15 +210,21 @@ public struct RecordsGridListView: View {
           data: [newValue],
           contentType: .pdf
         )
+        // Reset selectedPDFData to prevent duplicate uploads
+        selectedPDFData = nil
       }
     }
     /// On selection of images add a record to the storage
     .onChange(of: uploadedImages) { _,newValue in
-      let data = GalleryHelper.convertImagesToData(images: newValue)
-      addRecord(
-        data: data,
-        contentType: .image
-      )
+      if !newValue.isEmpty {
+        let data = GalleryHelper.convertImagesToData(images: newValue)
+        addRecord(
+          data: data,
+          contentType: .image
+        )
+        // Reset uploadedImages to prevent duplicate uploads
+        uploadedImages = []
+      }
     }
   }
 }
