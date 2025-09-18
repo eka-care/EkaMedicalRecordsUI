@@ -469,25 +469,35 @@ extension RecordContainerView {
         .font(.headline)
     }
     
-    ToolbarItem(placement: .topBarTrailing) {
-      HStack {
-        // Refresh button for iPhone only
-        if !UIDevice.current.isIPad {
-          Button(action: {
-            startRefreshWithProgress()
-          }) {
-            Image(systemName: "arrow.clockwise")
-          }
-          .disabled(showProgress)
-        }
-        
-        if viewModel.pickerSelectedRecords.count > 0 {
-          Button("Done") {
-            handleDoneButtonPressed()
-          }
-          .fontWeight(.semibold)
+    
+    if !UIDevice.current.isIPad || !viewModel.pickerSelectedRecords.isEmpty {
+      ToolbarItem(placement: .topBarTrailing) {
+        HStack {
+          // Refresh button (only on iPhone)
+          refreshButton
+
+          // Done button (only when records are selected)
+          doneButton
         }
       }
+    }
+  }
+  
+  @ViewBuilder
+  private var refreshButton: some View {
+    if !UIDevice.current.isIPad {
+      Button(action: startRefreshWithProgress) {
+        Image(systemName: "arrow.clockwise")
+      }
+      .disabled(showProgress)
+    }
+  }
+
+  @ViewBuilder
+  private var doneButton: some View {
+    if !viewModel.pickerSelectedRecords.isEmpty {
+      Button("Done", action: handleDoneButtonPressed)
+        .fontWeight(.semibold)
     }
   }
   
