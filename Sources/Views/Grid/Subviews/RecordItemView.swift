@@ -32,6 +32,7 @@ struct RecordItemView: View {
   private var onTapDelete: (Record) -> Void
   private var onTapRetry: (Record) -> Void
   private var onTapDelinkCCase: (Record, String) -> Void
+  private var onTapItem: (Record) -> Void
   @State private var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
   // MARK: - Init
@@ -43,7 +44,8 @@ struct RecordItemView: View {
     onTapEdit: @escaping (Record) -> Void,
     onTapDelete: @escaping (Record) -> Void,
     onTapRetry: @escaping (Record) -> Void,
-    onTapDelinkCCase: @escaping (Record, String) -> Void
+    onTapDelinkCCase: @escaping (Record, String) -> Void,
+    onTapItem: @escaping(Record) -> Void
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -53,6 +55,7 @@ struct RecordItemView: View {
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
     self.onTapDelinkCCase = onTapDelinkCCase
+    self.onTapItem = onTapItem
   }
   // MARK: - Body
   var body: some View {
@@ -135,9 +138,13 @@ struct RecordItemView: View {
         Text("Delete")
       }
     }
-    .simultaneousGesture(TapGesture().onEnded {
-      onTapRecord()
-    })
+    .overlay(
+      // Add a tap target only in picker mode so it doesn't interfere with NavigationLink on iPhone
+      Color.clear
+        .contentShape(Rectangle())
+        .onTapGesture { updateItemDataOnPickerSelection() }
+        .allowsHitTesting(recordPresentationState.isPicker)
+    )
     .onAppear {
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
@@ -365,7 +372,9 @@ extension RecordItemView {
   /// On tap of document we open document viewer
   /// Note: - This is not being used. We use navigation link.
   private func onTapDocument() {
-    
+    if let item = itemData.record {
+      onTapItem(item)
+    }
   }
   
   /// Update item data on picker selection
@@ -408,6 +417,7 @@ extension RecordItemView {
     onTapEdit: {_ in},
     onTapDelete: {_ in},
     onTapRetry: {_ in},
-    onTapDelinkCCase: {_, _ in}
+    onTapDelinkCCase: {_, _ in},
+    onTapItem: {_ in}
   )
 }

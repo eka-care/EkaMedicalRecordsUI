@@ -416,7 +416,7 @@ extension RecordContainerView {
         selectedRecord: $viewModel.selectedRecord
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
-      .navigationDestination(for: Record.self, destination: recordDestination)
+      
     }
   }
   

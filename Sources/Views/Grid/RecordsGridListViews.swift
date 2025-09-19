@@ -243,7 +243,8 @@ extension RecordsGridListView {
       onTapEdit: editItem(record:),
       onTapDelete: onTapDelete(record:),
       onTapRetry: onTapRetry(record:),
-      onTapDelinkCCase: onTapDelinkCCase(record: delinkCaseId:)
+      onTapDelinkCCase: onTapDelinkCase(record: delinkCaseId:),
+      onTapItem: onTapRecord(record:)
     )
   }
 }
@@ -303,10 +304,14 @@ extension RecordsGridListView {
     recordSelectedForEdit = record
     isEditBottomSheetPresented = true
   }
-  /// Used to delink case an item
-  private func onTapDelinkCCase(record: Record, delinkCaseId: String) {
+  /// Used to delink case from an item
+  private func onTapDelinkCase(record: Record, delinkCaseId: String) {
     recordsRepo.delinkCaseFromRecord(record: record, caseId: delinkCaseId) { _ in
     }
+  }
+  
+  private func onTapRecord(record: Record) {
+    selectedRecord = record
   }
 }
 
@@ -381,3 +386,4 @@ extension RecordsGridListView {
     pickerSelectedRecords: .constant([])
   )
 }
+
