@@ -9,7 +9,7 @@ import EkaUI
 import SwiftUI
 import EkaMedicalRecordsCore
 
-enum ChipType: Int, CaseIterable {
+enum ChipType: String, CaseIterable {
   case all
   case outOfRange
 

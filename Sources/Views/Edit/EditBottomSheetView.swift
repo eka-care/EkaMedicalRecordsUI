@@ -6,7 +6,7 @@ struct EditBottomSheetView: View {
   
   // MARK: - Properties
   
-  @State private var selectedDocumentType: RecordDocumentType?
+  @State private var selectedDocumentType: MRDocumentType?
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
   @Binding var isEditBottomSheetPresented: Bool
@@ -129,8 +129,8 @@ extension EditBottomSheetView {
         .foregroundColor(.red) // Red asterisk
       Spacer()
       Picker("", selection: $selectedDocumentType) {
-        Text("Select").tag(nil as RecordDocumentType?) // Empty selection
-        ForEach(RecordDocumentType.allCases.filter { $0 != .typeAll}, id: \.self) { type in
+        Text("Select").tag(nil as MRDocumentType?) // Empty selection
+        ForEach(documentTypesList.filter { $0 != MRDocumentType.typeAll}, id: \.self) { type in
           Text(type.filterName)
             .tag(type)
             .font(.footnote)
@@ -192,7 +192,7 @@ extension EditBottomSheetView {
       recordID: record.objectID,
       documentID: documentID,
       documentDate: documentDate,
-      documentType: selectedDocumentType?.intValue,
+      documentType: selectedDocumentType?.id ?? "",
       isEdited: true,
       caseModels: selectedCaseModel.map { [$0] } ?? []
     )
@@ -202,13 +202,13 @@ extension EditBottomSheetView {
   
   /// Setup document type of document if available
   private func setupSelectedDocumentType() {
-    if let documentType = record?.documentType,
-       let documentTypeFilter = RecordDocumentType.from(intValue: Int(documentType)) {
-      if documentTypeFilter != .typeAll { /// dont save unspecified
-        selectedDocumentType = documentTypeFilter
+    if let documentType = record?.documentType {
+      // Find the MRDocumentType that matches the record's documentType
+      selectedDocumentType = documentTypesList.first { mrType in
+        mrType.id == String(documentType) && mrType != MRDocumentType.typeAll
       }
     } else {
-      selectedDocumentType = nil // Default to "Select"
+      selectedDocumentType = nil
     }
   }
   

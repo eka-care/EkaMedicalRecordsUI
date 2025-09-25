@@ -32,7 +32,7 @@ struct RecordSortMenuView: View {
       }
     } label: {
       ChipView(
-        selectionId: 0,
+        selectionId: "",
         title: getChipTitle(),
         image: UIImage(systemName: "chevron.down"),
         imageConfig: ImageConfig(

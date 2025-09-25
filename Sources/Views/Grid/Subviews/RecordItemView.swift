@@ -157,8 +157,10 @@ extension RecordItemView {
       VStack(alignment: .leading) {
         /// Document type
         if let record = itemData.record,
-           let recordType = RecordDocumentType.from(intValue: Int(record.documentType)) {
-          Text("\(recordType.filterName)")
+           let recordType = record.documentType  {
+          Text(documentTypesList.first(where: { data in
+            data.id == recordType
+          })?.filterName ?? "Unknown")
             .textStyle(
               ekaFont: .calloutBold,
               color: .black

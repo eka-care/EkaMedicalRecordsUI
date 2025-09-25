@@ -1,0 +1,99 @@
+//
+//  RecordDocTypeMenuView.swift
+//  EkaMedicalRecordsUI
+//
+//  Created by Assistant on 25/09/25.
+//
+
+import SwiftUI
+import EkaMedicalRecordsCore
+
+struct RecordDocTypeMenuView: View {
+  @Binding var selectedDocType: String?
+  @Binding var caseId: String?
+
+  var body: some View {
+    HStack(spacing: 0) {
+      Menu {
+        // Dynamic list from getDocumentTypeIds()
+        ForEach(getDocumentTypeIds(), id: \.self) { typeId in
+          if let type = documentTypesList.first(where: { $0.id == typeId }) {
+            Button {
+              selectedDocType = type.id
+            } label: {
+              HStack {
+                Text(type.filterName)
+                  .textStyle(ekaFont: .bodyRegular, color: .black)
+                if selectedDocType == type.id {
+                  checkMarkView()
+                }
+              }
+            }
+          }
+        }
+      } label: {
+        ChipView(
+          selectionId: "",
+          title: getChipTitle(),
+          image: selectedDocType == nil ? UIImage(systemName: "chevron.down") : nil,
+          imageConfig: selectedDocType == nil ? ImageConfig(
+            width: 12,
+            height: 12,
+            color: UIColor(resource: .neutrals500)
+          ) : nil,
+          isSelected: selectedDocType != nil
+        ) { _ in }
+      }
+      
+      // Cross button - only show when something is selected
+      if selectedDocType != nil {
+        Button {
+          selectedDocType = nil
+        } label: {
+          Image(systemName: "xmark")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 12, height: 12)
+            .foregroundColor(Color(uiColor: UIColor(resource: .neutrals0)))
+        }
+        .padding(.leading, 8)
+        .padding(.trailing, 12)
+        .padding(.vertical, 8)
+        .background(Color(uiColor: UIColor(resource: .primary500)))
+        .cornerRadiusModifier(8, corners: [.topRight, .bottomRight])
+      }
+    }
+    .background(
+      RoundedRectangle(cornerRadius: 8)
+        .fill(selectedDocType != nil ? Color(uiColor: UIColor(resource: .primary500)) : Color.white)
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(Color.gray.opacity(0.5), lineWidth: selectedDocType != nil ? 0 : 1)
+        )
+    )
+  }
+}
+
+// MARK: - Subview
+extension RecordDocTypeMenuView {
+  private func checkMarkView() -> some View {
+    Image(systemName: "checkmark")
+      .resizable()
+      .scaledToFit()
+      .frame(width: 12, height: 12, alignment: .center)
+  }
+}
+
+extension RecordDocTypeMenuView {
+  func getChipTitle() -> String {
+    if let selectedDocType,
+       let displayName = documentTypesList.first(where: { $0.id == selectedDocType })?.filterName {
+      return displayName
+    }
+    return "File Type"
+  }
+  
+  func getDocumentTypeIds() -> [String] {
+    RecordsRepo.shared.getDocumentTypesList(caseID: caseId)
+  }
+}

@@ -74,6 +74,9 @@ public struct RecordPresentationState: Equatable {
   }
 }
 
+/// document Type list
+public var documentTypesList: [MRDocumentType] = []
+
 public struct RecordFilter: Equatable {
   public var caseID: String?
   public var tags: [String]?
@@ -187,13 +190,15 @@ public struct RecordContainerView: View {
   
   // MARK: - Initializer
   public init(
+    recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll),
+    documentTypes: [MRDocumentType],
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     onCopyVitals: CopyVitalsCallback = nil,
-    recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
     self.recordPresentationState = recordPresentationState
+    documentTypesList = documentTypes
     EkaUI.registerFonts()
   }
   

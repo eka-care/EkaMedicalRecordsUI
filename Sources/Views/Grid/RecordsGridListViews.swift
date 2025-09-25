@@ -45,9 +45,11 @@ public struct RecordsGridListView: View {
   /// Item to be deleted
   @State private var itemToBeDeleted: Record?
   /// Selected filter
-  @State private var selectedFilter: RecordDocumentType = .typeAll
+  @State private var selectedFilter: [String] = []
   /// Selected sort type
   @State private var selectedSortFilter: RecordSortOptions?
+  /// Selected document type (single select via menu)
+  @State private var selectedDocType: String?
   @StateObject private var networkMonitor = NetworkMonitor.shared
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
@@ -78,6 +80,7 @@ public struct RecordsGridListView: View {
       QueryResponderView(
         predicate: generatePredicate(
           for: selectedFilter,
+          type: selectedDocType,
           caseID: recordPresentationState.associatedCaseID
         ),
         sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
@@ -103,7 +106,8 @@ public struct RecordsGridListView: View {
               RecordsFilterListView(
                 selectedChip: $selectedFilter,
                 selectedSortFilter: $selectedSortFilter,
-                caseID: $currentCaseID
+                caseID: $currentCaseID,
+                selectedDocType: $selectedDocType
               )
               .padding([.leading, .vertical], EkaSpacing.spacingM)
               .environment(\.managedObjectContext, viewContext)
@@ -179,7 +183,8 @@ public struct RecordsGridListView: View {
     }
     .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
-      selectedFilter = .typeAll
+      selectedFilter = []
+      selectedDocType = nil
     }
     .background(Color(.neutrals50))
     // alert box
@@ -194,7 +199,7 @@ public struct RecordsGridListView: View {
       Text("Are you sure you want to delete this record?")
     }
     .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
-      refreshRecords()
+//      refreshRecords()
     }) {
       EditBottomSheetView(
         isEditBottomSheetPresented: $isEditBottomSheetPresented,
@@ -313,16 +318,25 @@ extension RecordsGridListView {
 // TODO: - Arya - to be moved to a common place
 extension RecordsGridListView {
   func generatePredicate(
-    for filter: RecordDocumentType,
+    for filter: [String],
+    type: String? = nil,
     caseID: String? = nil
   ) -> NSPredicate {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
     let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
     var predicates: [NSPredicate] = [oidPredicate]
-    if filter != .typeAll {
-      let typePredicate = PredicateHelper.equals("documentType", value: Int64(filter.intValue))
+    
+    if let type {
+      let typePredicate = NSPredicate(format: "documentType == %@", type)
       predicates.append(typePredicate)
     }
+    
+    
+    if !filter.isEmpty {
+        let tagPredicate = NSPredicate(format: "ANY toTags.name IN %@", filter)
+        predicates.append(tagPredicate)
+    }
+    
     if let caseID = caseID {
       let casePredicate = NSPredicate(format: "ANY toCaseModel.caseID == %@", caseID)
       predicates.append(casePredicate)
