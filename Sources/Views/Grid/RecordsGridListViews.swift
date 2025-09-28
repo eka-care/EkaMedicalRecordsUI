@@ -181,12 +181,6 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
-//      refreshRecords()
-    }
-    .onReceive(networkMonitor.$isOnline) { isOnline in
-//      if isOnline {
-//        syncRecords()
-//      }
     }
     .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
@@ -206,7 +200,6 @@ public struct RecordsGridListView: View {
       Text("Are you sure you want to delete this record?")
     }
     .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
-//      refreshRecords()
       selectedDocType = nil
     }) {
       editBottomSheetContent()
@@ -276,13 +269,6 @@ extension RecordsGridListView {
       )
       isEditBottomSheetPresented = true /// Show edit bottom sheet
       documentDetailsSheetMode = .add
-//      DispatchQueue.main.async {
-//        recordsRepo.addSingleRecord(record: recordModel) { recordAddedInDB in
-//          recordSelectedForEdit = recordAddedInDB
-//          isEditBottomSheetPresented = true /// Show edit bottom sheet
-//          documentDetailsSheetMode = .add
-//        }
-//      }
     }
   }
   /// To sync unuploaded records
@@ -358,7 +344,6 @@ extension RecordsGridListView {
       recordPresentationState: recordPresentationState,
       initialData: initialData,
       onSave: { result in
-        // Handle the save result here
         handleEditFormSave(result)
       }
     )
