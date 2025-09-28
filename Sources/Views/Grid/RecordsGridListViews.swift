@@ -64,6 +64,7 @@ public struct RecordsGridListView: View {
   
   @State var documentDetailsSheetMode: SheetMode?
   
+ 
   public init(
     recordPresentationState: RecordPresentationState,
     didSelectPickerDataObjects: RecordItemsCallback = nil,
@@ -208,19 +209,7 @@ public struct RecordsGridListView: View {
 //      refreshRecords()
       selectedDocType = nil
     }) {
-      let cases = documentDetailsSheetMode == .add ? nil : (recordSelectedForEdit?.toCaseModel as? Set<CaseModel>)?.first
-      let selectedDocType = documentDetailsSheetMode == .add ? nil : recordSelectedForEdit?.documentType.flatMap { documentType in
-        documentTypesList.first(where: { $0.id == String(documentType) })
-      }
-      let documentDate = documentDetailsSheetMode == .add ? nil : recordSelectedForEdit?.documentDate
-      
-      EditBottomSheetView(isEditBottomSheetPresented: $isEditBottomSheetPresented,
-                          recordPresentationState: recordPresentationState,
-                          sheetMode: $documentDetailsSheetMode,
-                          selectedDocumentType: selectedDocType,
-                          documentDate: documentDate,
-                          caseModels: cases)
-      .presentationDragIndicator(.visible)
+      editBottomSheetContent()
     }
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { _,newValue in
@@ -285,6 +274,8 @@ extension RecordsGridListView {
         contentType: contentType,
         caseModels: cases
       )
+      isEditBottomSheetPresented = true /// Show edit bottom sheet
+      documentDetailsSheetMode = .add
 //      DispatchQueue.main.async {
 //        recordsRepo.addSingleRecord(record: recordModel) { recordAddedInDB in
 //          recordSelectedForEdit = recordAddedInDB
@@ -329,6 +320,90 @@ extension RecordsGridListView {
     recordsRepo.delinkCaseFromRecord(record: record, caseId: delinkCaseId) { _ in
     }
   }
+}
+
+extension RecordsGridListView {
+  // MARK: - Helper Methods
+  
+  private func getEditFormData() -> EditFormModel {
+    guard documentDetailsSheetMode != .add else {
+      return EditFormModel(
+        documentType: nil,
+        documentDate: nil,
+        cases: [],
+        sheetMode: documentDetailsSheetMode
+      )
+    }
+    
+    let selectedDocType = recordSelectedForEdit?.documentType.flatMap { documentType in
+      documentTypesList.first(where: { $0.id == String(documentType) })
+    }
+    let documentDate = recordSelectedForEdit?.documentDate
+    let cases = Array((recordSelectedForEdit?.toCaseModel as? Set<CaseModel>) ?? [])
+    
+    return EditFormModel(
+      documentType: selectedDocType,
+      documentDate: documentDate,
+      cases: cases,
+      sheetMode: documentDetailsSheetMode
+    )
+  }
+  
+  @ViewBuilder
+  private func editBottomSheetContent() -> some View {
+    let initialData = getEditFormData()
+    
+    EditBottomSheetView(
+      isEditBottomSheetPresented: $isEditBottomSheetPresented,
+      recordPresentationState: recordPresentationState,
+      initialData: initialData,
+      onSave: { result in
+        // Handle the save result here
+        handleEditFormSave(result)
+      }
+    )
+    .presentationDragIndicator(.visible)
+  }
+  
+  private func handleEditFormSave(_ result: EditFormModel) {
+    if result.sheetMode == .edit {
+      saveDocumentDetails(result)
+    } else {
+      uploadNewDocument(result)
+    }
+  }
+  
+  private func uploadNewDocument(_ editDetails: EditFormModel) {
+    
+    guard var recordToBeUpload, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate else {
+      debugPrint("Record Details not available")
+      return
+    }
+    recordToBeUpload.documentType = documentType
+    recordToBeUpload.caseModels = editDetails.cases
+    recordToBeUpload.documentDate = documentDate
+    
+    DispatchQueue.main.async {
+      recordsRepo.addSingleRecord(record: recordToBeUpload) { recordAddedInDB in
+        recordSelectedForEdit = recordAddedInDB
+      }
+    }
+  }
+  
+  private func saveDocumentDetails(_ editDetails: EditFormModel) {
+    guard let recordSelectedForEdit , let documentID = recordSelectedForEdit.documentID, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate else {
+        debugPrint("Record being uploaded not found for edit")
+        return
+      }
+  
+      recordsRepo.updateRecord(
+        documentID: documentID,
+        documentDate: documentDate,
+        documentType: documentType,
+        isEdited: true,
+        caseModels: editDetails.cases
+      )
+    }
 }
 
 // TODO: - Arya - to be moved to a common place
@@ -411,3 +486,4 @@ extension RecordsGridListView {
     pickerSelectedRecords: .constant([])
   )
 }
+
