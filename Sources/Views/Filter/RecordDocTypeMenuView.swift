@@ -11,12 +11,14 @@ import EkaMedicalRecordsCore
 struct RecordDocTypeMenuView: View {
   @Binding var selectedDocType: String?
   @Binding var caseId: String?
+  @Environment(\.managedObjectContext) private var viewContext
+  @State private var documentTypeIds: [String] = []
 
   var body: some View {
     HStack(spacing: 0) {
       Menu {
-        // Dynamic list from getDocumentTypeIds()
-        ForEach(getDocumentTypeIds(), id: \.self) { typeId in
+        // Dynamic list from documentTypeIds state
+        ForEach(documentTypeIds, id: \.self) { typeId in
           if let type = documentTypesList.first(where: { $0.id == typeId }) {
             Button {
               selectedDocType = type.id
@@ -71,6 +73,18 @@ struct RecordDocTypeMenuView: View {
             .stroke(Color.gray.opacity(0.5), lineWidth: selectedDocType != nil ? 0 : 1)
         )
     )
+    .onReceive(NotificationCenter.default.publisher(
+      for: .NSManagedObjectContextObjectsDidChange,
+      object: viewContext
+    )) { _ in
+      refreshDocumentTypes()
+    }
+    .onAppear {
+      refreshDocumentTypes()
+    }
+    .onChange(of: caseId) { _, _ in
+      refreshDocumentTypes()
+    }
   }
 }
 
@@ -95,5 +109,11 @@ extension RecordDocTypeMenuView {
   
   func getDocumentTypeIds() -> [String] {
     RecordsRepo.shared.getDocumentTypesList(caseID: caseId)
+  }
+  
+  private func refreshDocumentTypes() {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+      documentTypeIds = getDocumentTypeIds()
+    }
   }
 }

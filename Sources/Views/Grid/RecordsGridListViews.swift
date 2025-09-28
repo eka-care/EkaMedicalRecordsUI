@@ -316,7 +316,7 @@ extension RecordsGridListView {
       return EditFormModel(
         documentType: nil,
         documentDate: nil,
-        cases: [],
+        cases: recordToBeUpload?.caseModels ?? [],
         sheetMode: documentDetailsSheetMode
       )
     }
@@ -369,8 +369,8 @@ extension RecordsGridListView {
     recordToBeUpload.documentDate = documentDate
     
     DispatchQueue.main.async {
-      recordsRepo.addSingleRecord(record: recordToBeUpload) { recordAddedInDB in
-        recordSelectedForEdit = recordAddedInDB
+      recordsRepo.addSingleRecord(record: recordToBeUpload) { _ in
+        refreshRecords()
       }
     }
   }
