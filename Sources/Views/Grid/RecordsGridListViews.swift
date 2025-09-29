@@ -370,7 +370,6 @@ extension RecordsGridListView {
     
     DispatchQueue.main.async {
       recordsRepo.addSingleRecord(record: recordToBeUpload) { _ in
-        refreshRecords()
       }
     }
   }
