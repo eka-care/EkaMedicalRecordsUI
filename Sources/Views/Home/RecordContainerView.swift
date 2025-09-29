@@ -311,6 +311,7 @@ public struct RecordContainerView: View {
         let documentTypes = await helper.getDocumentTypes()
         await MainActor.run {
           documentTypesList = documentTypes
+          documentTypeReceived = true
         }
       }
       
