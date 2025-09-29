@@ -9,6 +9,7 @@ import SwiftUI
 import EkaMedicalRecordsCore
 
 struct RecordDocTypeMenuView: View {
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
   @Binding var selectedDocType: String?
   @Binding var caseId: String?
   @Environment(\.managedObjectContext) private var viewContext
@@ -107,13 +108,9 @@ extension RecordDocTypeMenuView {
     return "File Type"
   }
   
-  func getDocumentTypeIds() -> [String] {
-    RecordsRepo.shared.getDocumentTypesList(caseID: caseId)
-  }
-  
   private func refreshDocumentTypes() {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-      documentTypeIds = getDocumentTypeIds()
+      documentTypeIds =  recordsRepo.getDocumentTypesList(caseID: caseId)
     }
   }
 }
