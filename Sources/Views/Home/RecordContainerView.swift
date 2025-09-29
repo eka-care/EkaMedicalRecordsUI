@@ -74,7 +74,7 @@ public struct RecordPresentationState: Equatable {
   }
 }
 
-/// document Type list
+/// document Type list - initialized properly in RecordContainerView
 public var documentTypesList: [MRDocumentType] = []
 
 public struct RecordFilter: Equatable {
@@ -175,6 +175,7 @@ public struct RecordContainerView: View {
   @State private var refreshProgress: Double = 0.0
   @State private var showProgress = false
   @State private var progressTimer: Timer?
+  @State private var documentTypeReceived: Bool = false
   
   private var isCompact: Bool {
     horizontalSizeClass == .compact
@@ -191,14 +192,12 @@ public struct RecordContainerView: View {
   // MARK: - Initializer
   public init(
     recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll),
-    documentTypes: [MRDocumentType],
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     onCopyVitals: CopyVitalsCallback = nil,
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
     self.recordPresentationState = recordPresentationState
-    documentTypesList = documentTypes
     EkaUI.registerFonts()
   }
   
@@ -206,13 +205,18 @@ public struct RecordContainerView: View {
   public var body: some View {
     VStack(spacing: 0) {
       // Progress view for iPhone only
-      Group {
-        if shouldUseTabView {
-          compactLayout
-        } else {
-          regularLayout
+      if documentTypeReceived {
+        Group {
+          if shouldUseTabView {
+            compactLayout
+          } else {
+            regularLayout
+          }
         }
+      } else {
+        ProgressView()
       }
+
     }
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
@@ -297,6 +301,18 @@ public struct RecordContainerView: View {
       viewModel.configure(
         presentationState: recordPresentationState
       )
+      
+      // Load document types asynchronously
+      Task {
+        if let helper = MedicalRecordsUIConfig.shared.helper {
+          let documentTypes = await helper.getDocumentTypes()
+          await MainActor.run {
+            documentTypesList = documentTypes
+            documentTypeReceived = true
+          }
+        }
+      }
+      
       recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
       }
       recordsRepo.getUpdatedAtAndStartCases { _ in
