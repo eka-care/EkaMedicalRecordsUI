@@ -112,9 +112,9 @@ enum RecordTab: CaseIterable, Hashable {
   var title: String {
     switch self {
     case .records:
-      return "All files"
+      return "All Records"
     case .cases:
-      return "Encounters"
+      return "All Encounters"
     }
   }
   
@@ -408,9 +408,9 @@ extension RecordContainerView {
     switch viewModel.selectedTab {
     case .records:
       ContentUnavailableView(
-        "All Records files ",
+        "All Medical Records ",
         systemImage: "righ",
-        description: Text("check out in right panel")
+        description: Text("See on the right panel")
       )
       Spacer()
       
@@ -545,7 +545,7 @@ extension RecordContainerView {
   }
   
   private var searchPrompt: String {
-      return "Search or add new Encounter"
+      return "Search or add an encounter"
     }
 }
 

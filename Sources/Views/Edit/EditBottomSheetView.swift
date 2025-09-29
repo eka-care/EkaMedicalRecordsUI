@@ -59,7 +59,7 @@ struct EditBottomSheetView: View {
           /// If we are showing this outside the case related flow we show this
           if !recordPresentationState.isCaseRelated {
             Section(header:HStack {
-              Text("Assign a Encounter")
+              Text("Assign an encounter")
                 .font(.headline)
               Spacer()
               if selectedCaseModel != nil {
@@ -77,7 +77,7 @@ struct EditBottomSheetView: View {
         }
         .listStyle(.insetGrouped)
       }
-      .navigationTitle("Edit Document Details")
+      .navigationTitle("Edit Records Details")
       .navigationBarTitleDisplayMode(.inline)
       .navigationDestination(for: String.self) { destination in
         if destination == "SearchableCaseListView" {
@@ -162,7 +162,7 @@ struct EditBottomSheetView: View {
 extension EditBottomSheetView {
   private func typeOfDocumentPickerView() -> some View {
     HStack {
-      Text("Type of document")
+      Text("Type of Record")
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       Text("*")
         .foregroundColor(.red) // Red asterisk
@@ -182,7 +182,7 @@ extension EditBottomSheetView {
   
   private func documentDatePickerView() -> some View {
     HStack {
-      Text("Document Date")
+      Text("Record Date")
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       
       Spacer()
@@ -196,7 +196,7 @@ extension EditBottomSheetView {
   private func assignCaseView() -> some View {
     HStack {
       VStack(alignment: .leading, spacing: 4) {
-        Text("Select/Create case")
+        Text("Select or create an encounter")
           .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       }
       

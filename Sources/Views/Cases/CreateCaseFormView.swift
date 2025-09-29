@@ -79,7 +79,7 @@ extension CreateCaseFormView {
   /// - Returns: View which has case name text field
   private func caseNameView() -> some View {
     HStack {
-      Text("Case name")
+      Text("Encounter name")
       Text("*")
         .foregroundStyle(.red)
       Spacer()
@@ -114,7 +114,7 @@ extension CreateCaseFormView {
       HStack(alignment: .top, spacing: 10) {
         Image(systemName: "info.circle")
           .foregroundColor(.gray)
-        Text("Use a “Case” to organize all documents related to a medical event, whether it’s a doctor visit, hospital admission, illness, or surgery. For easy access in one place.")
+        Text("Use a “Encounter” to organize all documents related to a medical event, whether it’s a doctor visit, hospital admission, illness, or surgery. For easy access in one place.")
           .font(.footnote)
           .foregroundColor(.gray)
       }
