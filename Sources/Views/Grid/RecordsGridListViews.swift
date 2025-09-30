@@ -367,6 +367,8 @@ extension RecordsGridListView {
     recordToBeUpload.documentType = documentType
     recordToBeUpload.caseModels = editDetails.cases
     recordToBeUpload.documentDate = documentDate
+    recordToBeUpload.isEdited = false
+    recordToBeUpload.syncState = .uploading
     
     DispatchQueue.main.async {
       recordsRepo.addSingleRecord(record: recordToBeUpload) { _ in
