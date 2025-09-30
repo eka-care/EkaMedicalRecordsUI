@@ -22,11 +22,14 @@ struct CreateCaseFormView: View {
   @State private var showCaseTypeSheet = false
   private let caseName: String
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
+  private let showCancelButton: Bool
   
   init(
     caseName: String,
+    showCancelButton: Bool = true
   ) {
     self.caseName = caseName
+    self.showCancelButton = showCancelButton
     // For preview to work
     EkaUI.registerFonts()
   }
@@ -45,11 +48,14 @@ struct CreateCaseFormView: View {
       .navigationTitle("Create Encounter")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          Button("Cancel") {
-            dismiss()
+        // Only show cancel button when explicitly enabled (for modal presentation)
+        if showCancelButton {
+          ToolbarItem(placement: .navigationBarLeading) {
+            Button("Cancel") {
+              dismiss()
+            }
+            .foregroundStyle(Color(.ascent))
           }
-          .foregroundStyle(Color(.ascent))
         }
         
         ToolbarItem(placement: .navigationBarTrailing) {

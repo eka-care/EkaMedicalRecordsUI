@@ -258,6 +258,7 @@ public struct RecordContainerView: View {
         NavigationStack{
           CreateCaseFormView(
             caseName: name,
+            showCancelButton: true
           )
           .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
         }
@@ -581,6 +582,7 @@ extension RecordContainerView {
   private func caseFormDestination(for route: CaseFormRoute) -> some View {
     CreateCaseFormView(
       caseName: route.prefilledName,
+      showCancelButton: false
     )
     .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
   }

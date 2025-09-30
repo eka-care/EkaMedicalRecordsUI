@@ -94,6 +94,7 @@ struct EditBottomSheetView: View {
       .navigationDestination(for: CaseFormRoute.self) { route in
         CreateCaseFormView(
           caseName: route.prefilledName,
+          showCancelButton: false
         )
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       }
