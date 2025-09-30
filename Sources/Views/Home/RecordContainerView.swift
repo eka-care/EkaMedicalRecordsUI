@@ -304,7 +304,7 @@ public struct RecordContainerView: View {
       
       // Load document types asynchronously
       Task {
-        guard let helper = MedicalRecordsUIConfig.shared.helper  else {
+        guard let helper = InitConfiguration.shared.helper  else {
           documentTypeReceived = true
           return
         }
