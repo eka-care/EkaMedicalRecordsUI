@@ -163,7 +163,7 @@ public struct RecordContainerView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @Environment(\.verticalSizeClass) private var verticalSizeClass
-  
+  @Environment(\.managedObjectContext) private var viewContext
   // MARK: - Properties
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
@@ -297,6 +297,13 @@ public struct RecordContainerView: View {
       }
     }
     
+    .onReceive(NotificationCenter.default.publisher(
+      for: .NSManagedObjectContextObjectsDidChange,
+      object: viewContext
+    )) { _ in
+      refreshDocumentsCount()
+    }
+    
     .onAppear {
       viewModel.configure(
         presentationState: recordPresentationState
@@ -329,6 +336,9 @@ public struct RecordContainerView: View {
       recordsRepo.syncUnsyncedCases { _ in
         recordsRepo.syncUnuploadedRecords{ _ in }
       }
+      
+//      // Initialize records count
+      refreshDocumentsCount()
     }
     .onDisappear {
       // Clean up timer to prevent memory leaks
@@ -530,7 +540,13 @@ extension RecordContainerView {
       let baseTitle = "Select Records"
       return "\(baseTitle) (\(viewModel.pickerSelectedRecords.count)/\(maxCount))"
     }
-    return recordPresentationState.title
+    
+    // Show count next to title for non-picker modes
+    let title = recordPresentationState.title
+    if !title.isEmpty {
+      return "\(title) (\(viewModel.allDocumentCount))"
+    }
+    return title
   }
 }
 
@@ -665,6 +681,12 @@ extension RecordContainerView {
   }
 }
 
+extension RecordContainerView {
+  func refreshDocumentsCount() {
+    viewModel.refreshDocumentsCount()
+  }
+}
+
 // MARK: - View Model
 @MainActor
 final class RecordContainerViewModel: ObservableObject {
@@ -678,10 +700,20 @@ final class RecordContainerViewModel: ObservableObject {
   @Published var selectedRecord: Record?
   @Published var createNewCase: String? = nil
   @Published var activeModal: FullScreenModal?
+  @Published var allDocumentCount: Int = 0
+  
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private var presentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   
   func configure(presentationState: RecordPresentationState) {
     self.presentationState = presentationState
+  }
+  
+  func refreshDocumentsCount() {
+    recordsRepo.getAllRecordsCount { [weak self] count in
+      DispatchQueue.main.async {
+        self?.allDocumentCount = count
+      }
+    }
   }
 }
