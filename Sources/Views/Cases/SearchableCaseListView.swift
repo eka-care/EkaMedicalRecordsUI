@@ -80,7 +80,7 @@ struct SearchableCaseListView: View {
         .searchable(
           text: $caseSearchText,
           isPresented: $isSearchActive,
-          prompt: "Search or add new Encounter"
+          prompt: "Search or add an encounter"
         )
       }
       if !isSearchActive {
@@ -154,7 +154,7 @@ extension SearchableCaseListView {
         )
       
       HStack(spacing: 0) {
-        Text("Create new case ")
+        Text("Create an encounter ")
           .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
         
         Text("\"\(caseSearchText)\"")

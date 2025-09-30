@@ -14,20 +14,20 @@ struct ImageConfig {
 }
 
 struct ChipView: View {
-  let selectionId: Int
+  let selectionId: String
   let title: String
   let image: UIImage?
   let imageConfig: ImageConfig?
   let isSelected: Bool
-  let onTap: (Int) -> Void
+  let onTap: (String) -> Void
   
   init(
-    selectionId: Int,
+    selectionId: String,
     title: String,
     image: UIImage? = nil,
     imageConfig: ImageConfig? = ImageConfig(width: 12, height: 12, color: .white),
     isSelected: Bool,
-    onTap: @escaping (Int) -> Void
+    onTap: @escaping (String) -> Void
   ) {
     self.selectionId = selectionId
     self.title = title

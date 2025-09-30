@@ -12,37 +12,41 @@ import Combine
 struct RecordsFilterListView: View {
   // MARK: - Properties
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
-  @State var recordsFilter: [RecordDocumentType: Int] = [:]
-  @Binding var selectedChip: RecordDocumentType
+  @State var recordsFilter: [String: Int] = [:]
+  @Binding var selectedChip: [String]
+  @Binding var selectedDocType: String?
   @Binding var selectedSortFilter: RecordSortOptions?
   @Binding var caseID: String?
   @Environment(\.managedObjectContext) private var viewContext
+  
   // MARK: - Init
   init(
-    selectedChip: Binding<RecordDocumentType>,
+    selectedChip: Binding<[String]>,
     selectedSortFilter: Binding<RecordSortOptions?>,
-    caseID: Binding<String?>
+    caseID: Binding<String?>,
+    selectedDocType: Binding<String?>
   ) {
     _caseID = caseID
     _selectedChip = selectedChip
     _selectedSortFilter = selectedSortFilter
+    _selectedDocType = selectedDocType
   }
+  
   var body: some View {
     chipsView()
       .onReceive(NotificationCenter.default.publisher(
         for: .NSManagedObjectContextObjectsDidChange,
-        object: viewContext // must match the one being merged into
+        object: viewContext
       )) { _ in
         refreshFilters()
       }
-      .onChange(of: caseID) { oldValue, newValue in
+      .onChange(of: caseID) { _, _ in
         refreshFilters()
       }
   }
 }
 
 // MARK: - Subviews
-
 extension RecordsFilterListView {
   private func chipsView() -> some View {
     ScrollViewReader { scrollViewProxy in
@@ -50,67 +54,103 @@ extension RecordsFilterListView {
         HStack {
           // Sort Button
           RecordSortMenuView(selectedOption: $selectedSortFilter)
-          ForEach(RecordDocumentType.allCases.filter { recordsFilter.keys.contains($0) }, id: \.self) { chip in
+          // Doc Type Button
+          RecordDocTypeMenuView(selectedDocType: $selectedDocType, caseId: $caseID)
+
+          ForEach(
+            recordsFilter.sorted(by: { lhs, rhs in
+              let lhsSelected = selectedChip.contains(lhs.key)
+              let rhsSelected = selectedChip.contains(rhs.key)
+
+              if lhsSelected && !rhsSelected { return true }
+              if !lhsSelected && rhsSelected { return false }
+
+              if lhsSelected && rhsSelected {
+                let lhsIndex = selectedChip.firstIndex(of: lhs.key) ?? 0
+                let rhsIndex = selectedChip.firstIndex(of: rhs.key) ?? 0
+                return lhsIndex < rhsIndex
+              }
+
+              return lhs.value > rhs.value
+            }),
+            id: \.key
+          ) { key, value in
             ChipView(
-              selectionId: chip.intValue,
-              title: getChipTitle(filter: chip),
-              isSelected: selectedChip == chip
-            ) { id in
-              if let chipType = RecordDocumentType.from(intValue: id) {
-                selectedChip = chipType
+              selectionId: key,
+              title: getChipTitle(filterId: key),
+              isSelected: selectedChip.contains(key)
+            ) { _ in
+              withAnimation(.easeInOut) {
+                if selectedChip.contains(key) {
+                  selectedChip.removeAll { $0 == key }
+                } else {
+                  selectedChip.append(key)   
+                }
               }
             }
-            .id(chip.intValue)
+            .id(key)
           }
+          .animation(.easeInOut, value: selectedChip)
         }
         .padding(.trailing, EkaSpacing.spacingM)
       }
       .onAppear {
         updateFiltersCount()
       }
-      .onChange(of: selectedChip) { oldIndex, newIndex in
+      .onChange(of: selectedChip) { _, newSelection in
         withAnimation {
-          scrollViewProxy.scrollTo(newIndex, anchor: .center)
+          if let first = newSelection.first {
+            scrollViewProxy.scrollTo(first, anchor: .center)
+          }
         }
+      }
+      .onChange(of: selectedDocType) { _, _ in
+        selectedChip.removeAll()
+        updateFiltersCount()
       }
     }
   }
 }
 
-// MARK: - Get count
-
+// MARK: - Helpers
 extension RecordsFilterListView {
-  private func getChipTitle(filter: RecordDocumentType) -> String {
-    let filterCountString = " (\(recordsFilter[filter] ?? 0))"
-    return filter.filterName + filterCountString
+  private func getChipTitle(filterId: String) -> String {
+    let filterDisplayName = documentTypesList.first(where: { data in
+      data.id == filterId
+    })?.filterName ?? filterId
+
+    let filterCountString = " (\(recordsFilter[filterId] ?? 0))"
+    return filterDisplayName + filterCountString
   }
-  
+
   private func refreshFilters() {
-    /// Wait for merge changes
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
       updateFiltersCount()
-      /// if chip
-      if recordsFilter[selectedChip] == nil || recordsFilter[selectedChip] == 0 {
-        selectedChip = .typeAll
-      }
     }
   }
-  
-  /// Update filters count
+
   private func updateFiltersCount() {
-    recordsFilter = recordsRepo.getRecordDocumentTypeCount(caseID: caseID)
+//    let filtersDocType = recordsRepo.getRecordDocumentTypeCount(caseID: caseID)
+    recordsFilter = recordsRepo.getRecordTagCount(caseID: caseID, documentType: selectedDocType)
+
+    //  Auto-cleanup: remove chips that no longer exist or are zero
+    selectedChip.removeAll { key in
+      recordsFilter[key] == nil || recordsFilter[key] == 0
+    }
+
+    if selectedChip.isEmpty {
+      selectedChip = []
+    }
   }
 }
 
 #Preview {
   RecordsFilterListView(
-    selectedChip: .constant(
-      .typeAll
-    ),
+    selectedChip: .constant([]),
     selectedSortFilter: .constant(
-      .dateOfUpload(
-        sortingOrder: .newToOld
-      )
-    ), caseID: .constant(nil)
+      .dateOfUpload(sortingOrder: .newToOld)
+    ),
+    caseID: .constant(nil),
+    selectedDocType: .constant(nil)
   )
 }

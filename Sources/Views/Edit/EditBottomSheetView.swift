@@ -2,30 +2,50 @@ import SwiftUI
 import EkaMedicalRecordsCore
 import EkaUI
 
+enum SheetMode {
+  case add
+  case edit
+}
+
+struct EditFormModel {
+  let documentType: MRDocumentType?
+  let documentDate: Date?
+  let cases: [CaseModel]
+  let sheetMode: SheetMode?
+}
+
 struct EditBottomSheetView: View {
   
   // MARK: - Properties
   
-  @State private var selectedDocumentType: RecordDocumentType?
+  @State private var selectedDocumentType: MRDocumentType?
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
+  @State private var showDiscardAlert: Bool = false // Discard confirmation alert
   @Binding var isEditBottomSheetPresented: Bool
-  @Binding var record: Record?
   private let recordsRepo = RecordsRepo.shared
   private let recordPresentationState: RecordPresentationState
+  private let sheetMode: SheetMode?
   @State private var assignCaseText: String = "Select"
   @State private var selectedCaseModel: CaseModel?
   
+  // Completion handler for save action
+  private let onSave: (EditFormModel) -> Void
   // MARK: - Init
   
   init(
     isEditBottomSheetPresented: Binding<Bool>,
-    record: Binding<Record?>,
-    recordPresentationState: RecordPresentationState
+    recordPresentationState: RecordPresentationState,
+    initialData: EditFormModel,
+    onSave: @escaping (EditFormModel) -> Void
   ) {
     _isEditBottomSheetPresented = isEditBottomSheetPresented
-    _record = record
     self.recordPresentationState = recordPresentationState
+    sheetMode = initialData.sheetMode
+    _selectedDocumentType = .init(initialValue: initialData.documentType)
+    _documentDate = .init(initialValue: initialData.documentDate ?? Date())
+    _selectedCaseModel = .init(initialValue: initialData.cases.first)
+    self.onSave = onSave
   }
   
   // MARK: - Body
@@ -39,10 +59,10 @@ struct EditBottomSheetView: View {
           /// If we are showing this outside the case related flow we show this
           if !recordPresentationState.isCaseRelated {
             Section(header:HStack {
-              Text("Assign a Encounter")
+              Text("Assign an encounter")
                 .font(.headline)
               Spacer()
-              if assignCaseText != "Select"  {
+              if selectedCaseModel != nil {
                 Text("Selected")
                   .font(.headline)
               }
@@ -57,7 +77,7 @@ struct EditBottomSheetView: View {
         }
         .listStyle(.insetGrouped)
       }
-      .navigationTitle("Edit Document Details")
+      .navigationTitle("Edit Records Details")
       .navigationBarTitleDisplayMode(.inline)
       .navigationDestination(for: String.self) { destination in
         if destination == "SearchableCaseListView" {
@@ -65,7 +85,6 @@ struct EditBottomSheetView: View {
             casesPresentationState: .editRecord,
             isSearchActive: true,
             onSelectCase: { caseModel in
-              assignCaseText = caseModel.caseName ?? ""
               selectedCaseModel = caseModel
             }
           )
@@ -89,31 +108,51 @@ struct EditBottomSheetView: View {
         .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       }
       .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Cancel") {
+            showDiscardAlert = true
+          }
+        }
+        
         ToolbarItem(placement: .topBarTrailing) {
           Button("Save") {
             if selectedDocumentType == nil {
               showAlert = true // Show alert if document type is not selected
             } else {
-              saveDocumentDetails()
+              // Prepare cases array
+              let cases =  selectedCaseModel.map { [$0] } ?? []
+              
+              // Create result model
+              let result = EditFormModel(
+                documentType: selectedDocumentType,
+                documentDate: documentDate,
+                cases: cases,
+                sheetMode: sheetMode
+              )
+              
+              // Call completion handler with result model
+              onSave(result)
+              
+              // Close the sheet
+              isEditBottomSheetPresented = false
             }
           }
         }
       }
     }
     .background(.white)
-    .onAppear {
-      updateData()
-    }
-    .onChange(of: record) { oldValue, newValue in
-      // Only update if the record actually changed to prevent unnecessary resets
-      if oldValue?.objectID != newValue?.objectID {
-        updateData()
-      }
-    }
     .alert("Error", isPresented: $showAlert) {
       Button("OK", role: .cancel) { }
     } message: {
       Text("Document type is mandatory.")
+    }
+    .alert("Discard Changes", isPresented: $showDiscardAlert) {
+      Button("Cancel", role: .cancel) { }
+      Button("Discard", role: .destructive) {
+        isEditBottomSheetPresented = false
+      }
+    } message: {
+      Text("Are you sure you want to discard your changes? This action cannot be undone.")
     }
   }
 }
@@ -123,14 +162,14 @@ struct EditBottomSheetView: View {
 extension EditBottomSheetView {
   private func typeOfDocumentPickerView() -> some View {
     HStack {
-      Text("Type of document")
+      Text("Type of Record")
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       Text("*")
         .foregroundColor(.red) // Red asterisk
       Spacer()
       Picker("", selection: $selectedDocumentType) {
-        Text("Select").tag(nil as RecordDocumentType?) // Empty selection
-        ForEach(RecordDocumentType.allCases.filter { $0 != .typeAll}, id: \.self) { type in
+        Text("Select").tag(nil as MRDocumentType?) // Empty selection
+        ForEach(documentTypesList.filter { $0 != MRDocumentType.typeAll}, id: \.self) { type in
           Text(type.filterName)
             .tag(type)
             .font(.footnote)
@@ -143,7 +182,7 @@ extension EditBottomSheetView {
   
   private func documentDatePickerView() -> some View {
     HStack {
-      Text("Document Date")
+      Text("Record Date")
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       
       Spacer()
@@ -157,82 +196,14 @@ extension EditBottomSheetView {
   private func assignCaseView() -> some View {
     HStack {
       VStack(alignment: .leading, spacing: 4) {
-        Text("Select/Create case")
+        Text("Select or create an encounter")
           .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
       }
       
       Spacer()
       
-      Text(assignCaseText)
-        .newTextStyle(ekaFont: .bodyRegular, color:  assignCaseText == "Select" ?  UIColor(resource: .labelsQuaternary): UIColor(resource: .ascent))
+      Text(selectedCaseModel?.caseName ?? "Select")
+        .newTextStyle(ekaFont: .bodyRegular, color:  selectedCaseModel == nil ?  UIColor(resource: .labelsQuaternary): UIColor(resource: .ascent))
     }
   }
 }
-
-// MARK: - Functions
-
-extension EditBottomSheetView {
-  
-  /// Used to update data in the sheet
-  private func updateData() {
-    setupSelectedDocumentType()
-    setupDocumentDate()
-    setupCaseData()
-  }
-  
-  /// Save document details
-  private func saveDocumentDetails() {
-    guard let record , let documentID = record.documentID else {
-      debugPrint("Record being uploaded not found for edit")
-      return
-    }
-    /// Update record in database
-    ///
-    recordsRepo.updateRecord(
-      recordID: record.objectID,
-      documentID: documentID,
-      documentDate: documentDate,
-      documentType: selectedDocumentType?.intValue,
-      isEdited: true,
-      caseModels: selectedCaseModel.map { [$0] } ?? []
-    )
-    /// Close edit bottom sheet
-    isEditBottomSheetPresented = false
-  }
-  
-  /// Setup document type of document if available
-  private func setupSelectedDocumentType() {
-    if let documentType = record?.documentType,
-       let documentTypeFilter = RecordDocumentType.from(intValue: Int(documentType)) {
-      if documentTypeFilter != .typeAll { /// dont save unspecified
-        selectedDocumentType = documentTypeFilter
-      }
-    } else {
-      selectedDocumentType = nil // Default to "Select"
-    }
-  }
-  
-  /// Setup document date of document if available
-  private func setupDocumentDate() {
-    guard let recordDate = record?.documentDate else { return }
-    documentDate = recordDate
-  }
-  
-  /// Used to setup case data
-  private func setupCaseData() {
-    guard let record,
-          let casesAttached = record.toCaseModel as? Set<CaseModel>,
-          casesAttached.count == 1,
-          let caseModel = casesAttached.first else {
-      return
-    }
-    
-    assignCaseText = caseModel.caseName ?? "Select"
-    selectedCaseModel = caseModel
-  }
-}
-
-// TODO: - Fix preview for record database model init
-//#Preview {
-//  EditBottomSheetView(isEditBottomSheetPresented: .constant(true))
-//}

@@ -59,7 +59,7 @@ struct CaseTypeSelectionView: View {
               Image(systemName: "plus")
                 .foregroundColor(.white)
             }
-            Text("Create new case type")
+            Text("Create an encounter type")
               .foregroundColor(Color(hex: "#6B5CE0") ?? .purple)
           }
           .contentShape(Rectangle())
@@ -91,7 +91,7 @@ struct CaseTypeSelectionView: View {
           
         }
       }
-      .alert("Create new Case Type", isPresented: $showingAlert) {
+      .alert("Create an encounter Type", isPresented: $showingAlert) {
         TextField("Enter a name", text: $newCaseType)
           .autocapitalization(.words)
         Button("Cancel", role: .cancel) {

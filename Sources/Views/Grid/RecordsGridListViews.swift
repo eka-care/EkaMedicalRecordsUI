@@ -38,6 +38,8 @@ public struct RecordsGridListView: View {
   @State private var isEditBottomSheetPresented: Bool = false
   /// Currently uploaded record
   @State private var recordSelectedForEdit: Record?
+  
+  @State private var recordToBeUpload: RecordModel?
   /// Bool to check if records is loading data from server
   @State private var isLoadingRecordsFromServer: Bool = false
   /// Alert to confirm delete
@@ -45,9 +47,11 @@ public struct RecordsGridListView: View {
   /// Item to be deleted
   @State private var itemToBeDeleted: Record?
   /// Selected filter
-  @State private var selectedFilter: RecordDocumentType = .typeAll
+  @State private var selectedFilter: [String] = []
   /// Selected sort type
   @State private var selectedSortFilter: RecordSortOptions?
+  /// Selected document type (single select via menu)
+  @State private var selectedDocType: String?
   @StateObject private var networkMonitor = NetworkMonitor.shared
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
@@ -55,7 +59,12 @@ public struct RecordsGridListView: View {
   @Binding private var lastSourceRefreshedAt: Date?
   // MARK: - Init
   @State private var currentCaseID: String?
+  
   @State private var isSyncing = false
+  
+  @State var documentDetailsSheetMode: SheetMode?
+  
+ 
   public init(
     recordPresentationState: RecordPresentationState,
     didSelectPickerDataObjects: RecordItemsCallback = nil,
@@ -78,6 +87,7 @@ public struct RecordsGridListView: View {
       QueryResponderView(
         predicate: generatePredicate(
           for: selectedFilter,
+          type: selectedDocType,
           caseID: recordPresentationState.associatedCaseID
         ),
         sortDescriptors: generateSortDescriptors(for: selectedSortFilter)
@@ -103,7 +113,8 @@ public struct RecordsGridListView: View {
               RecordsFilterListView(
                 selectedChip: $selectedFilter,
                 selectedSortFilter: $selectedSortFilter,
-                caseID: $currentCaseID
+                caseID: $currentCaseID,
+                selectedDocType: $selectedDocType
               )
               .padding([.leading, .vertical], EkaSpacing.spacingM)
               .environment(\.managedObjectContext, viewContext)
@@ -170,16 +181,11 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
-//      refreshRecords()
-    }
-    .onReceive(networkMonitor.$isOnline) { isOnline in
-//      if isOnline {
-//        syncRecords()
-//      }
     }
     .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
-      selectedFilter = .typeAll
+      selectedFilter = []
+      selectedDocType = nil
     }
     .background(Color(.neutrals50))
     // alert box
@@ -194,14 +200,9 @@ public struct RecordsGridListView: View {
       Text("Are you sure you want to delete this record?")
     }
     .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
-      refreshRecords()
+      selectedDocType = nil
     }) {
-      EditBottomSheetView(
-        isEditBottomSheetPresented: $isEditBottomSheetPresented,
-        record: $recordSelectedForEdit,
-        recordPresentationState: recordPresentationState
-      )
-      .presentationDragIndicator(.visible)
+      editBottomSheetContent()
     }
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { _,newValue in
@@ -261,17 +262,13 @@ extension RecordsGridListView {
         caseID: recordPresentationState.associatedCaseID
       )
     ) { cases in
-      let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(
+      recordToBeUpload = recordsRepo.databaseAdapter.formRecordModelFromAddedData(
         data: data,
         contentType: contentType,
         caseModels: cases
       )
-      DispatchQueue.main.async {
-        recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
-          recordSelectedForEdit = uploadedRecord
-          isEditBottomSheetPresented = true /// Show edit bottom sheet
-        }
-      }
+      isEditBottomSheetPresented = true /// Show edit bottom sheet
+      documentDetailsSheetMode = .add
     }
   }
   /// To sync unuploaded records
@@ -302,6 +299,7 @@ extension RecordsGridListView {
   private func editItem(record: Record) {
     recordSelectedForEdit = record
     isEditBottomSheetPresented = true
+    documentDetailsSheetMode = .edit
   }
   /// Used to delink case an item
   private func onTapDelinkCCase(record: Record, delinkCaseId: String) {
@@ -310,19 +308,112 @@ extension RecordsGridListView {
   }
 }
 
+extension RecordsGridListView {
+  // MARK: - Helper Methods
+  
+  private func getEditFormData() -> EditFormModel {
+    guard documentDetailsSheetMode != .add else {
+      return EditFormModel(
+        documentType: nil,
+        documentDate: nil,
+        cases: recordToBeUpload?.caseModels ?? [],
+        sheetMode: documentDetailsSheetMode
+      )
+    }
+    
+    let selectedDocType = recordSelectedForEdit?.documentType.flatMap { documentType in
+      documentTypesList.first(where: { $0.id == String(documentType) })
+    }
+    let documentDate = recordSelectedForEdit?.documentDate
+    let cases = Array((recordSelectedForEdit?.toCaseModel as? Set<CaseModel>) ?? [])
+    
+    return EditFormModel(
+      documentType: selectedDocType,
+      documentDate: documentDate,
+      cases: cases,
+      sheetMode: documentDetailsSheetMode
+    )
+  }
+  
+  @ViewBuilder
+  private func editBottomSheetContent() -> some View {
+    let initialData = getEditFormData()
+    
+    EditBottomSheetView(
+      isEditBottomSheetPresented: $isEditBottomSheetPresented,
+      recordPresentationState: recordPresentationState,
+      initialData: initialData,
+      onSave: { result in
+        handleEditFormSave(result)
+      }
+    )
+    .presentationDragIndicator(.visible)
+  }
+  
+  private func handleEditFormSave(_ result: EditFormModel) {
+    if result.sheetMode == .edit {
+      saveDocumentDetails(result)
+    } else {
+      uploadNewDocument(result)
+    }
+  }
+  
+  private func uploadNewDocument(_ editDetails: EditFormModel) {
+    
+    guard var recordToBeUpload, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate else {
+      debugPrint("Record Details not available")
+      return
+    }
+    recordToBeUpload.documentType = documentType
+    recordToBeUpload.caseModels = editDetails.cases
+    recordToBeUpload.documentDate = documentDate
+    recordToBeUpload.isEdited = false
+    recordToBeUpload.syncState = .uploading
+    
+    DispatchQueue.main.async {
+      recordsRepo.addSingleRecord(record: recordToBeUpload) { _ in
+      }
+    }
+  }
+  
+  private func saveDocumentDetails(_ editDetails: EditFormModel) {
+    guard let recordSelectedForEdit , let documentID = recordSelectedForEdit.documentID, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate else {
+        debugPrint("Record being uploaded not found for edit")
+        return
+      }
+  
+      recordsRepo.updateRecord(
+        documentID: documentID,
+        documentDate: documentDate,
+        documentType: documentType,
+        isEdited: true,
+        caseModels: editDetails.cases
+      )
+    }
+}
+
 // TODO: - Arya - to be moved to a common place
 extension RecordsGridListView {
   func generatePredicate(
-    for filter: RecordDocumentType,
+    for filter: [String],
+    type: String? = nil,
     caseID: String? = nil
   ) -> NSPredicate {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
     let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
     var predicates: [NSPredicate] = [oidPredicate]
-    if filter != .typeAll {
-      let typePredicate = PredicateHelper.equals("documentType", value: Int64(filter.intValue))
+    
+    if let type {
+      let typePredicate = NSPredicate(format: "documentType == %@", type)
       predicates.append(typePredicate)
     }
+    
+    
+    if !filter.isEmpty {
+        let tagPredicate = NSPredicate(format: "ANY toTags.name IN %@", filter)
+        predicates.append(tagPredicate)
+    }
+    
     if let caseID = caseID {
       let casePredicate = NSPredicate(format: "ANY toCaseModel.caseID == %@", caseID)
       predicates.append(casePredicate)
@@ -381,3 +472,4 @@ extension RecordsGridListView {
     pickerSelectedRecords: .constant([])
   )
 }
+

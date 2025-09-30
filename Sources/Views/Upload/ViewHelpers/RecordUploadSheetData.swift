@@ -38,7 +38,7 @@ enum RecordUploadItemType: CaseIterable, Identifiable {
     case .gallery:
       return "Choose photo"
     case .pdf:
-      return "Upload file"
+      return "Upload record"
     }
   }
   

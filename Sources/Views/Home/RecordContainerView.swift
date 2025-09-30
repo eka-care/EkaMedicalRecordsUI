@@ -74,6 +74,9 @@ public struct RecordPresentationState: Equatable {
   }
 }
 
+/// document Type list - initialized properly in RecordContainerView
+public var documentTypesList: [MRDocumentType] = []
+
 public struct RecordFilter: Equatable {
   public var caseID: String?
   public var tags: [String]?
@@ -109,9 +112,9 @@ enum RecordTab: CaseIterable, Hashable {
   var title: String {
     switch self {
     case .records:
-      return "All files"
+      return "All Records"
     case .cases:
-      return "Encounters"
+      return "All Encounters"
     }
   }
   
@@ -172,6 +175,7 @@ public struct RecordContainerView: View {
   @State private var refreshProgress: Double = 0.0
   @State private var showProgress = false
   @State private var progressTimer: Timer?
+  @State private var documentTypeReceived: Bool = false
   
   private var isCompact: Bool {
     horizontalSizeClass == .compact
@@ -187,9 +191,9 @@ public struct RecordContainerView: View {
   
   // MARK: - Initializer
   public init(
+    recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll),
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     onCopyVitals: CopyVitalsCallback = nil,
-    recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
@@ -201,13 +205,18 @@ public struct RecordContainerView: View {
   public var body: some View {
     VStack(spacing: 0) {
       // Progress view for iPhone only
-      Group {
-        if shouldUseTabView {
-          compactLayout
-        } else {
-          regularLayout
+      if documentTypeReceived {
+        Group {
+          if shouldUseTabView {
+            compactLayout
+          } else {
+            regularLayout
+          }
         }
+      } else {
+        ProgressView()
       }
+
     }
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
@@ -292,6 +301,20 @@ public struct RecordContainerView: View {
       viewModel.configure(
         presentationState: recordPresentationState
       )
+      
+      // Load document types asynchronously
+      Task {
+        guard let helper = InitConfiguration.shared.helper  else {
+          documentTypeReceived = true
+          return
+        }
+        let documentTypes = await helper.getDocumentTypes()
+        await MainActor.run {
+          documentTypesList = documentTypes
+          documentTypeReceived = true
+        }
+      }
+      
       recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
       }
       recordsRepo.getUpdatedAtAndStartCases { _ in
@@ -385,9 +408,9 @@ extension RecordContainerView {
     switch viewModel.selectedTab {
     case .records:
       ContentUnavailableView(
-        "All Records files ",
+        "All Medical Records ",
         systemImage: "righ",
-        description: Text("check out in right panel")
+        description: Text("See on the right panel")
       )
       Spacer()
       
@@ -522,7 +545,7 @@ extension RecordContainerView {
   }
   
   private var searchPrompt: String {
-      return "Search or add new Encounter"
+      return "Search or add an encounter"
     }
 }
 

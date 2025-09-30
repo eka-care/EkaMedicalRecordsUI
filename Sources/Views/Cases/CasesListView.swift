@@ -71,7 +71,7 @@ struct CasesListView: View {
               ContentUnavailableView(
                 "No Encounters",
                 systemImage: "doc",
-                description: Text("Create a new Encounter to add and organize your medical records")
+                description: Text("Create an encounter to add and organize your medical records")
               )
             } else {
               // Group cases by upload month
@@ -170,7 +170,7 @@ extension CasesListView {
         )
       
       HStack(spacing: 0) {
-        Text("Create new case ")
+        Text("Create an encounter ")
           .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .labelsPrimary))
         
         Text("\"\(caseSearchText)\"")
