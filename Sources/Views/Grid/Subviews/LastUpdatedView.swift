@@ -39,7 +39,7 @@ struct LastUpdatedView: View {
             Text(formattedDate(lastUpdated))
               .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
           } else {
-            Text("Refresh")
+            Text("Tap to refresh")
               .newTextStyle(ekaFont: .subheadlineRegular, color: UIColor(resource: .labelsPrimary))
           }
           

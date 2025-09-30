@@ -38,6 +38,8 @@ public struct RecordsGridListView: View {
   @State private var isEditBottomSheetPresented: Bool = false
   /// Currently uploaded record
   @State private var recordSelectedForEdit: Record?
+  
+  @State private var recordToBeUpload: RecordModel?
   /// Bool to check if records is loading data from server
   @State private var isLoadingRecordsFromServer: Bool = false
   /// Alert to confirm delete
@@ -57,7 +59,12 @@ public struct RecordsGridListView: View {
   @Binding private var lastSourceRefreshedAt: Date?
   // MARK: - Init
   @State private var currentCaseID: String?
+  
   @State private var isSyncing = false
+  
+  @State var documentDetailsSheetMode: SheetMode?
+  
+ 
   public init(
     recordPresentationState: RecordPresentationState,
     didSelectPickerDataObjects: RecordItemsCallback = nil,
@@ -174,12 +181,6 @@ public struct RecordsGridListView: View {
     }
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
-//      refreshRecords()
-    }
-    .onReceive(networkMonitor.$isOnline) { isOnline in
-//      if isOnline {
-//        syncRecords()
-//      }
     }
     .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
@@ -199,14 +200,9 @@ public struct RecordsGridListView: View {
       Text("Are you sure you want to delete this record?")
     }
     .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
-//      refreshRecords()
+      selectedDocType = nil
     }) {
-      EditBottomSheetView(
-        isEditBottomSheetPresented: $isEditBottomSheetPresented,
-        record: $recordSelectedForEdit,
-        recordPresentationState: recordPresentationState
-      )
-      .presentationDragIndicator(.visible)
+      editBottomSheetContent()
     }
     /// On selection of PDF add a record to the storage
     .onChange(of: selectedPDFData) { _,newValue in
@@ -266,17 +262,13 @@ extension RecordsGridListView {
         caseID: recordPresentationState.associatedCaseID
       )
     ) { cases in
-      let recordModel = recordsRepo.databaseAdapter.formRecordModelFromAddedData(
+      recordToBeUpload = recordsRepo.databaseAdapter.formRecordModelFromAddedData(
         data: data,
         contentType: contentType,
         caseModels: cases
       )
-      DispatchQueue.main.async {
-        recordsRepo.addSingleRecord(record: recordModel) { uploadedRecord in
-          recordSelectedForEdit = uploadedRecord
-          isEditBottomSheetPresented = true /// Show edit bottom sheet
-        }
-      }
+      isEditBottomSheetPresented = true /// Show edit bottom sheet
+      documentDetailsSheetMode = .add
     }
   }
   /// To sync unuploaded records
@@ -307,12 +299,95 @@ extension RecordsGridListView {
   private func editItem(record: Record) {
     recordSelectedForEdit = record
     isEditBottomSheetPresented = true
+    documentDetailsSheetMode = .edit
   }
   /// Used to delink case an item
   private func onTapDelinkCCase(record: Record, delinkCaseId: String) {
     recordsRepo.delinkCaseFromRecord(record: record, caseId: delinkCaseId) { _ in
     }
   }
+}
+
+extension RecordsGridListView {
+  // MARK: - Helper Methods
+  
+  private func getEditFormData() -> EditFormModel {
+    guard documentDetailsSheetMode != .add else {
+      return EditFormModel(
+        documentType: nil,
+        documentDate: nil,
+        cases: recordToBeUpload?.caseModels ?? [],
+        sheetMode: documentDetailsSheetMode
+      )
+    }
+    
+    let selectedDocType = recordSelectedForEdit?.documentType.flatMap { documentType in
+      documentTypesList.first(where: { $0.id == String(documentType) })
+    }
+    let documentDate = recordSelectedForEdit?.documentDate
+    let cases = Array((recordSelectedForEdit?.toCaseModel as? Set<CaseModel>) ?? [])
+    
+    return EditFormModel(
+      documentType: selectedDocType,
+      documentDate: documentDate,
+      cases: cases,
+      sheetMode: documentDetailsSheetMode
+    )
+  }
+  
+  @ViewBuilder
+  private func editBottomSheetContent() -> some View {
+    let initialData = getEditFormData()
+    
+    EditBottomSheetView(
+      isEditBottomSheetPresented: $isEditBottomSheetPresented,
+      recordPresentationState: recordPresentationState,
+      initialData: initialData,
+      onSave: { result in
+        handleEditFormSave(result)
+      }
+    )
+    .presentationDragIndicator(.visible)
+  }
+  
+  private func handleEditFormSave(_ result: EditFormModel) {
+    if result.sheetMode == .edit {
+      saveDocumentDetails(result)
+    } else {
+      uploadNewDocument(result)
+    }
+  }
+  
+  private func uploadNewDocument(_ editDetails: EditFormModel) {
+    
+    guard var recordToBeUpload, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate else {
+      debugPrint("Record Details not available")
+      return
+    }
+    recordToBeUpload.documentType = documentType
+    recordToBeUpload.caseModels = editDetails.cases
+    recordToBeUpload.documentDate = documentDate
+    
+    DispatchQueue.main.async {
+      recordsRepo.addSingleRecord(record: recordToBeUpload) { _ in
+      }
+    }
+  }
+  
+  private func saveDocumentDetails(_ editDetails: EditFormModel) {
+    guard let recordSelectedForEdit , let documentID = recordSelectedForEdit.documentID, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate else {
+        debugPrint("Record being uploaded not found for edit")
+        return
+      }
+  
+      recordsRepo.updateRecord(
+        documentID: documentID,
+        documentDate: documentDate,
+        documentType: documentType,
+        isEdited: true,
+        caseModels: editDetails.cases
+      )
+    }
 }
 
 // TODO: - Arya - to be moved to a common place
@@ -395,3 +470,4 @@ extension RecordsGridListView {
     pickerSelectedRecords: .constant([])
   )
 }
+
