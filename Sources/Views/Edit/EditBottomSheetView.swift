@@ -152,7 +152,9 @@ struct EditBottomSheetView: View {
         isEditBottomSheetPresented = false
       }
     } message: {
-      Text("Are you sure you want to discard your changes? This action cannot be undone.")
+      Text(sheetMode == .add ? 
+           "Discard this document and your changes? The document will not be saved." : 
+           "Your recent changes will not be saved if discarded.")
     }
   }
 }

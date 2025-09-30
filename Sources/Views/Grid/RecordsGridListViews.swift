@@ -348,6 +348,7 @@ extension RecordsGridListView {
       }
     )
     .presentationDragIndicator(.visible)
+    .interactiveDismissDisabled()
   }
   
   private func handleEditFormSave(_ result: EditFormModel) {
