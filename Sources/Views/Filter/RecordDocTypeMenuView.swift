@@ -7,6 +7,7 @@
 
 import SwiftUI
 import EkaMedicalRecordsCore
+import EkaUI
 
 struct RecordDocTypeMenuView: View {
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
@@ -59,9 +60,9 @@ struct RecordDocTypeMenuView: View {
             .frame(width: 12, height: 12)
             .foregroundColor(Color(uiColor: UIColor(resource: .neutrals0)))
         }
-        .padding(.leading, 8)
-        .padding(.trailing, 12)
-        .padding(.vertical, 8)
+        .padding(.leading, EkaSpacing.spacingXs)
+        .padding(.trailing, EkaSpacing.spacingS)
+        .padding(.vertical, EkaSpacing.spacingXs)
         .background(Color(uiColor: UIColor(resource: .primary500)))
         .cornerRadiusModifier(8, corners: [.topRight, .bottomRight])
       }
