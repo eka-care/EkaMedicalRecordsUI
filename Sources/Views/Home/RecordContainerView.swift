@@ -176,6 +176,8 @@ public struct RecordContainerView: View {
   @State private var showProgress = false
   @State private var progressTimer: Timer?
   @State private var documentTypeReceived: Bool = false
+  @State private var databaseInitialized: Bool = false
+  @State private var isInitializationComplete: Bool = false
   
   private var isCompact: Bool {
     horizontalSizeClass == .compact
@@ -205,7 +207,7 @@ public struct RecordContainerView: View {
   public var body: some View {
     VStack(spacing: 0) {
       // Progress view for iPhone only
-      if documentTypeReceived {
+      if isInitializationComplete {
         Group {
           if shouldUseTabView {
             compactLayout
@@ -314,17 +316,20 @@ public struct RecordContainerView: View {
       Task {
         guard let helper = InitConfiguration.shared.helper  else {
           documentTypeReceived = true
+          checkInitializationComplete()
           return
         }
         let documentTypes = await helper.getDocumentTypes()
         await MainActor.run {
           documentTypesList = documentTypes
           documentTypeReceived = true
+          checkInitializationComplete()
         }
       }
       
-      recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
-      }
+      recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in }
+      
+      // After case types are loaded, start other operations
       recordsRepo.getUpdatedAtAndStartCases { _ in
         recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
           if let dateAndTime = lastSourceRefreshedTime {
@@ -332,14 +337,17 @@ public struct RecordContainerView: View {
           } else {
             self.lastSourceRefreshedAt = nil
           }
+          // Mark database as initialized after critical operations complete
+          DispatchQueue.main.async {
+            self.databaseInitialized = true
+            self.checkInitializationComplete()
+          }
         }
       }
+      
       recordsRepo.syncUnsyncedCases { _ in
         recordsRepo.syncUnuploadedRecords{ _ in }
       }
-      
-//      // Initialize records count
-      refreshDocumentsCount()
     }
     .onDisappear {
       // Clean up timer to prevent memory leaks
@@ -595,6 +603,12 @@ extension RecordContainerView {
 
 // MARK: - Event Handlers
 extension RecordContainerView {
+  private func checkInitializationComplete() {
+    if documentTypeReceived && databaseInitialized {
+      isInitializationComplete = true
+    }
+  }
+  
   private func startRefreshWithProgress() {
     // Start the refresh process
     isForceRefreshing = true
@@ -715,6 +729,7 @@ final class RecordContainerViewModel: ObservableObject {
     recordsRepo.getAllRecordsCount { [weak self] count in
       DispatchQueue.main.async {
         self?.allDocumentCount = count
+        print(count)
       }
     }
   }
