@@ -290,6 +290,15 @@ public struct RecordContainerView: View {
         }
       }
     }
+    .onReceive(
+        NotificationCenter.default.publisher(
+            for: .NSManagedObjectContextObjectsDidChange,
+            object: recordsRepo.databaseManager.container.viewContext
+        ).debounce(for: .milliseconds(200), scheduler: RunLoop.main)
+    ) { _ in
+        viewModel.updateDocumentCount()
+    }
+    
      .onAppear {
       viewModel.configure(presentationState: recordPresentationState)
       viewModel.loadData()
