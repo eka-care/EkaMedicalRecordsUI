@@ -169,7 +169,6 @@ public struct RecordContainerView: View {
   private let onCopyVitals: CopyVitalsCallback
   @State var recordPresentationState: RecordPresentationState
   @StateObject private var networkMonitor = NetworkMonitor.shared
-  @State private var lastSourceRefreshedAt: Date?
   @State private var isForceRefreshing = false
   @State private var refreshProgress: Double = 0.0
   @State private var showProgress = false
@@ -199,9 +198,10 @@ public struct RecordContainerView: View {
   }
   
   // MARK: - Body
+
   public var body: some View {
     VStack(spacing: 0) {
-      // Progress view for iPhone only
+      if viewModel.documentTypeReceived && viewModel.databaseReady {
         Group {
           if shouldUseTabView {
             compactLayout
@@ -209,6 +209,9 @@ public struct RecordContainerView: View {
             regularLayout
           }
         }
+      } else {
+        ProgressView()
+      }
     }
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
@@ -228,9 +231,9 @@ public struct RecordContainerView: View {
         recordsRepo.getUpdatedAtAndStartCases { _ in
           recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
             if let dateAndTime = lastSourceRefreshedTime {
-              self.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
+              self.viewModel.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
             } else {
-              self.lastSourceRefreshedAt = nil
+              self.viewModel.lastSourceRefreshedAt = nil
             }
           }
         }
@@ -287,37 +290,9 @@ public struct RecordContainerView: View {
         }
       }
     }
-    
-    .onAppear {
-      viewModel.configure(
-        presentationState: recordPresentationState
-      )
-      
-      // Load document types asynchronously
-      Task {
-        guard let helper = InitConfiguration.shared.helper  else {
-          return
-        }
-        let documentTypes = await helper.getDocumentTypes()
-        await MainActor.run {
-          documentTypesList = documentTypes
-        }
-      }
-      
-      recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
-      }
-      recordsRepo.getUpdatedAtAndStartCases { _ in
-        recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
-          if let dateAndTime = lastSourceRefreshedTime {
-            self.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
-          } else {
-            self.lastSourceRefreshedAt = nil
-          }
-        }
-      }
-      recordsRepo.syncUnsyncedCases { _ in
-        recordsRepo.syncUnuploadedRecords{ _ in }
-      }
+     .onAppear {
+      viewModel.configure(presentationState: recordPresentationState)
+      viewModel.loadData()
     }
     .onDisappear {
       // Clean up timer to prevent memory leaks
@@ -387,7 +362,7 @@ extension RecordContainerView {
         .padding(.trailing, 16)
         .padding(.bottom, 16)
       sidebarMainContent
-      LastUpdatedView(isRefreshing: $isForceRefreshing, lastUpdated: $lastSourceRefreshedAt)
+      LastUpdatedView(isRefreshing: $isForceRefreshing, lastUpdated: $viewModel.lastSourceRefreshedAt)
     }
     .background(Color(.systemGroupedBackground))
   }
@@ -523,7 +498,7 @@ extension RecordContainerView {
     // Show count next to title for non-picker modes
     let title = recordPresentationState.title
     if !title.isEmpty {
-      return "\(title) (\(00))"
+      return "\(title) (\(viewModel.recordsCount))"
     }
     return title
   }
@@ -674,11 +649,72 @@ final class RecordContainerViewModel: ObservableObject {
   @Published var selectedRecord: Record?
   @Published var createNewCase: String? = nil
   @Published var activeModal: FullScreenModal?
-  
+  @Published var databaseReady: Bool = false
+  @Published var documentTypeReceived: Bool = false
+  @Published var lastSourceRefreshedAt: Date?
+  @Published var recordsCount: Int = 0
+
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private var presentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
-  
+
   func configure(presentationState: RecordPresentationState) {
     self.presentationState = presentationState
+  }
+
+  // MARK: - Public entrypoint for view
+  func loadData() {
+    Task {
+      initializeDatabase()
+      await fetchDocumentTypes()
+      await preloadAndSyncData()
+      updateDocumentCount()
+    }
+  }
+
+  // MARK: - Private helpers
+  private func initializeDatabase() {
+    _ = recordsRepo.databaseManager.container.persistentStoreCoordinator
+    databaseReady = true
+    print("Core Data initialized successfully")
+  }
+
+  private func fetchDocumentTypes() async {
+    guard let helper = InitConfiguration.shared.helper else {
+      documentTypeReceived = true
+      return
+    }
+    let documentTypes = await helper.getDocumentTypes()
+    documentTypesList = documentTypes
+    documentTypeReceived = true
+  }
+
+  private func preloadAndSyncData() async {
+    await withCheckedContinuation { continuation in
+      recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
+        continuation.resume()
+      }
+    }
+
+    recordsRepo.getUpdatedAtAndStartCases { [weak self] _ in
+      self?.recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
+        if let ts = lastSourceRefreshedTime {
+          self?.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(ts))
+        } else {
+          self?.lastSourceRefreshedAt = nil
+        }
+      }
+    }
+
+    Task {
+      recordsRepo.syncUnsyncedCases { _ in
+        self.recordsRepo.syncUnuploadedRecords { _ in }
+      }
+    }
+  }
+  func updateDocumentCount() {
+    recordsRepo.getAllRecordsCount { [weak self] count in
+      guard let self = self else { return }
+        recordsCount = count
+    }
   }
 }
