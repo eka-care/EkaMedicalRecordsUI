@@ -97,13 +97,13 @@ extension RecordsFilterListView {
       .onAppear {
         updateFiltersCount()
       }
-      .onChange(of: selectedChip) { _, newSelection in
-        withAnimation {
-          if let first = newSelection.first {
-            scrollViewProxy.scrollTo(first, anchor: .center)
-          }
-        }
-      }
+//      .onChange(of: selectedChip) { _, newSelection in
+//        withAnimation {
+//          if let first = newSelection.first {
+//            scrollViewProxy.scrollTo(first, anchor: .center)
+//          }
+//        }
+//      }
       .onChange(of: selectedDocType) { _, _ in
         selectedChip.removeAll()
         updateFiltersCount()
