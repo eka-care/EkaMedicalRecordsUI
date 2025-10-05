@@ -230,10 +230,12 @@ public struct RecordContainerView: View {
       } else {
         recordsRepo.getUpdatedAtAndStartCases { _ in
           recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
-            if let dateAndTime = lastSourceRefreshedTime {
-              self.viewModel.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
-            } else {
-              self.viewModel.lastSourceRefreshedAt = nil
+            DispatchQueue.main.async {
+              if let dateAndTime = lastSourceRefreshedTime {
+                self.viewModel.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
+              } else {
+                self.viewModel.lastSourceRefreshedAt = nil
+              }
             }
           }
         }
@@ -705,11 +707,14 @@ final class RecordContainerViewModel: ObservableObject {
     }
 
     recordsRepo.getUpdatedAtAndStartCases { [weak self] _ in
-      self?.recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
-        if let ts = lastSourceRefreshedTime {
-          self?.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(ts))
-        } else {
-          self?.lastSourceRefreshedAt = nil
+      self?.recordsRepo.getUpdatedAtAndStartFetchRecords { [weak self] _, lastSourceRefreshedTime in
+        guard let self = self else { return }
+        DispatchQueue.main.async {
+          if let ts = lastSourceRefreshedTime {
+            self.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(ts))
+          } else {
+            self.lastSourceRefreshedAt = nil
+          }
         }
       }
     }
@@ -723,7 +728,9 @@ final class RecordContainerViewModel: ObservableObject {
   func updateDocumentCount() {
     recordsRepo.getAllRecordsCount { [weak self] count in
       guard let self = self else { return }
-        recordsCount = count
+      DispatchQueue.main.async {
+        self.recordsCount = count
+      }
     }
   }
 }
