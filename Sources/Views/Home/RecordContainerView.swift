@@ -195,6 +195,7 @@ public struct RecordContainerView: View {
     self.onCopyVitals = onCopyVitals
     self.recordPresentationState = recordPresentationState
     EkaUI.registerFonts()
+    try? Fonts.registerAllFonts()
   }
   
   // MARK: - Body
