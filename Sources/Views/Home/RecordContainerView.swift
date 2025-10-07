@@ -105,7 +105,7 @@ extension RecordPresentationState {
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
 public typealias CopyVitalsCallback = (([Verified]) -> Void)?
 
-public enum RecordTab: CaseIterable, Hashable {
+enum RecordTab: CaseIterable, Hashable {
   case records
   case cases
   
@@ -167,11 +167,23 @@ public struct RecordContainerView: View {
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
   private let onCopyVitals: CopyVitalsCallback
-  private let initialRecordPresentationState: RecordPresentationState
+  @State var recordPresentationState: RecordPresentationState
   @StateObject private var networkMonitor = NetworkMonitor.shared
+  @State private var isForceRefreshing = false
   @State private var refreshProgress: Double = 0.0
   @State private var showProgress = false
   @State private var progressTimer: Timer?
+  private var isCompact: Bool {
+    horizontalSizeClass == .compact
+  }
+  
+  private var isRegular: Bool {
+    horizontalSizeClass == .regular
+  }
+  
+  private var shouldUseTabView: Bool {
+    isCompact || verticalSizeClass == .compact
+  }
   
   // MARK: - Initializer
   public init(
@@ -181,7 +193,7 @@ public struct RecordContainerView: View {
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
-    self.initialRecordPresentationState = recordPresentationState
+    self.recordPresentationState = recordPresentationState
     EkaUI.registerFonts()
     try? Fonts.registerAllFonts()
   }
@@ -192,7 +204,7 @@ public struct RecordContainerView: View {
     VStack(spacing: 0) {
       if viewModel.documentTypeReceived && viewModel.databaseReady {
         Group {
-          if viewModel.shouldUseTabView(horizontalSizeClass: horizontalSizeClass, verticalSizeClass: verticalSizeClass) {
+          if shouldUseTabView {
             compactLayout
           } else {
             regularLayout
@@ -209,11 +221,11 @@ public struct RecordContainerView: View {
     .navigationDestination(for: CaseModel.self, destination: caseDestination)
     .navigationDestination(for: CaseFormRoute.self, destination: caseFormDestination)
     .navigationDestination(for: Record.self, destination: recordDestination)
-    .onChange(of: viewModel.isForceRefreshing) { _, newValue in
+    .onChange(of: isForceRefreshing) { _, newValue in
       if newValue {
         recordsRepo.requestForceRefresh { respnonse, apiCode in
           if apiCode != 202 {
-//            viewModel.isForceRefreshing = false
+//            isForceRefreshing = false
           }
         }
       } else {
@@ -237,7 +249,7 @@ public struct RecordContainerView: View {
     }) { modal in
       if case let .record(record) = modal {
         NavigationStack{
-          RecordView(record: record, recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals)
+          RecordView(record: record, recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
         }
       }
       if case let .newCase(name) = modal {
@@ -265,9 +277,9 @@ public struct RecordContainerView: View {
     }
     
     .onChange(of: viewModel.selectedCase) { oldValue, newValue in
-      let currentMode = self.viewModel.recordPresentationState.mode
+      let currentMode = self.recordPresentationState.mode
       let newCaseID = newValue?.caseID
-      self.viewModel.recordPresentationState = RecordPresentationState(mode: currentMode, filters: RecordFilter(caseID: newCaseID))
+      self.recordPresentationState = RecordPresentationState(mode: currentMode, filters: RecordFilter(caseID: newCaseID))
     }
 
     .onChange(of: viewModel.createNewCase) { oldValue, newValue in
@@ -291,7 +303,7 @@ public struct RecordContainerView: View {
     }
     
      .onAppear {
-      viewModel.configure(presentationState: initialRecordPresentationState)
+      viewModel.configure(presentationState: recordPresentationState)
       viewModel.loadData()
     }
     .onDisappear {
@@ -362,7 +374,7 @@ extension RecordContainerView {
         .padding(.trailing, 16)
         .padding(.bottom, 16)
       sidebarMainContent
-      LastUpdatedView(isRefreshing: $viewModel.isForceRefreshing, lastUpdated: $viewModel.lastSourceRefreshedAt)
+      LastUpdatedView(isRefreshing: $isForceRefreshing, lastUpdated: $viewModel.lastSourceRefreshedAt)
     }
     .background(Color(.systemGroupedBackground))
   }
@@ -397,7 +409,7 @@ extension RecordContainerView {
       Text("A case needs to be created first.")
     } else {
       RecordsGridListView(
-        recordPresentationState: viewModel.recordPresentationState,
+        recordPresentationState: recordPresentationState,
         title: "Documents",
         pickerSelectedRecords: $viewModel.pickerSelectedRecords,
         selectedRecord: $viewModel.selectedRecord
@@ -412,8 +424,8 @@ extension RecordContainerView {
     switch viewModel.selectedTab {
     case .records:
       RecordsGridListView(
-        recordPresentationState: viewModel.recordPresentationState,
-        title: viewModel.recordPresentationState.title,
+        recordPresentationState: recordPresentationState,
+        title: recordPresentationState.title,
         pickerSelectedRecords: $viewModel.pickerSelectedRecords
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
@@ -441,7 +453,7 @@ extension RecordContainerView {
   
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
-    if !viewModel.recordPresentationState.isDashboard && !viewModel.recordPresentationState.isCopyVitals {
+    if !recordPresentationState.isDashboard && !recordPresentationState.isCopyVitals {
       if !viewModel.isSearchFocused {
         ToolbarItem(placement: .topBarLeading) {
           Button("Close") {
@@ -489,14 +501,14 @@ extension RecordContainerView {
   }
   
   private var titleWithSelectionInfo: String {
-    if viewModel.recordPresentationState.isPicker,
-       case .picker(let maxCount) = viewModel.recordPresentationState.mode {
+    if recordPresentationState.isPicker,
+       case .picker(let maxCount) = recordPresentationState.mode {
       let baseTitle = "Select Records"
       return "\(baseTitle) (\(viewModel.pickerSelectedRecords.count)/\(maxCount))"
     }
     
     // Show count next to title for non-picker modes
-    let title = viewModel.recordPresentationState.title
+    let title = recordPresentationState.title
     if !title.isEmpty {
       return "\(title) (\(viewModel.recordsCount))"
     }
@@ -507,7 +519,7 @@ extension RecordContainerView {
 // MARK: - Computed Properties for UI
 extension RecordContainerView {
   private var searchPlacement: SearchFieldPlacement {
-    if viewModel.isRegular(horizontalSizeClass: horizontalSizeClass) {
+    if isRegular {
       return .navigationBarDrawer(displayMode: .always)
     } else {
       return .automatic
@@ -524,7 +536,7 @@ extension RecordContainerView {
   @ViewBuilder
   private func caseDestination(for model: CaseModel) -> some View {
     RecordsGridListView(
-      recordPresentationState: RecordPresentationState(mode: viewModel.recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
+      recordPresentationState: RecordPresentationState(mode: recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
       title: model.caseName ?? "Documents",
       pickerSelectedRecords: $viewModel.pickerSelectedRecords
     )
@@ -542,7 +554,7 @@ extension RecordContainerView {
   
   @ViewBuilder
   private func recordDestination(for record: Record) -> some View {
-    RecordView(record: record,recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals)
+    RecordView(record: record,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
   }
 }
 
@@ -550,7 +562,7 @@ extension RecordContainerView {
 extension RecordContainerView {
   private func startRefreshWithProgress() {
     // Start the refresh process
-    viewModel.isForceRefreshing = true
+    isForceRefreshing = true
     
     // Reset and show progress
     refreshProgress = 0.0
@@ -580,7 +592,7 @@ extension RecordContainerView {
             showProgress = false
             refreshProgress = 0.0
           }
-          viewModel.isForceRefreshing = false
+          isForceRefreshing = false
         }
       }
     }
@@ -592,7 +604,7 @@ extension RecordContainerView {
   }
   
   private func handleSearchFocusChange(_ oldValue: Bool, _ newValue: Bool) {
-    if viewModel.isRegular(horizontalSizeClass: horizontalSizeClass) {
+    if isRegular {
       viewModel.columnVisibility = newValue ? .detailOnly : .doubleColumn
     }
   }
@@ -653,26 +665,12 @@ final class RecordContainerViewModel: ObservableObject {
   @Published var documentTypeReceived: Bool = false
   @Published var lastSourceRefreshedAt: Date?
   @Published var recordsCount: Int = 0
-  @Published var recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
-  @Published var isForceRefreshing: Bool = false
 
-  private var recordsRepo = RecordsRepo.shared
-  
+  private let recordsRepo: RecordsRepo = RecordsRepo.shared
+  private var presentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
+
   func configure(presentationState: RecordPresentationState) {
-    self.recordPresentationState = presentationState    
-  }
-  
-  // MARK: - Size Class Helpers
-  func isCompact(horizontalSizeClass: UserInterfaceSizeClass?) -> Bool {
-    return horizontalSizeClass == .compact
-  }
-  
-  func isRegular(horizontalSizeClass: UserInterfaceSizeClass?) -> Bool {
-    return horizontalSizeClass == .regular
-  }
-  
-  func shouldUseTabView(horizontalSizeClass: UserInterfaceSizeClass?, verticalSizeClass: UserInterfaceSizeClass?) -> Bool {
-    return isCompact(horizontalSizeClass: horizontalSizeClass) || verticalSizeClass == .compact
+    self.presentationState = presentationState
   }
 
   // MARK: - Public entrypoint for view

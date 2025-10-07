@@ -72,8 +72,6 @@ public struct RecordsGridListView: View {
     pickerSelectedRecords: Binding<[Record]> = .constant([]),
     selectedRecord: Binding<Record?> = .constant(nil),
     lastSourceRefreshedAt: Binding<Date?> = .constant(nil),
-    selectFilter: [String] = [],
-    selectedDocType: String? = nil
     ) {
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
@@ -81,8 +79,6 @@ public struct RecordsGridListView: View {
     self.title = title
     self._selectedRecord = selectedRecord
     self._lastSourceRefreshedAt = lastSourceRefreshedAt
-    self._selectedFilter = State(initialValue: selectFilter)
-    self._selectedDocType = State(initialValue: selectedDocType)
     self.currentCaseID = recordPresentationState.associatedCaseID
   }
   // MARK: - View
