@@ -458,7 +458,6 @@ extension RecordContainerView {
           Button("Close") {
             dismiss()
           }
-          .foregroundStyle(Color(.systemBlue))
         }
       }
     }
