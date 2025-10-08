@@ -188,8 +188,6 @@ public struct RecordsGridListView: View {
     }
     .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
-      selectedFilter = []
-      selectedDocType = nil
     }
     .background(Color(.neutrals50))
     // alert box

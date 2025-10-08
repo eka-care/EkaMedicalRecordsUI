@@ -408,8 +408,8 @@ extension RecordContainerView {
         title: "Documents",
         pickerSelectedRecords: $viewModel.pickerSelectedRecords,
         selectedRecord: $viewModel.selectedRecord,
-        selectFilter: $viewModel.selectedFilterInAllRecords,
-        selectedDocType: $viewModel.selectedDocTypeInAllRecords
+        selectFilter: viewModel.selectedTab == .cases ? $viewModel.selectedFilterInEncounters : $viewModel.selectedFilterInAllRecords,
+        selectedDocType: viewModel.selectedTab == .cases ? $viewModel.selectedDocTypeInEncounters : $viewModel.selectedDocTypeInAllRecords
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       .navigationDestination(for: Record.self, destination: recordDestination)
@@ -617,6 +617,7 @@ extension RecordContainerView {
       case .records:
       viewModel.selectedCase = nil
       viewModel.selectedDocTypeInEncounters = nil
+      viewModel.selectedFilterInEncounters = []
     default:
       break
     }
