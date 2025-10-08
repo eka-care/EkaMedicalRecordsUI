@@ -10,7 +10,7 @@ import UIKit
 import EkaMedicalRecordsCore
 import CoreData
 
-struct RecordItemViewData {
+public struct RecordItemViewData {
   let record: Record?
   var isSelected: Bool
   
