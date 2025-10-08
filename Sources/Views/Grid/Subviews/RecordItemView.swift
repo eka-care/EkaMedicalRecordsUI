@@ -12,7 +12,7 @@ import SDWebImageSwiftUI
 
 public typealias Record = EkaMedicalRecordsCore.Record
 
-enum RecordsDocumentSize {
+public enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
   static let bottomMetaDataHeight: CGFloat = 50
   static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
@@ -22,20 +22,20 @@ enum RecordsDocumentSize {
   }
 }
 
-struct RecordItemView: View {
+public struct RecordItemView: View {
   // MARK: - Properties
-  private let recordPresentationState: RecordPresentationState
+  let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
   @Binding var selectedFilterOption: RecordSortOptions?
-  private var onTapEdit: (Record) -> Void
-  private var onTapDelete: (Record) -> Void
-  private var onTapRetry: (Record) -> Void
-  private var onTapDelinkCCase: (Record, String) -> Void
-  @State private var isNetworkAvailable = true
+  var onTapEdit: (Record) -> Void
+  var onTapDelete: (Record) -> Void
+  var onTapRetry: (Record) -> Void
+  var onTapDelinkCCase: (Record, String) -> Void
+  @State var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
   // MARK: - Init
-  init(
+  public init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
     pickerSelectedRecords: Binding<[Record]>,
@@ -55,7 +55,7 @@ struct RecordItemView: View {
     self.onTapDelinkCCase = onTapDelinkCCase
   }
   // MARK: - Body
-  var body: some View {
+  public var body: some View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
