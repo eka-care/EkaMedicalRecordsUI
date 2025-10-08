@@ -12,7 +12,7 @@ import SDWebImageSwiftUI
 
 public typealias Record = EkaMedicalRecordsCore.Record
 
-public enum RecordsDocumentSize {
+enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
   static let bottomMetaDataHeight: CGFloat = 50
   static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
@@ -22,7 +22,7 @@ public enum RecordsDocumentSize {
   }
 }
 
-public struct RecordItemView: View {
+struct RecordItemView: View {
   // MARK: - Properties
   private let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
