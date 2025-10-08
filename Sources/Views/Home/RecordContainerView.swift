@@ -168,6 +168,8 @@ public struct RecordContainerView: View {
   private let didSelectPickerDataObjects: RecordItemsCallback
   private let onCopyVitals: CopyVitalsCallback
   private let initialRecordPresentationState: RecordPresentationState
+  private var selectedFilterInAllRecords: [String] = []
+  private var selectedDocTypeInAllRecords: String? = nil
   @StateObject private var networkMonitor = NetworkMonitor.shared
   @State private var refreshProgress: Double = 0.0
   @State private var showProgress = false
@@ -178,10 +180,14 @@ public struct RecordContainerView: View {
     recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll),
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     onCopyVitals: CopyVitalsCallback = nil,
+    selectedTags: [String] = [],
+    selectedRecordType: MRDocumentType? = nil
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
     self.initialRecordPresentationState = recordPresentationState
+    self.selectedFilterInAllRecords = selectedTags
+    self.selectedDocTypeInAllRecords = selectedRecordType?.id
     EkaUI.registerFonts()
     try? Fonts.registerAllFonts()
   }
@@ -268,6 +274,7 @@ public struct RecordContainerView: View {
       let currentMode = self.viewModel.recordPresentationState.mode
       let newCaseID = newValue?.caseID
       self.viewModel.recordPresentationState = RecordPresentationState(mode: currentMode, filters: RecordFilter(caseID: newCaseID))
+      self.viewModel.selectedDocTypeInEncounters = nil
     }
 
     .onChange(of: viewModel.createNewCase) { oldValue, newValue in
@@ -291,7 +298,7 @@ public struct RecordContainerView: View {
     }
     
      .onAppear {
-      viewModel.configure(presentationState: initialRecordPresentationState)
+      viewModel.configure(presentationState: initialRecordPresentationState, selectedFilterInAllRecords: selectedFilterInAllRecords, selectedDocTypeInAllRecords: selectedDocTypeInAllRecords)
       viewModel.loadData()
     }
     .onDisappear {
@@ -400,7 +407,9 @@ extension RecordContainerView {
         recordPresentationState: viewModel.recordPresentationState,
         title: "Documents",
         pickerSelectedRecords: $viewModel.pickerSelectedRecords,
-        selectedRecord: $viewModel.selectedRecord
+        selectedRecord: $viewModel.selectedRecord,
+        selectFilter: $viewModel.selectedFilterInAllRecords,
+        selectedDocType: $viewModel.selectedDocTypeInAllRecords
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       .navigationDestination(for: Record.self, destination: recordDestination)
@@ -414,7 +423,9 @@ extension RecordContainerView {
       RecordsGridListView(
         recordPresentationState: viewModel.recordPresentationState,
         title: viewModel.recordPresentationState.title,
-        pickerSelectedRecords: $viewModel.pickerSelectedRecords
+        pickerSelectedRecords: $viewModel.pickerSelectedRecords,
+        selectFilter: $viewModel.selectedFilterInAllRecords,
+        selectedDocType: $viewModel.selectedDocTypeInAllRecords
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       
@@ -526,9 +537,14 @@ extension RecordContainerView {
     RecordsGridListView(
       recordPresentationState: RecordPresentationState(mode: viewModel.recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
       title: model.caseName ?? "Documents",
-      pickerSelectedRecords: $viewModel.pickerSelectedRecords
+      pickerSelectedRecords: $viewModel.pickerSelectedRecords,
+      selectFilter: $viewModel.selectedFilterInEncounters,
+      selectedDocType: $viewModel.selectedDocTypeInEncounters
     )
     .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+    .onAppear {
+      viewModel.selectedDocTypeInEncounters = nil
+    }
   }
   
   @ViewBuilder
@@ -601,6 +617,7 @@ extension RecordContainerView {
     switch newValue {
       case .records:
       viewModel.selectedCase = nil
+      viewModel.selectedDocTypeInEncounters = nil
     default:
       break
     }
@@ -655,11 +672,23 @@ final class RecordContainerViewModel: ObservableObject {
   @Published var recordsCount: Int = 0
   @Published var recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
   @Published var isForceRefreshing: Bool = false
-
-  private var recordsRepo = RecordsRepo.shared
+  @Published var selectedFilterInAllRecords: [String] = []
+  @Published var selectedFilterInEncounters: [String] = []
+  @Published var selectedDocTypeInAllRecords: String? = nil
+  @Published var selectedDocTypeInEncounters: String? = nil
+  @Published var recordsRepo = RecordsRepo.shared
+  private var filtersInitialized: Bool = false
   
-  func configure(presentationState: RecordPresentationState) {
+  func configure(presentationState: RecordPresentationState, selectedFilterInAllRecords: [String] = [], selectedDocTypeInAllRecords: String? = nil) {
     self.recordPresentationState = presentationState
+    // Only initialize filters once (on first appearance)
+    if !filtersInitialized {
+      self.selectedFilterInAllRecords = selectedFilterInAllRecords
+      self.selectedDocTypeInAllRecords = selectedDocTypeInAllRecords
+      self.selectedDocTypeInEncounters = nil
+      self.selectedFilterInEncounters = []
+      filtersInitialized = true
+    }
   }
   
   // MARK: - Size Class Helpers
@@ -685,6 +714,13 @@ final class RecordContainerViewModel: ObservableObject {
     }
   }
 
+  private func resetFilters() {
+    self.selectedFilterInAllRecords = []
+    self.selectedFilterInEncounters = []
+    self.selectedDocTypeInAllRecords = nil
+    self.selectedDocTypeInEncounters = nil
+  }
+  
   // MARK: - Private helpers
   private func initializeDatabase() {
     _ = recordsRepo.databaseManager.container.persistentStoreCoordinator

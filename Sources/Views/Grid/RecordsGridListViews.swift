@@ -47,11 +47,11 @@ public struct RecordsGridListView: View {
   /// Item to be deleted
   @State private var itemToBeDeleted: Record?
   /// Selected filter
-  @State private var selectedFilter: [String] = []
+  @Binding private var selectedFilter: [String]
   /// Selected sort type
   @State private var selectedSortFilter: RecordSortOptions?
   /// Selected document type (single select via menu)
-  @State private var selectedDocType: String?
+  @Binding private var selectedDocType: String?
   @StateObject private var networkMonitor = NetworkMonitor.shared
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
@@ -72,8 +72,8 @@ public struct RecordsGridListView: View {
     pickerSelectedRecords: Binding<[Record]> = .constant([]),
     selectedRecord: Binding<Record?> = .constant(nil),
     lastSourceRefreshedAt: Binding<Date?> = .constant(nil),
-    selectFilter: [String] = [],
-    selectedDocType: String? = nil
+    selectFilter: Binding<[String]> = .constant([]),
+    selectedDocType: Binding<String?> = .constant(nil)
     ) {
     self.recordPresentationState = recordPresentationState
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
@@ -81,8 +81,8 @@ public struct RecordsGridListView: View {
     self.title = title
     self._selectedRecord = selectedRecord
     self._lastSourceRefreshedAt = lastSourceRefreshedAt
-    self._selectedFilter = State(initialValue: selectFilter)
-    self._selectedDocType = State(initialValue: selectedDocType)
+    self._selectedFilter = selectFilter
+    self._selectedDocType = selectedDocType
     self.currentCaseID = recordPresentationState.associatedCaseID
   }
   // MARK: - View
