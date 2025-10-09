@@ -34,6 +34,8 @@ public struct RecordItemView: View {
   var onTapDelinkCCase: (Record, String) -> Void
   @State var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
+  var allowLongPress: Bool = true
+  var haveMenu: Bool = true
   // MARK: - Init
   public init(
     itemData: RecordItemViewData,
@@ -43,7 +45,9 @@ public struct RecordItemView: View {
     onTapEdit: @escaping (Record) -> Void,
     onTapDelete: @escaping (Record) -> Void,
     onTapRetry: @escaping (Record) -> Void,
-    onTapDelinkCCase: @escaping (Record, String) -> Void
+    onTapDelinkCCase: @escaping (Record, String) -> Void,
+    allowLongPress: Bool = true,
+    haveMenu: Bool = true
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -53,6 +57,8 @@ public struct RecordItemView: View {
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
     self.onTapDelinkCCase = onTapDelinkCCase
+    self.allowLongPress = allowLongPress
+    self.haveMenu = haveMenu
   }
   // MARK: - Body
   public var body: some View {
@@ -110,31 +116,59 @@ public struct RecordItemView: View {
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
-    .contextMenu {
-      Button {
+    .if(allowLongPress) { view in
+      view.contextMenu {
         if let record = itemData.record {
-          onTapEdit(record)
+          Button {
+            onTapEdit(record)
+          } label: {
+            Text("Edit")
+          }
         }
-      } label: {
-        Text("Edit")
-      }
-      
-      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
-        Button {
-          onTapDelinkCCase(record , caseId)
-        } label: {
-          Text("Unassign encounter")
+        
+        if let record = itemData.record,
+           let caseId = recordPresentationState.associatedCaseID {
+          Button {
+            onTapDelinkCCase(record, caseId)
+          } label: {
+            Text("Unassign encounter")
+          }
         }
-      }
-      
-      Button(role: .destructive) {
+        
         if let record = itemData.record {
-          onTapDelete(record)
+          Button(role: .destructive) {
+            onTapDelete(record)
+          } label: {
+            Text("Delete")
+          }
         }
-      } label: {
-        Text("Delete")
       }
     }
+//    .contextMenu {
+//      Button {
+//        if let record = itemData.record {
+//          onTapEdit(record)
+//        }
+//      } label: {
+//        Text("Edit")
+//      }
+//      
+//      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
+//        Button {
+//          onTapDelinkCCase(record , caseId)
+//        } label: {
+//          Text("Unassign encounter")
+//        }
+//      }
+//      
+//      Button(role: .destructive) {
+//        if let record = itemData.record {
+//          onTapDelete(record)
+//        }
+//      } label: {
+//        Text("Delete")
+//      }
+//    }
     .simultaneousGesture(TapGesture().onEnded {
       onTapRecord()
     })
@@ -175,7 +209,9 @@ extension RecordItemView {
         }
       }
       Spacer()
-      menuView()
+      if haveMenu {
+        menuView()
+      }
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)
