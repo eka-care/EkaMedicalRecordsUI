@@ -12,7 +12,7 @@ import SDWebImageSwiftUI
 
 public typealias Record = EkaMedicalRecordsCore.Record
 
-enum RecordsDocumentSize {
+public enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
   static let bottomMetaDataHeight: CGFloat = 50
   static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
@@ -22,20 +22,22 @@ enum RecordsDocumentSize {
   }
 }
 
-struct RecordItemView: View {
+public struct RecordItemView: View {
   // MARK: - Properties
-  private let recordPresentationState: RecordPresentationState
+  let recordPresentationState: RecordPresentationState
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
   @Binding var selectedFilterOption: RecordSortOptions?
-  private var onTapEdit: (Record) -> Void
-  private var onTapDelete: (Record) -> Void
-  private var onTapRetry: (Record) -> Void
-  private var onTapDelinkCCase: (Record, String) -> Void
-  @State private var isNetworkAvailable = true
+  var onTapEdit: (Record) -> Void
+  var onTapDelete: (Record) -> Void
+  var onTapRetry: (Record) -> Void
+  var onTapDelinkCCase: (Record, String) -> Void
+  @State var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
+  var allowLongPress: Bool = true
+  var haveMenu: Bool = true
   // MARK: - Init
-  init(
+  public init(
     itemData: RecordItemViewData,
     recordPresentationState: RecordPresentationState,
     pickerSelectedRecords: Binding<[Record]>,
@@ -43,7 +45,9 @@ struct RecordItemView: View {
     onTapEdit: @escaping (Record) -> Void,
     onTapDelete: @escaping (Record) -> Void,
     onTapRetry: @escaping (Record) -> Void,
-    onTapDelinkCCase: @escaping (Record, String) -> Void
+    onTapDelinkCCase: @escaping (Record, String) -> Void,
+    allowLongPress: Bool = true,
+    haveMenu: Bool = true
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -53,9 +57,11 @@ struct RecordItemView: View {
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
     self.onTapDelinkCCase = onTapDelinkCCase
+    self.allowLongPress = allowLongPress
+    self.haveMenu = haveMenu
   }
   // MARK: - Body
-  var body: some View {
+  public var body: some View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
@@ -110,31 +116,59 @@ struct RecordItemView: View {
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
-    .contextMenu {
-      Button {
+    .if(allowLongPress) { view in
+      view.contextMenu {
         if let record = itemData.record {
-          onTapEdit(record)
+          Button {
+            onTapEdit(record)
+          } label: {
+            Text("Edit")
+          }
         }
-      } label: {
-        Text("Edit")
-      }
-      
-      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
-        Button {
-          onTapDelinkCCase(record , caseId)
-        } label: {
-          Text("Unassign encounter")
+        
+        if let record = itemData.record,
+           let caseId = recordPresentationState.associatedCaseID {
+          Button {
+            onTapDelinkCCase(record, caseId)
+          } label: {
+            Text("Unassign encounter")
+          }
         }
-      }
-      
-      Button(role: .destructive) {
+        
         if let record = itemData.record {
-          onTapDelete(record)
+          Button(role: .destructive) {
+            onTapDelete(record)
+          } label: {
+            Text("Delete")
+          }
         }
-      } label: {
-        Text("Delete")
       }
     }
+//    .contextMenu {
+//      Button {
+//        if let record = itemData.record {
+//          onTapEdit(record)
+//        }
+//      } label: {
+//        Text("Edit")
+//      }
+//      
+//      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
+//        Button {
+//          onTapDelinkCCase(record , caseId)
+//        } label: {
+//          Text("Unassign encounter")
+//        }
+//      }
+//      
+//      Button(role: .destructive) {
+//        if let record = itemData.record {
+//          onTapDelete(record)
+//        }
+//      } label: {
+//        Text("Delete")
+//      }
+//    }
     .simultaneousGesture(TapGesture().onEnded {
       onTapRecord()
     })
@@ -175,7 +209,9 @@ extension RecordItemView {
         }
       }
       Spacer()
-      menuView()
+      if haveMenu {
+        menuView()
+      }
     }
     .padding(.horizontal, EkaSpacing.spacingXs)
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)

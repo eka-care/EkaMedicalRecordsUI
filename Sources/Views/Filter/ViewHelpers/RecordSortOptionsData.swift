@@ -8,21 +8,21 @@
 import Foundation
 import EkaMedicalRecordsCore
 
-enum SortingOrder: String, CaseIterable, Hashable {
+public enum SortingOrder: String, CaseIterable, Hashable {
   case newToOld = "New to Old"
   case oldToNew = "Old to New"
 }
 
-enum RecordSortOptions: Hashable {
+public enum RecordSortOptions: Hashable {
   case dateOfUpload(sortingOrder: SortingOrder)
   case documentDate(sortingOrder: SortingOrder)
   
-  static var allCases: [RecordSortOptions] {
+  public static var allCases: [RecordSortOptions] {
     let orders = SortingOrder.allCases
     return orders.map { .dateOfUpload(sortingOrder: $0) } + orders.map { .documentDate(sortingOrder: $0) }
   }
   
-  var title: String {
+  public var title: String {
     switch self {
     case .dateOfUpload(let order):
       return "Uploaded at (\(order.rawValue))"
@@ -32,7 +32,7 @@ enum RecordSortOptions: Hashable {
   }
   
   /// Key Path for the record date
-  var keyPath: KeyPath<Record, Date?> {
+  public var keyPath: KeyPath<Record, Date?> {
     switch self {
     case .dateOfUpload:
       return \Record.uploadDate

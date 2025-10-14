@@ -10,11 +10,11 @@ import UIKit
 import EkaMedicalRecordsCore
 import CoreData
 
-struct RecordItemViewData {
-  let record: Record?
-  var isSelected: Bool
+public struct RecordItemViewData {
+  public let record: Record?
+  public var isSelected: Bool
   
-  init(
+  public init(
     record: Record?,
     isSelected: Bool = false
   ) {
@@ -24,13 +24,13 @@ struct RecordItemViewData {
 }
 
 extension RecordItemViewData {
-  static func formRecordItemPreviewData() -> RecordItemViewData {
+  public static func formRecordItemPreviewData() -> RecordItemViewData {
     RecordItemViewData(
       record: nil
     )
   }
   
-  static func formRecordItemViewData(from model: Record, isSelected: Bool = false) -> RecordItemViewData {
+  public static func formRecordItemViewData(from model: Record, isSelected: Bool = false) -> RecordItemViewData {
     RecordItemViewData(record: model, isSelected: isSelected)
   }
 }

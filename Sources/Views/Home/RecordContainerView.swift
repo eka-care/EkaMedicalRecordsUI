@@ -105,7 +105,7 @@ extension RecordPresentationState {
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
 public typealias CopyVitalsCallback = (([Verified]) -> Void)?
 
-enum RecordTab: CaseIterable, Hashable {
+public enum RecordTab: CaseIterable, Hashable {
   case records
   case cases
   
@@ -167,34 +167,29 @@ public struct RecordContainerView: View {
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
   private let onCopyVitals: CopyVitalsCallback
-  @State var recordPresentationState: RecordPresentationState
+  private let initialRecordPresentationState: RecordPresentationState
+  private var selectedFilterInAllRecords: [String] = []
+  private var selectedDocTypeInAllRecords: String? = nil
   @StateObject private var networkMonitor = NetworkMonitor.shared
-  @State private var isForceRefreshing = false
   @State private var refreshProgress: Double = 0.0
   @State private var showProgress = false
   @State private var progressTimer: Timer?
-  private var isCompact: Bool {
-    horizontalSizeClass == .compact
-  }
-  
-  private var isRegular: Bool {
-    horizontalSizeClass == .regular
-  }
-  
-  private var shouldUseTabView: Bool {
-    isCompact || verticalSizeClass == .compact
-  }
   
   // MARK: - Initializer
   public init(
     recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll),
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     onCopyVitals: CopyVitalsCallback = nil,
+    selectedTags: [String] = [],
+    selectedRecordType: MRDocumentType? = nil
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
-    self.recordPresentationState = recordPresentationState
+    self.initialRecordPresentationState = recordPresentationState
+    self.selectedFilterInAllRecords = selectedTags
+    self.selectedDocTypeInAllRecords = selectedRecordType?.id
     EkaUI.registerFonts()
+    try? Fonts.registerAllFonts()
   }
   
   // MARK: - Body
@@ -203,7 +198,7 @@ public struct RecordContainerView: View {
     VStack(spacing: 0) {
       if viewModel.documentTypeReceived && viewModel.databaseReady {
         Group {
-          if shouldUseTabView {
+          if viewModel.shouldUseTabView(horizontalSizeClass: horizontalSizeClass, verticalSizeClass: verticalSizeClass) {
             compactLayout
           } else {
             regularLayout
@@ -220,11 +215,11 @@ public struct RecordContainerView: View {
     .navigationDestination(for: CaseModel.self, destination: caseDestination)
     .navigationDestination(for: CaseFormRoute.self, destination: caseFormDestination)
     .navigationDestination(for: Record.self, destination: recordDestination)
-    .onChange(of: isForceRefreshing) { _, newValue in
+    .onChange(of: viewModel.isForceRefreshing) { _, newValue in
       if newValue {
         recordsRepo.requestForceRefresh { respnonse, apiCode in
           if apiCode != 202 {
-//            isForceRefreshing = false
+//            viewModel.isForceRefreshing = false
           }
         }
       } else {
@@ -248,7 +243,7 @@ public struct RecordContainerView: View {
     }) { modal in
       if case let .record(record) = modal {
         NavigationStack{
-          RecordView(record: record, recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
+          RecordView(record: record, recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals)
         }
       }
       if case let .newCase(name) = modal {
@@ -276,9 +271,10 @@ public struct RecordContainerView: View {
     }
     
     .onChange(of: viewModel.selectedCase) { oldValue, newValue in
-      let currentMode = self.recordPresentationState.mode
+      let currentMode = self.viewModel.recordPresentationState.mode
       let newCaseID = newValue?.caseID
-      self.recordPresentationState = RecordPresentationState(mode: currentMode, filters: RecordFilter(caseID: newCaseID))
+      self.viewModel.recordPresentationState = RecordPresentationState(mode: currentMode, filters: RecordFilter(caseID: newCaseID))
+      self.viewModel.selectedDocTypeInEncounters = nil
     }
 
     .onChange(of: viewModel.createNewCase) { oldValue, newValue in
@@ -302,7 +298,7 @@ public struct RecordContainerView: View {
     }
     
      .onAppear {
-      viewModel.configure(presentationState: recordPresentationState)
+      viewModel.configure(presentationState: initialRecordPresentationState, selectedFilterInAllRecords: selectedFilterInAllRecords, selectedDocTypeInAllRecords: selectedDocTypeInAllRecords)
       viewModel.loadData()
     }
     .onDisappear {
@@ -373,7 +369,7 @@ extension RecordContainerView {
         .padding(.trailing, 16)
         .padding(.bottom, 16)
       sidebarMainContent
-      LastUpdatedView(isRefreshing: $isForceRefreshing, lastUpdated: $viewModel.lastSourceRefreshedAt)
+      LastUpdatedView(isRefreshing: $viewModel.isForceRefreshing, lastUpdated: $viewModel.lastSourceRefreshedAt)
     }
     .background(Color(.systemGroupedBackground))
   }
@@ -408,10 +404,12 @@ extension RecordContainerView {
       Text("A case needs to be created first.")
     } else {
       RecordsGridListView(
-        recordPresentationState: recordPresentationState,
+        recordPresentationState: viewModel.recordPresentationState,
         title: "Documents",
         pickerSelectedRecords: $viewModel.pickerSelectedRecords,
-        selectedRecord: $viewModel.selectedRecord
+        selectedRecord: $viewModel.selectedRecord,
+        selectFilter: viewModel.selectedTab == .cases ? $viewModel.selectedFilterInEncounters : $viewModel.selectedFilterInAllRecords,
+        selectedDocType: viewModel.selectedTab == .cases ? $viewModel.selectedDocTypeInEncounters : $viewModel.selectedDocTypeInAllRecords
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       .navigationDestination(for: Record.self, destination: recordDestination)
@@ -423,9 +421,11 @@ extension RecordContainerView {
     switch viewModel.selectedTab {
     case .records:
       RecordsGridListView(
-        recordPresentationState: recordPresentationState,
-        title: recordPresentationState.title,
-        pickerSelectedRecords: $viewModel.pickerSelectedRecords
+        recordPresentationState: viewModel.recordPresentationState,
+        title: viewModel.recordPresentationState.title,
+        pickerSelectedRecords: $viewModel.pickerSelectedRecords,
+        selectFilter: $viewModel.selectedFilterInAllRecords,
+        selectedDocType: $viewModel.selectedDocTypeInAllRecords
       )
       .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
       
@@ -452,13 +452,12 @@ extension RecordContainerView {
   
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
-    if !recordPresentationState.isDashboard && !recordPresentationState.isCopyVitals {
+    if !viewModel.recordPresentationState.isDashboard && !viewModel.recordPresentationState.isCopyVitals {
       if !viewModel.isSearchFocused {
         ToolbarItem(placement: .topBarLeading) {
           Button("Close") {
             dismiss()
           }
-          .foregroundStyle(Color(.systemBlue))
         }
       }
     }
@@ -500,14 +499,14 @@ extension RecordContainerView {
   }
   
   private var titleWithSelectionInfo: String {
-    if recordPresentationState.isPicker,
-       case .picker(let maxCount) = recordPresentationState.mode {
+    if viewModel.recordPresentationState.isPicker,
+       case .picker(let maxCount) = viewModel.recordPresentationState.mode {
       let baseTitle = "Select Records"
       return "\(baseTitle) (\(viewModel.pickerSelectedRecords.count)/\(maxCount))"
     }
     
     // Show count next to title for non-picker modes
-    let title = recordPresentationState.title
+    let title = viewModel.recordPresentationState.title
     if !title.isEmpty {
       return "\(title) (\(viewModel.recordsCount))"
     }
@@ -518,7 +517,7 @@ extension RecordContainerView {
 // MARK: - Computed Properties for UI
 extension RecordContainerView {
   private var searchPlacement: SearchFieldPlacement {
-    if isRegular {
+    if viewModel.isRegular(horizontalSizeClass: horizontalSizeClass) {
       return .navigationBarDrawer(displayMode: .always)
     } else {
       return .automatic
@@ -535,11 +534,16 @@ extension RecordContainerView {
   @ViewBuilder
   private func caseDestination(for model: CaseModel) -> some View {
     RecordsGridListView(
-      recordPresentationState: RecordPresentationState(mode: recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
+      recordPresentationState: RecordPresentationState(mode: viewModel.recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
       title: model.caseName ?? "Documents",
-      pickerSelectedRecords: $viewModel.pickerSelectedRecords
+      pickerSelectedRecords: $viewModel.pickerSelectedRecords,
+      selectFilter: $viewModel.selectedFilterInEncounters,
+      selectedDocType: $viewModel.selectedDocTypeInEncounters
     )
     .environment(\.managedObjectContext, recordsRepo.databaseManager.container.viewContext)
+    .onAppear {
+      viewModel.selectedDocTypeInEncounters = nil
+    }
   }
   
   @ViewBuilder
@@ -553,7 +557,7 @@ extension RecordContainerView {
   
   @ViewBuilder
   private func recordDestination(for record: Record) -> some View {
-    RecordView(record: record,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
+    RecordView(record: record,recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals)
   }
 }
 
@@ -561,7 +565,7 @@ extension RecordContainerView {
 extension RecordContainerView {
   private func startRefreshWithProgress() {
     // Start the refresh process
-    isForceRefreshing = true
+    viewModel.isForceRefreshing = true
     
     // Reset and show progress
     refreshProgress = 0.0
@@ -591,7 +595,7 @@ extension RecordContainerView {
             showProgress = false
             refreshProgress = 0.0
           }
-          isForceRefreshing = false
+          viewModel.isForceRefreshing = false
         }
       }
     }
@@ -603,7 +607,7 @@ extension RecordContainerView {
   }
   
   private func handleSearchFocusChange(_ oldValue: Bool, _ newValue: Bool) {
-    if isRegular {
+    if viewModel.isRegular(horizontalSizeClass: horizontalSizeClass) {
       viewModel.columnVisibility = newValue ? .detailOnly : .doubleColumn
     }
   }
@@ -612,6 +616,8 @@ extension RecordContainerView {
     switch newValue {
       case .records:
       viewModel.selectedCase = nil
+      viewModel.selectedDocTypeInEncounters = nil
+      viewModel.selectedFilterInEncounters = []
     default:
       break
     }
@@ -664,12 +670,38 @@ final class RecordContainerViewModel: ObservableObject {
   @Published var documentTypeReceived: Bool = false
   @Published var lastSourceRefreshedAt: Date?
   @Published var recordsCount: Int = 0
-
-  private let recordsRepo: RecordsRepo = RecordsRepo.shared
-  private var presentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
-
-  func configure(presentationState: RecordPresentationState) {
-    self.presentationState = presentationState
+  @Published var recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll)
+  @Published var isForceRefreshing: Bool = false
+  @Published var selectedFilterInAllRecords: [String] = []
+  @Published var selectedFilterInEncounters: [String] = []
+  @Published var selectedDocTypeInAllRecords: String? = nil
+  @Published var selectedDocTypeInEncounters: String? = nil
+  @Published var recordsRepo = RecordsRepo.shared
+  private var filtersInitialized: Bool = false
+  
+  func configure(presentationState: RecordPresentationState, selectedFilterInAllRecords: [String] = [], selectedDocTypeInAllRecords: String? = nil) {
+    self.recordPresentationState = presentationState
+    // Only initialize filters once (on first appearance)
+    if !filtersInitialized {
+      self.selectedFilterInAllRecords = selectedFilterInAllRecords
+      self.selectedDocTypeInAllRecords = selectedDocTypeInAllRecords
+      self.selectedDocTypeInEncounters = nil
+      self.selectedFilterInEncounters = []
+      filtersInitialized = true
+    }
+  }
+  
+  // MARK: - Size Class Helpers
+  func isCompact(horizontalSizeClass: UserInterfaceSizeClass?) -> Bool {
+    return horizontalSizeClass == .compact
+  }
+  
+  func isRegular(horizontalSizeClass: UserInterfaceSizeClass?) -> Bool {
+    return horizontalSizeClass == .regular
+  }
+  
+  func shouldUseTabView(horizontalSizeClass: UserInterfaceSizeClass?, verticalSizeClass: UserInterfaceSizeClass?) -> Bool {
+    return isCompact(horizontalSizeClass: horizontalSizeClass) || verticalSizeClass == .compact
   }
 
   // MARK: - Public entrypoint for view
@@ -682,6 +714,13 @@ final class RecordContainerViewModel: ObservableObject {
     }
   }
 
+  private func resetFilters() {
+    self.selectedFilterInAllRecords = []
+    self.selectedFilterInEncounters = []
+    self.selectedDocTypeInAllRecords = nil
+    self.selectedDocTypeInEncounters = nil
+  }
+  
   // MARK: - Private helpers
   private func initializeDatabase() {
     _ = recordsRepo.databaseManager.container.persistentStoreCoordinator
