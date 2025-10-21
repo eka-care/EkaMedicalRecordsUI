@@ -138,9 +138,13 @@ struct RecordItemView: View {
         Text("Delete")
       }
     }
-    .simultaneousGesture(TapGesture().onEnded {
-      onSelectingRecord()
-    })
+    
+    .if(recordPresentationState.isPicker || UIDevice.current.isIPad) { view in
+      view.onTapGesture {
+        onSelectingRecord()
+      }
+    }
+    
     .onAppear {
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
