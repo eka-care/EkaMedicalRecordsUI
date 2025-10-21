@@ -131,9 +131,6 @@ public struct RecordsGridListView: View {
                           width: RecordsDocumentSize.itemWidth,
                           height: RecordsDocumentSize.getItemHeight()
                         )
-                        .onTapGesture {
-                          selectedRecord = item
-                        }
                     } else {
                       NavigationLink(value: item) {
                         itemView(item: item)
@@ -243,7 +240,8 @@ extension RecordsGridListView {
       onTapEdit: editItem(record:),
       onTapDelete: onTapDelete(record:),
       onTapRetry: onTapRetry(record:),
-      onTapDelinkCCase: onTapDelinkCCase(record: delinkCaseId:)
+      onTapDelinkCCase: onTapDelinkCCase(record: delinkCaseId:),
+      onTapRecord: selectedRecordItem(record:)
     )
   }
 }
@@ -294,6 +292,11 @@ extension RecordsGridListView {
     recordsRepo.uploadRecord(record: record) { _ in
     }
   }
+  
+  private func selectedRecordItem(record: Record) {
+    selectedRecord = record
+  }
+
   /// Used to delete a grid item
   private func deleteItem(record: Record) {
     recordsRepo.deleteRecord(record: record)

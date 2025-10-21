@@ -28,11 +28,12 @@ struct RecordItemView: View {
   @State var itemData: RecordItemViewData
   @Binding var pickerSelectedRecords: [Record]
   @Binding var selectedFilterOption: RecordSortOptions?
-  private var onTapEdit: (Record) -> Void
-  private var onTapDelete: (Record) -> Void
-  private var onTapRetry: (Record) -> Void
-  private var onTapDelinkCCase: (Record, String) -> Void
-  @State private var isNetworkAvailable = true
+  var onTapEdit: (Record) -> Void
+  var onTapDelete: (Record) -> Void
+  var onTapRetry: (Record) -> Void
+  var onTapDelinkCCase: (Record, String) -> Void
+  var onTapRecord: (Record) -> Void
+  @State var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
   // MARK: - Init
   init(
@@ -43,7 +44,8 @@ struct RecordItemView: View {
     onTapEdit: @escaping (Record) -> Void,
     onTapDelete: @escaping (Record) -> Void,
     onTapRetry: @escaping (Record) -> Void,
-    onTapDelinkCCase: @escaping (Record, String) -> Void
+    onTapDelinkCCase: @escaping (Record, String) -> Void,
+    onTapRecord: @escaping (Record) -> Void,
   ) {
     self._itemData = State(initialValue: itemData)
     self.recordPresentationState = recordPresentationState
@@ -53,6 +55,7 @@ struct RecordItemView: View {
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
     self.onTapDelinkCCase = onTapDelinkCCase
+    self.onTapRecord = onTapRecord
   }
   // MARK: - Body
   var body: some View {
@@ -136,7 +139,7 @@ struct RecordItemView: View {
       }
     }
     .simultaneousGesture(TapGesture().onEnded {
-      onTapRecord()
+      onSelectingRecord()
     })
     .onAppear {
       cancellable = NetworkMonitor.shared.publisher
@@ -353,7 +356,7 @@ extension RecordItemView {
 }
 //
 extension RecordItemView {
-  private func onTapRecord() {
+  private func onSelectingRecord() {
     switch recordPresentationState.mode {
     case .displayAll, .copyVitals, .dashboard:
       onTapDocument()
@@ -365,7 +368,8 @@ extension RecordItemView {
   /// On tap of document we open document viewer
   /// Note: - This is not being used. We use navigation link.
   private func onTapDocument() {
-    
+    guard let record = itemData.record else { return }
+    onTapRecord(record)
   }
   
   /// Update item data on picker selection
@@ -408,6 +412,7 @@ extension RecordItemView {
     onTapEdit: {_ in},
     onTapDelete: {_ in},
     onTapRetry: {_ in},
-    onTapDelinkCCase: {_, _ in}
+    onTapDelinkCCase: {_, _ in},
+    onTapRecord: { _ in}
   )
 }
