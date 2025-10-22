@@ -129,7 +129,7 @@ struct RecordView: View {
       Group {
         switch selectedTab {
         case .smartReport:
-          SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals,documentId: record.documentID ?? "", documentUrls: doucumentsUrls)
+          SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals,viewTrendsCallback: viewTrendsCallback, documentId: record.documentID ?? "", documentUrls: doucumentsUrls)
         case .documents:
           DocumentViewer(documents: $documents)
         }
