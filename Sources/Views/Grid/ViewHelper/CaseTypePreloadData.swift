@@ -10,32 +10,33 @@ import SwiftUI
 
 struct CaseTypePreloadData {
   static let all: [CaseTypeModel] = [
-    CaseTypeModel(name: "EM"),
-    CaseTypeModel(name: "IP"),
-    CaseTypeModel(name: "OP"),
-    CaseTypeModel(name: "DC"),
-    CaseTypeModel(name: "Other")
+    CaseTypeModel(name: "OP Consultation"),
+    CaseTypeModel(name: "Discharge Summary"),
+    CaseTypeModel(name: "Prescription"),
+    CaseTypeModel(name: "Diagnostic Report"),
+    CaseTypeModel(name: "Immunization Record"),
+    CaseTypeModel(name: "Health Document Record"),
+    CaseTypeModel(name: "Wellness Record")
   ]
 }
 
-
 enum CaseTypesEnum {
-  case daycare
-  case inpatient      // In-patient Department
-  case outpatient     // Out-patient Department
-  case emergency
+//  case daycare
+//  case inpatient      // In-patient Department
+//  case outpatient     // Out-patient Department
+//  case emergency
   case custom(title: String)
   
   var typeString: String {
     switch self {
-    case .daycare:
-      return "DC"
-    case .inpatient:
-      return "IP"
-    case .outpatient:
-      return "OP"
-    case .emergency:
-      return "EM"
+//    case .daycare:
+//      return "DC"
+//    case .inpatient:
+//      return "IP"
+//    case .outpatient:
+//      return "OP"
+//    case .emergency:
+//      return "EM"
     case .custom(let title):
       return title
     }
@@ -43,14 +44,14 @@ enum CaseTypesEnum {
   
   var name: String {
     switch self {
-    case .daycare:
-      return "DC"
-    case .inpatient:
-      return "IP"
-    case .outpatient:
-      return "OP"
-    case .emergency:
-      return "EM"
+//    case .daycare:
+//      return "DC"
+//    case .inpatient:
+//      return "IP"
+//    case .outpatient:
+//      return "OP"
+//    case .emergency:
+//      return "EM"
     case .custom(title: let title):
       return title
     }
@@ -58,14 +59,14 @@ enum CaseTypesEnum {
   
   static func getCaseType(for caseTypeString: String) -> CaseTypesEnum {
     switch caseTypeString {
-    case CaseTypesEnum.daycare.name:
-      return .daycare
-    case CaseTypesEnum.inpatient.name:
-      return .inpatient
-    case CaseTypesEnum.outpatient.name:
-      return .outpatient
-    case CaseTypesEnum.emergency.name:
-      return .emergency
+//    case CaseTypesEnum.daycare.name:
+//      return .daycare
+//    case CaseTypesEnum.inpatient.name:
+//      return .inpatient
+//    case CaseTypesEnum.outpatient.name:
+//      return .outpatient
+//    case CaseTypesEnum.emergency.name:
+//      return .emergency
     default:
       return .custom(title: caseTypeString)
     }
@@ -73,8 +74,8 @@ enum CaseTypesEnum {
   
   var initialsString: String? {
     switch self {
-    case .daycare, .inpatient, .outpatient, .emergency:
-      return typeString
+//    case .daycare, .inpatient, .outpatient, .emergency:
+//      return typeString
     case .custom(let title):
       return title
     }
@@ -82,14 +83,14 @@ enum CaseTypesEnum {
   
   var backgroundColor: Color {
     switch self {
-    case .daycare:
-      return Color(hex: "#C2D08E") ?? .yellow
-    case .inpatient:
-      return Color(hex: "#C792E7") ?? .yellow
-    case .outpatient:
-      return Color(hex: "#83CDA1") ?? .yellow
-    case .emergency:
-      return Color(hex: "#FF8D77") ?? .yellow
+//    case .daycare:
+//      return Color(hex: "#C2D08E") ?? .yellow
+//    case .inpatient:
+//      return Color(hex: "#C792E7") ?? .yellow
+//    case .outpatient:
+//      return Color(hex: "#83CDA1") ?? .yellow
+//    case .emergency:
+//      return Color(hex: "#FF8D77") ?? .yellow
     case .custom:
       return Color(hex: "#F6DA6D") ?? .yellow
     }

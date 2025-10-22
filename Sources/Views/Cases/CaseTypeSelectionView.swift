@@ -51,21 +51,21 @@ struct CaseTypeSelectionView: View {
           }
           
           // Create new case type row
-          HStack {
-            ZStack {
-              Circle()
-                .fill(Color(hex: "#6B5CE0") ?? .purple)
-                .frame(width: 36, height: 36)
-              Image(systemName: "plus")
-                .foregroundColor(.white)
-            }
-            Text("Create an encounter type")
-              .foregroundColor(Color(hex: "#6B5CE0") ?? .purple)
-          }
-          .contentShape(Rectangle())
-          .onTapGesture {
-            showingAlert = true
-          }
+//          HStack {
+//            ZStack {
+//              Circle()
+//                .fill(Color(hex: "#6B5CE0") ?? .purple)
+//                .frame(width: 36, height: 36)
+//              Image(systemName: "plus")
+//                .foregroundColor(.white)
+//            }
+//            Text("Create an encounter type")
+//              .foregroundColor(Color(hex: "#6B5CE0") ?? .purple)
+//          }
+//          .contentShape(Rectangle())
+//          .onTapGesture {
+//            showingAlert = true
+//          }
         }
       }
       .navigationTitle("All Case Types")
@@ -77,13 +77,13 @@ struct CaseTypeSelectionView: View {
           }
         }
 
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button {
-            showingAlert = true
-          } label: {
-            Image(systemName: "plus")
-          }
-        }
+//        ToolbarItem(placement: .navigationBarTrailing) {
+//          Button {
+//            showingAlert = true
+//          } label: {
+//            Image(systemName: "plus")
+//          }
+//        }
       }
       .onAppear {
         //check preload data is avaliable in DataBase
