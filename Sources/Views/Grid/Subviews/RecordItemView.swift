@@ -393,7 +393,7 @@ extension RecordItemView {
 extension RecordItemView {
   private func onTapRecord() {
     switch recordPresentationState.mode {
-    case .displayAll, .copyVitals, .dashboard:
+    case .displayAll, .copyVitals, .dashboard, .viewTrends:
       onTapDocument()
     case .picker:
       updateItemDataOnPickerSelection()

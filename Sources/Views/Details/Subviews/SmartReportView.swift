@@ -36,18 +36,26 @@ struct SmartReportView: View {
   @State private var toastMessage: String = ""
   @Binding var smartReportInfo: SmartReportInfo?
   @State var determinedListData: [Verified] = []
-  
+  private let documentId: String
+  private let documentUrls: [String]
   private let onCopyVitals: (([Verified]) -> Void)?
+  private let viewTrendsCallback: ViewTrendsCallback
   private let recordPresentationState: RecordPresentationState
   // MARK: - Init
   init(
     smartReportInfo: Binding<SmartReportInfo?>,
     recordPresentationState: RecordPresentationState,
-    onCopyVitals: (([Verified]) -> Void)? = nil
+    onCopyVitals: (([Verified]) -> Void)? = nil,
+    viewTrendsCallback: ViewTrendsCallback = nil,
+    documentId: String,
+    documentUrls: [String],
   ) {
     _smartReportInfo = smartReportInfo
     self.recordPresentationState = recordPresentationState
     self.onCopyVitals = onCopyVitals
+    self.documentId = documentId
+    self.documentUrls = documentUrls
+    self.viewTrendsCallback = viewTrendsCallback
   }
   // MARK: - Body
   var body: some View {
@@ -101,6 +109,13 @@ struct SmartReportView: View {
     .onChange(of: smartReportInfo) { _ , newValue in
       initializeDeterminedListData(verifiedData: newValue?.verified)
       formSmartReportListData(verifiedData: newValue?.verified)
+    }
+    
+    .onChange(of: selectedItemData) { oldValue, newValue in
+      if let selectedItem = newValue.first {
+        viewTrendsCallback?(selectedItem, documentId, documentUrls, smartReportInfo)
+      }
+     
     }
   }
 }
@@ -249,7 +264,7 @@ extension SmartReportView {
    print( determinedListData.count)
   }
 }
-
-#Preview {
-  SmartReportView(smartReportInfo: .constant(nil), recordPresentationState: RecordPresentationState(mode: .dashboard))
-}
+//
+//#Preview {
+//  SmartReportView(smartReportInfo: .constant(nil), recordPresentationState: RecordPresentationState(mode: .dashboard, documentId:"", documentUrls: []))
+//}

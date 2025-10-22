@@ -15,7 +15,8 @@ struct RecordView: View {
   @State private var isShareSheetPresented: Bool = false
   @Environment(\.dismiss) private var dismiss
   private let onCopyVitals: (([Verified]) -> Void)?
-  
+  private let viewTrendsCallback: ViewTrendsCallback
+  @State private var doucumentsUrls: [String] = []
   enum Tab: Int {
     case smartReport = 0
     case documents = 1
@@ -32,10 +33,11 @@ struct RecordView: View {
   
   // MARK: - Init
   
-  init(record: Record, recordPresentationState: RecordPresentationState, onCopyVitals: (([Verified]) -> Void)? = nil) {
+  init(record: Record, recordPresentationState: RecordPresentationState, onCopyVitals: (([Verified]) -> Void)? = nil, viewTrendsCallback: ViewTrendsCallback = nil) {
     self.record = record
     self.recordPresentationState = recordPresentationState
     self.onCopyVitals = onCopyVitals
+    self.viewTrendsCallback = viewTrendsCallback
   }
   
   // MARK: - Body
@@ -84,6 +86,7 @@ struct RecordView: View {
         DispatchQueue.main.async {
           print("Received record meta data")
           documents = FileHelper.createDocumentTypes(from: documentURIs)
+          doucumentsUrls = documentURIs
           smartReportInfo = reportInfo
           isLoading = false
         }
@@ -102,7 +105,7 @@ struct RecordView: View {
           .background(Color(.systemBackground))
         
         // Right Side - Smart Report (2/5 of width)
-        SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
+        SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals,viewTrendsCallback: viewTrendsCallback, documentId: record.documentID ?? "", documentUrls: doucumentsUrls)
           .frame(width: geometry.size.width * 0.3, height: geometry.size.height)
           .background(Color(.systemBackground))
       }
@@ -126,7 +129,7 @@ struct RecordView: View {
       Group {
         switch selectedTab {
         case .smartReport:
-          SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals)
+          SmartReportView(smartReportInfo: $smartReportInfo,recordPresentationState: recordPresentationState ,onCopyVitals: onCopyVitals,documentId: record.documentID ?? "", documentUrls: doucumentsUrls)
         case .documents:
           DocumentViewer(documents: $documents)
         }

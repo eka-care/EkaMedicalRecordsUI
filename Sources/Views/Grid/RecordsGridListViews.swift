@@ -139,7 +139,7 @@ public struct RecordsGridListView: View {
               LazyVGrid(columns: columns, spacing: EkaSpacing.spacingM) {
                 ForEach(records, id: \.objectID) { item in
                   switch recordPresentationState.mode {
-                  case .dashboard, .displayAll, .copyVitals:
+                  case .dashboard, .displayAll, .copyVitals, .viewTrends:
                     if UIDevice.current.isIPad {
                       itemView(item: item)
                         .frame(
