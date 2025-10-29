@@ -409,19 +409,16 @@ extension RecordsGridListView {
     var predicates: [NSPredicate] = [oidPredicate]
     
     if let type {
-      // Check if the type exists in documentTypesList and is not "Other"
       let otherTypeId = documentTypesList.first(where: { $0.displayName == "Other" })?.id
-      let typeExistsInList = documentTypesList.contains(where: { $0.id == type }) && type != otherTypeId
+      let isKnownType = documentTypesList.contains(where: { $0.id == type }) && type != otherTypeId
       
-      if typeExistsInList {
-        // If type is in the list, filter by that specific type
-        let typePredicate = NSPredicate(format: "documentType == %@", type)
-        predicates.append(typePredicate)
+      if isKnownType {
+        // Filter by the specific known type
+        predicates.append(NSPredicate(format: "documentType == %@", type))
       } else {
-        // If type is NOT in the list, show all documents that are NOT in documentTypesList
-        let documentTypeIds = documentTypesList.compactMap { $0.id }
-        let notInListPredicate = NSPredicate(format: "NOT (documentType IN %@)", documentTypeIds)
-        predicates.append(notInListPredicate)
+        // Show documents not in documentTypesList (excluding "Other" from exclusion)
+        let knownTypeIds = documentTypesList.compactMap { $0.id }.filter { $0 != otherTypeId }
+        predicates.append(NSPredicate(format: "NOT (documentType IN %@)", knownTypeIds))
       }
     }
     
