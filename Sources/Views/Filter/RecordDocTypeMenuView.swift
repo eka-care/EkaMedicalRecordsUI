@@ -21,14 +21,16 @@ struct RecordDocTypeMenuView: View {
       Menu {
         // Dynamic list from documentTypeIds state
         ForEach(documentTypeIds, id: \.self) { typeId in
-          Button {
-            selectedDocType = typeId
-          } label: {
-            HStack {
-              Text(getDisplayInfo(for: typeId))
-                .textStyle(ekaFont: .bodyRegular, color: .black)
-              if selectedDocType == typeId {
-                checkMarkView()
+          if let type = documentTypesList.first(where: { $0.id == typeId }) {
+            Button {
+              selectedDocType = type.id
+            } label: {
+              HStack {
+                Text(type.filterName)
+                  .textStyle(ekaFont: .bodyRegular, color: .black)
+                if selectedDocType == type.id {
+                  checkMarkView()
+                }
               }
             }
           }
@@ -100,19 +102,11 @@ extension RecordDocTypeMenuView {
 
 extension RecordDocTypeMenuView {
   func getChipTitle() -> String {
-    guard let selectedDocType else {
-      return "File Type"
+    if let selectedDocType,
+       let displayName = documentTypesList.first(where: { $0.id == selectedDocType })?.filterName {
+      return displayName
     }
-    return getDisplayInfo(for: selectedDocType)
-  }
-  
-  private func getDisplayInfo(for typeId: String) -> String {
-    if let type = documentTypesList.first(where: { $0.id == typeId }) {
-      return type.filterName
-    }
-    // If type not found, treat as "Other"
-    let otherType = documentTypesList.first(where: { $0.displayName == "Other" })
-    return otherType?.filterName ?? "Other"
+    return "File Type"
   }
   
   private func refreshDocumentTypes() {
