@@ -409,8 +409,9 @@ extension RecordsGridListView {
     var predicates: [NSPredicate] = [oidPredicate]
     
     if let type {
-      // Check if the type exists in documentTypesList and is not "ot"
-      let typeExistsInList = documentTypesList.contains(where: { $0.id == type }) && type != "ot"
+      // Check if the type exists in documentTypesList and is not "Other"
+      let otherTypeId = documentTypesList.first(where: { $0.displayName == "Other" })?.id
+      let typeExistsInList = documentTypesList.contains(where: { $0.id == type }) && type != otherTypeId
       
       if typeExistsInList {
         // If type is in the list, filter by that specific type
