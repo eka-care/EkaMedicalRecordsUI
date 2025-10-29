@@ -202,7 +202,7 @@ extension RecordItemView {
            let recordType = record.documentType  {
           Text(documentTypesList.first(where: { data in
             data.id == recordType
-          })?.filterName ?? "Unknown")
+          })?.filterName ?? "Other")
             .textStyle(
               ekaFont: .calloutBold,
               color: .black
