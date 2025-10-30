@@ -16,21 +16,43 @@ struct RecordDocTypeMenuView: View {
   @Environment(\.managedObjectContext) private var viewContext
   @State private var documentTypeIds: [String] = []
 
+  private var menuItems: [(id: String, displayName: String)] {
+    var items: [(id: String, displayName: String)] = []
+    var hasUnmatchedTypes = false
+    var firstUnmatchedTypeId: String?
+    
+    for typeId in documentTypeIds {
+      if let type = documentTypesList.first(where: { $0.id == typeId }) {
+        items.append((typeId, type.filterName))
+      } else {
+        hasUnmatchedTypes = true
+        if firstUnmatchedTypeId == nil {
+          firstUnmatchedTypeId = typeId
+        }
+      }
+    }
+    
+    // Add single "Other" option if there are unmatched types
+    if hasUnmatchedTypes, let unmatchedId = firstUnmatchedTypeId {
+      items.append((unmatchedId, "Other"))
+    }
+    
+    return items
+  }
+  
   var body: some View {
     HStack(spacing: 0) {
       Menu {
-        // Dynamic list from documentTypeIds state
-        ForEach(documentTypeIds, id: \.self) { typeId in
-          if let type = documentTypesList.first(where: { $0.id == typeId }) {
-            Button {
-              selectedDocType = type.id
-            } label: {
-              HStack {
-                Text(type.filterName)
-                  .textStyle(ekaFont: .bodyRegular, color: .black)
-                if selectedDocType == type.id {
-                  checkMarkView()
-                }
+        // Show unique menu items, grouping unmatched types under "Other"
+        ForEach(menuItems, id: \.id) { item in
+          Button {
+            selectedDocType = item.id
+          } label: {
+            HStack {
+              Text(item.displayName)
+                .textStyle(ekaFont: .bodyRegular, color: .black)
+              if isItemSelected(item) {
+                checkMarkView()
               }
             }
           }
@@ -102,11 +124,29 @@ extension RecordDocTypeMenuView {
 
 extension RecordDocTypeMenuView {
   func getChipTitle() -> String {
-    if let selectedDocType,
-       let displayName = documentTypesList.first(where: { $0.id == selectedDocType })?.filterName {
-      return displayName
+    guard let selectedDocType else {
+      return "File Type"
     }
-    return "File Type"
+    return getDisplayInfo(for: selectedDocType)
+  }
+  
+  private func isItemSelected(_ item: (id: String, displayName: String)) -> Bool {
+    guard let selectedDocType = selectedDocType else { return false }
+    
+    if item.displayName == "Other" {
+      // For "Other", check if selected type is any unmatched type
+      return !documentTypesList.contains(where: { $0.id == selectedDocType })
+    }
+    
+    return selectedDocType == item.id
+  }
+  
+  private func getDisplayInfo(for typeId: String) -> String {
+    if let type = documentTypesList.first(where: { $0.id == typeId }) {
+      return type.filterName
+    }
+    // If type not found in documentTypesList, treat as "Other"
+    return "Other"
   }
   
   private func refreshDocumentTypes() {

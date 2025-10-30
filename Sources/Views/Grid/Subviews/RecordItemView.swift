@@ -32,6 +32,7 @@ public struct RecordItemView: View {
   var onTapDelete: (Record) -> Void
   var onTapRetry: (Record) -> Void
   var onTapDelinkCCase: (Record, String) -> Void
+  var onTapRecord: (Record) -> Void
   @State var isNetworkAvailable = true
   @State var cancellable: AnyCancellable?
   var allowLongPress: Bool = true
@@ -46,6 +47,7 @@ public struct RecordItemView: View {
     onTapDelete: @escaping (Record) -> Void,
     onTapRetry: @escaping (Record) -> Void,
     onTapDelinkCCase: @escaping (Record, String) -> Void,
+    onTapRecord: @escaping (Record) -> Void,
     allowLongPress: Bool = true,
     haveMenu: Bool = true
   ) {
@@ -57,6 +59,7 @@ public struct RecordItemView: View {
     self.onTapDelete = onTapDelete
     self.onTapRetry = onTapRetry
     self.onTapDelinkCCase = onTapDelinkCCase
+    self.onTapRecord = onTapRecord
     self.allowLongPress = allowLongPress
     self.haveMenu = haveMenu
   }
@@ -116,6 +119,11 @@ public struct RecordItemView: View {
     .background(Color.white)
     .cornerRadius(12)
     .contentShape(Rectangle())
+    .if(recordPresentationState.isPicker || UIDevice.current.isIPad) { view in
+      view.onTapGesture {
+        onSelectingRecord()
+      }
+    }
     .if(allowLongPress) { view in
       view.contextMenu {
         if let record = itemData.record {
@@ -169,9 +177,9 @@ public struct RecordItemView: View {
 //        Text("Delete")
 //      }
 //    }
-    .simultaneousGesture(TapGesture().onEnded {
-      onTapRecord()
-    })
+//    .simultaneousGesture(TapGesture().onEnded {
+//      onTapRecord()
+//    })
     .onAppear {
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
@@ -194,7 +202,7 @@ extension RecordItemView {
            let recordType = record.documentType  {
           Text(documentTypesList.first(where: { data in
             data.id == recordType
-          })?.filterName ?? "Unknown")
+          })?.filterName ?? "Other")
             .textStyle(
               ekaFont: .calloutBold,
               color: .black
@@ -391,7 +399,7 @@ extension RecordItemView {
 }
 //
 extension RecordItemView {
-  private func onTapRecord() {
+  private func onSelectingRecord() {
     switch recordPresentationState.mode {
     case .displayAll, .copyVitals, .dashboard, .viewTrends:
       onTapDocument()
@@ -403,7 +411,8 @@ extension RecordItemView {
   /// On tap of document we open document viewer
   /// Note: - This is not being used. We use navigation link.
   private func onTapDocument() {
-    
+    guard let record = itemData.record else { return }
+    onTapRecord(record)
   }
   
   /// Update item data on picker selection
@@ -446,6 +455,7 @@ extension RecordItemView {
     onTapEdit: {_ in},
     onTapDelete: {_ in},
     onTapRetry: {_ in},
-    onTapDelinkCCase: {_, _ in}
+    onTapDelinkCCase: {_, _ in},
+    onTapRecord: {_ in}
   )
 }

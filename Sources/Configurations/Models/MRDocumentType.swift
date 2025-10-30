@@ -52,7 +52,7 @@ public struct MRDocumentType: Codable, Hashable, Identifiable {
   }
 
   public var filterName: String {
-      displayName ?? "Unknown"
+      displayName ?? "Other"
   }
 
   // MARK: - Helpers
