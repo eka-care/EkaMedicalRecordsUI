@@ -18,7 +18,7 @@ struct CreateCaseFormView: View {
   @State private var date: Date = Date()
   @Environment(\.managedObjectContext) private var viewContext
   @Environment(\.dismiss) private var dismiss
-  
+  @State private var showDatePicker: Bool = false
   @State private var showCaseTypeSheet = false
   private let caseName: String
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
@@ -70,6 +70,13 @@ struct CreateCaseFormView: View {
         CaseTypeSelectionView(selectedCase: $caseType)
           .environment(\.managedObjectContext, viewContext)
       }
+      .sheet(isPresented: $showDatePicker) {
+        DatePicker("Select Date", selection: $date, displayedComponents: .date)
+          .datePickerStyle(.wheel)
+          .labelsHidden()
+          .presentationDetents([.medium])
+          .padding()
+      }
   }
   private var dateFormatted: String {
     let formatter = DateFormatter()
@@ -111,9 +118,12 @@ extension CreateCaseFormView {
       Text("Date")
       Spacer()
       Text(dateFormatted)
-        .foregroundColor(.gray)
+        .foregroundColor(Color(.ascent))
     }
     .contentShape(Rectangle())
+    .onTapGesture {
+      showDatePicker = true
+    }
   }
   private func caseInformationSection() -> some View {
     Section {
@@ -139,7 +149,7 @@ extension CreateCaseFormView {
       caseType: caseType,
       oid: CoreInitConfigurations.shared.primaryFilterID,
       name: caseName,
-      occuredAt: Date(),
+      occuredAt: date,
       status: .active
     )
     recordsRepo.addCase(caseArguementModel: caseModel)
