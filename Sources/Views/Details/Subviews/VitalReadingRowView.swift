@@ -74,9 +74,11 @@ struct VitalReadingRowView: View {
     }
     .background(Color.white)
     .onTapGesture {
-      if isSelectable {
-        toggleSelection()
-      }
+      if recordPresentationState.isViewTrends {
+        selectedItemData = [itemData]
+      } else if isSelectable {
+          toggleSelection()
+        }
     }
   }
 }

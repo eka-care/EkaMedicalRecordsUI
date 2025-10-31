@@ -20,7 +20,7 @@ public struct RecordPresentationState: Equatable {
 
   public var title: String {
     switch mode {
-    case .dashboard:
+    case .dashboard, .viewTrends:
       return ""
     case .displayAll, .copyVitals:
       return InitConfiguration.shared.recordsTitle ?? "All"
@@ -43,6 +43,13 @@ public struct RecordPresentationState: Equatable {
   
   public var isCopyVitals: Bool {
     if case .copyVitals = mode {
+      return true
+    }
+    return false
+  }
+  
+  public var isViewTrends: Bool {
+    if case .viewTrends = mode {
       return true
     }
     return false
@@ -91,6 +98,7 @@ public enum RecordMode: Equatable {
   case dashboard
   case displayAll
   case copyVitals
+  case viewTrends
   case picker(maxCount: Int)
 }
 
@@ -104,6 +112,7 @@ extension RecordPresentationState {
 
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
 public typealias CopyVitalsCallback = (([Verified]) -> Void)?
+public typealias ViewTrendsCallback = ((Verified, String, [String] , SmartReportInfo?) -> Void)?
 
 public enum RecordTab: CaseIterable, Hashable {
   case records
@@ -167,6 +176,7 @@ public struct RecordContainerView: View {
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let didSelectPickerDataObjects: RecordItemsCallback
   private let onCopyVitals: CopyVitalsCallback
+  private let viewTrendsCallback: ViewTrendsCallback
   private let initialRecordPresentationState: RecordPresentationState
   private var selectedFilterInAllRecords: [String] = []
   private var selectedDocTypeInAllRecords: String? = nil
@@ -181,13 +191,15 @@ public struct RecordContainerView: View {
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     onCopyVitals: CopyVitalsCallback = nil,
     selectedTags: [String] = [],
-    selectedRecordType: MRDocumentType? = nil
+    selectedRecordType: MRDocumentType? = nil,
+    viewTrendsCallback: ViewTrendsCallback = nil
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
     self.initialRecordPresentationState = recordPresentationState
     self.selectedFilterInAllRecords = selectedTags
     self.selectedDocTypeInAllRecords = selectedRecordType?.id
+    self.viewTrendsCallback = viewTrendsCallback
     EkaUI.registerFonts()
     try? Fonts.registerAllFonts()
   }
@@ -243,7 +255,7 @@ public struct RecordContainerView: View {
     }) { modal in
       if case let .record(record) = modal {
         NavigationStack{
-          RecordView(record: record, recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals)
+          RecordView(record: record, recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals, viewTrendsCallback: viewTrendsCallback)
         }
       }
       if case let .newCase(name) = modal {
@@ -557,7 +569,7 @@ extension RecordContainerView {
   
   @ViewBuilder
   private func recordDestination(for record: Record) -> some View {
-    RecordView(record: record,recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals)
+    RecordView(record: record,recordPresentationState: viewModel.recordPresentationState ,onCopyVitals: onCopyVitals, viewTrendsCallback: viewTrendsCallback)
   }
 }
 
