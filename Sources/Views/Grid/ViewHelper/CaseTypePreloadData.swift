@@ -8,7 +8,7 @@
 import EkaMedicalRecordsCore
 import SwiftUI
 
-struct CaseTypePreloadData {
+public struct CaseTypePreloadData {
   static let all: [CaseTypeModel] = [
     CaseTypeModel(name: "EM"),
     CaseTypeModel(name: "IP"),
