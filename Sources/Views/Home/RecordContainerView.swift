@@ -752,7 +752,7 @@ final class RecordContainerViewModel: ObservableObject {
 
   private func preloadAndSyncData() async {
     await withCheckedContinuation { continuation in
-      recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
+      recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.defaultCases) { _ in
         continuation.resume()
       }
     }

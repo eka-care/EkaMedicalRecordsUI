@@ -87,7 +87,7 @@ struct CaseTypeSelectionView: View {
       }
       .onAppear {
         //check preload data is avaliable in DataBase
-        recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.all) { _ in
+        recordsRepo.checkAndPreloadCaseTypes(preloadData: CaseTypePreloadData.defaultCases) { _ in
           
         }
       }
