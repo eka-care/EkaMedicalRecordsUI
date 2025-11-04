@@ -20,16 +20,23 @@ struct CreateCaseFormView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var showDatePicker: Bool = false
   @State private var showCaseTypeSheet = false
+  @State private var showDiscardAlert: Bool = false
   private let caseName: String
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let showCancelButton: Bool
+  private let mode: SheetMode
+  private let existingCase: CaseModel?
   
   init(
     caseName: String,
-    showCancelButton: Bool = true
+    showCancelButton: Bool = true,
+    mode: SheetMode = .add,
+    existingCase: CaseModel? = nil
   ) {
     self.caseName = caseName
     self.showCancelButton = showCancelButton
+    self.mode = mode
+    self.existingCase = existingCase
     // For preview to work
     EkaUI.registerFonts()
   }
@@ -45,22 +52,26 @@ struct CreateCaseFormView: View {
         caseInformationSection()
       }
       .background(Color(.fillsTertiary))
-      .navigationTitle("Create Encounter")
+      .navigationTitle(mode == .add ? "Create Encounter" : "Edit Encounter")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         // Only show cancel button when explicitly enabled (for modal presentation)
         if showCancelButton {
           ToolbarItem(placement: .navigationBarLeading) {
             Button("Cancel") {
-              dismiss()
+              if mode == .edit {
+                showDiscardAlert = true
+              } else {
+                dismiss()
+              }
             }
             .foregroundStyle(Color(.ascent))
           }
         }
         
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Create") {
-            addCase()
+          Button(mode == .add ? "Create" : "Save") {
+            saveCase()
             dismiss()
           }
           .foregroundStyle(Color(.ascent))
@@ -76,6 +87,17 @@ struct CreateCaseFormView: View {
           .labelsHidden()
           .presentationDetents([.medium])
           .padding()
+      }
+      .alert("Discard Changes", isPresented: $showDiscardAlert) {
+        Button("Cancel", role: .cancel) { }
+        Button("Discard", role: .destructive) {
+          dismiss()
+        }
+      } message: {
+        Text("Are you sure you want to discard your changes?")
+      }
+      .onAppear {
+        loadExistingCaseData()
       }
   }
   private var dateFormatted: String {
@@ -97,10 +119,18 @@ extension CreateCaseFormView {
         .foregroundStyle(.red)
       Spacer()
       
-      Text(caseName)
+      Text(displayCaseName)
         .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .ascent))
     }
   }
+  
+  private var displayCaseName: String {
+    if mode == .edit, let existingCase = existingCase {
+      return existingCase.caseName ?? caseName
+    }
+    return caseName
+  }
+  
   private func caseTypeView() -> some View {
     HStack {
       Text("Encounter type")
@@ -143,6 +173,20 @@ extension CreateCaseFormView {
 // MARK: - Helper Functions
 
 extension CreateCaseFormView {
+  private func loadExistingCaseData() {
+    guard let existingCase = existingCase, mode == .edit else { return }
+    caseType = existingCase.caseType ?? ""
+    date = existingCase.occuredAt ?? Date()
+  }
+  
+  private func saveCase() {
+    if mode == .edit {
+      updateCase()
+    } else {
+      addCase()
+    }
+  }
+  
   private func addCase() {
     let caseModel = CaseArguementModel(
       caseId: UUID().uuidString,
@@ -153,6 +197,21 @@ extension CreateCaseFormView {
       status: .active
     )
     recordsRepo.addCase(caseArguementModel: caseModel)
+  }
+  
+  private func updateCase() {
+    guard let existingCase = existingCase else { return }
+    
+    // Update the existing case properties
+    existingCase.caseType = caseType.isEmpty ? nil : caseType
+    existingCase.occuredAt = date
+    
+    // Save the context
+    do {
+      try viewContext.save()
+    } catch {
+      debugPrint("Failed to update case: \(error.localizedDescription)")
+    }
   }
 }
 

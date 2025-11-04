@@ -21,6 +21,8 @@ struct CasesListView: View {
   private let onSelectCase: ((CaseModel) -> Void)?
   private var shouldSelectDefaultCase: Bool = false
   @Binding var selectedCase: CaseModel?
+  @State private var caseToEdit: CaseModel?
+  @State private var showEditCaseSheet: Bool = false
   
   // MARK: - Init
   init(
@@ -106,6 +108,19 @@ struct CasesListView: View {
     .onAppear {
       resetView()
     }
+    .sheet(isPresented: $showEditCaseSheet) {
+      if let caseModel = caseToEdit {
+        NavigationStack {
+          CreateCaseFormView(
+            caseName: caseModel.caseName ?? "",
+            showCancelButton: true,
+            mode: .edit,
+            existingCase: caseModel
+          )
+          .environment(\.managedObjectContext, viewContext)
+        }
+      }
+    }
   }
 }
 // MARK: - Subviews
@@ -126,6 +141,12 @@ extension CasesListView {
       if UIDevice.current.isIPad {
         cardView
           .contextMenu {
+            Button() {
+              caseToEdit = caseModel
+              showEditCaseSheet = true
+            } label: {
+              Text("Edit")
+            }
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)
             } label: {
@@ -140,6 +161,12 @@ extension CasesListView {
       } else {
         cardView
           .contextMenu {
+            Button() {
+              caseToEdit = caseModel
+              showEditCaseSheet = true
+            } label: {
+              Text("Edit")
+            }
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)
             } label: {
