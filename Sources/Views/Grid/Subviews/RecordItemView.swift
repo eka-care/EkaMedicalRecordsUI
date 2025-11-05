@@ -126,7 +126,7 @@ public struct RecordItemView: View {
     }
     .if(allowLongPress) { view in
       view.contextMenu {
-        if let record = itemData.record {
+        if let record = itemData.record , !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.uploadRecords) {
           Button {
             onTapEdit(record)
           } label: {
@@ -367,12 +367,14 @@ extension RecordItemView {
   private func menuView() -> some View {
     // Menu that opens on tap (instead of long press)
     Menu {
-      Button {
-        if let record = itemData.record {
-          onTapEdit(record)
+      if !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.uploadRecords) {
+        Button {
+          if let record = itemData.record {
+            onTapEdit(record)
+          }
+        } label: {
+          Text("Edit")
         }
-      } label: {
-        Text("Edit")
       }
       
       if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {

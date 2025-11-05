@@ -141,12 +141,15 @@ extension CasesListView {
       if UIDevice.current.isIPad {
         cardView
           .contextMenu {
-            Button() {
-              caseToEdit = caseModel
-              showEditCaseSheet = true
-            } label: {
-              Text("Edit")
+            if !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases) {
+              Button() {
+                caseToEdit = caseModel
+                showEditCaseSheet = true
+              } label: {
+                Text("Edit")
+              }
             }
+            
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)
             } label: {
@@ -161,11 +164,13 @@ extension CasesListView {
       } else {
         cardView
           .contextMenu {
-            Button() {
-              caseToEdit = caseModel
-              showEditCaseSheet = true
-            } label: {
-              Text("Edit")
+            if !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases) {
+              Button() {
+                caseToEdit = caseModel
+                showEditCaseSheet = true
+              } label: {
+                Text("Edit")
+              }
             }
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)

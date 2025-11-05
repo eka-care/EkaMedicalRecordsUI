@@ -139,13 +139,15 @@ extension SearchableCaseListView {
       NavigationLink(value: caseModel) {
         cardView
           .contextMenu {
-            Button() {
-              caseToEdit = caseModel
-              showEditCaseSheet = true
-            } label: {
-              Text("Edit")
+            if !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases) {
+              Button() {
+                caseToEdit = caseModel
+                showEditCaseSheet = true
+              } label: {
+                Text("Edit")
+              }
             }
-            
+
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)
             } label: {
