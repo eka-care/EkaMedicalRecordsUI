@@ -16,12 +16,12 @@ struct CaseFormRoute: Hashable {
 struct CreateCaseFormView: View {
   @State private var caseType: String = ""
   @State private var date: Date = Date()
+  @State private var caseName: String = ""
   @Environment(\.managedObjectContext) private var viewContext
   @Environment(\.dismiss) private var dismiss
   @State private var showDatePicker: Bool = false
   @State private var showCaseTypeSheet = false
   @State private var showDiscardAlert: Bool = false
-  private let caseName: String
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let showCancelButton: Bool
   private let mode: SheetMode
@@ -33,7 +33,7 @@ struct CreateCaseFormView: View {
     mode: SheetMode = .add,
     existingCase: CaseModel? = nil
   ) {
-    self.caseName = caseName
+    _caseName = State(initialValue: caseName)
     self.showCancelButton = showCancelButton
     self.mode = mode
     self.existingCase = existingCase
@@ -119,16 +119,11 @@ extension CreateCaseFormView {
         .foregroundStyle(.red)
       Spacer()
       
-      Text(displayCaseName)
-        .newTextStyle(ekaFont: .bodyRegular, color: UIColor(resource: .ascent))
+      TextField("", text: $caseName)
+        .multilineTextAlignment(.trailing)
+        .foregroundColor(Color(.ascent))
+        .autocorrectionDisabled()
     }
-  }
-  
-  private var displayCaseName: String {
-    if mode == .edit, let existingCase = existingCase {
-      return existingCase.caseName ?? caseName
-    }
-    return caseName
   }
   
   private func caseTypeView() -> some View {
@@ -175,8 +170,10 @@ extension CreateCaseFormView {
 extension CreateCaseFormView {
   private func loadExistingCaseData() {
     guard let existingCase = existingCase, mode == .edit else { return }
+    
     caseType = existingCase.caseType ?? ""
     date = existingCase.occuredAt ?? Date()
+    caseName = existingCase.caseName ?? caseName
   }
   
   private func saveCase() {
@@ -202,16 +199,14 @@ extension CreateCaseFormView {
   private func updateCase() {
     guard let existingCase = existingCase else { return }
     
-    // Update the existing case properties
-    existingCase.caseType = caseType.isEmpty ? nil : caseType
-    existingCase.occuredAt = date
-    
-    // Save the context
-    do {
-      try viewContext.save()
-    } catch {
-      debugPrint("Failed to update case: \(error.localizedDescription)")
-    }
+    let caseArguementModel = CaseArguementModel(
+      caseType: caseType,
+      name: caseName,
+      occuredAt: date,
+      isRemoteCreated: true,
+      isEdited: true
+    )
+    recordsRepo.updateCase(caseModel: existingCase, caseArguementModel: caseArguementModel)
   }
 }
 
