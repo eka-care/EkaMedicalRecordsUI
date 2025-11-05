@@ -24,7 +24,9 @@ struct SearchableCaseListView: View {
   private let casesPresentationState: CasesPresentationState
   private let recordsRepo: RecordsRepo = RecordsRepo.shared
   private let onSelectCase: ((CaseModel) -> Void)?
-  
+  @State private var caseToEdit: CaseModel?
+  @State private var showEditCaseSheet: Bool = false
+
   // MARK: - Init
   
   init(
@@ -104,6 +106,19 @@ struct SearchableCaseListView: View {
     .onAppear {
       resetView()
     }
+    .sheet(isPresented: $showEditCaseSheet) {
+      if let caseModel = caseToEdit {
+        NavigationStack {
+          CaseFormView(
+            caseName: caseModel.caseName ?? "",
+            showCancelButton: true,
+            mode: .edit,
+            existingCase: caseModel
+          )
+          .environment(\.managedObjectContext, viewContext)
+        }
+      }
+    }
   }
 }
 
@@ -124,10 +139,19 @@ extension SearchableCaseListView {
       NavigationLink(value: caseModel) {
         cardView
           .contextMenu {
+            if !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases) {
+              Button() {
+                caseToEdit = caseModel
+                showEditCaseSheet = true
+              } label: {
+                Text("Edit")
+              }
+            }
+
             Button(role: .destructive) {
               recordsRepo.deleteCase(caseModel)
             } label: {
-              Text("Delete")
+              Text("Archive")
             }
           }
       }

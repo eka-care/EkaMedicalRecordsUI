@@ -92,7 +92,7 @@ struct EditBottomSheetView: View {
         }
       }
       .navigationDestination(for: CaseFormRoute.self) { route in
-        CreateCaseFormView(
+        CaseFormView(
           caseName: route.prefilledName,
           showCancelButton: false
         )
