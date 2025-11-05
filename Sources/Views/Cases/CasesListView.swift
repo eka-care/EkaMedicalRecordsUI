@@ -111,7 +111,7 @@ struct CasesListView: View {
     .sheet(isPresented: $showEditCaseSheet) {
       if let caseModel = caseToEdit {
         NavigationStack {
-          CreateCaseFormView(
+          CaseFormView(
             caseName: caseModel.caseName ?? "",
             showCancelButton: true,
             mode: .edit,

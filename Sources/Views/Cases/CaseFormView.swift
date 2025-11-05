@@ -1,5 +1,5 @@
 //
-//  CreateCaseFormView.swift
+//  CaseFormView.swift
 //  EkaMedicalRecordsUI
 //
 //  Created by Arya Vashisht on 21/07/25.
@@ -13,7 +13,7 @@ struct CaseFormRoute: Hashable {
   let prefilledName: String
 }
 
-struct CreateCaseFormView: View {
+struct CaseFormView: View {
   @State private var caseType: String = ""
   @State private var date: Date = Date()
   @State private var caseName: String = ""
@@ -109,7 +109,7 @@ struct CreateCaseFormView: View {
 
 // MARK: - Subviews
 
-extension CreateCaseFormView {
+extension CaseFormView {
   /// Case Name VIew
   /// - Returns: View which has case name text field
   private func caseNameView() -> some View {
@@ -167,13 +167,24 @@ extension CreateCaseFormView {
 
 // MARK: - Helper Functions
 
-extension CreateCaseFormView {
+extension CaseFormView {
   private func loadExistingCaseData() {
-    guard let existingCase = existingCase, mode == .edit else { return }
-    
-    caseType = existingCase.caseType ?? ""
-    date = existingCase.occuredAt ?? Date()
-    caseName = existingCase.caseName ?? caseName
+    if let existingCase = existingCase, mode == .edit {
+      // Load existing case type
+      if let existingCaseType = existingCase.caseType, !existingCaseType.isEmpty {
+        caseType = existingCaseType
+      }
+      
+      // Load existing date
+      if let existingDate = existingCase.occuredAt {
+        date = existingDate
+      }
+      
+      // Load existing case name
+      if let existingCaseName = existingCase.caseName, !existingCaseName.isEmpty {
+        caseName = existingCaseName
+      }
+    }
   }
   
   private func saveCase() {
@@ -211,5 +222,5 @@ extension CreateCaseFormView {
 }
 
 #Preview {
-  CreateCaseFormView(caseName: "")
+  CaseFormView(caseName: "")
 }

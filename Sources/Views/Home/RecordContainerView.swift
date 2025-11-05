@@ -260,7 +260,7 @@ public struct RecordContainerView: View {
       }
       if case let .newCase(name) = modal {
         NavigationStack{
-          CreateCaseFormView(
+          CaseFormView(
             caseName: name,
             showCancelButton: true
           )
@@ -560,7 +560,7 @@ extension RecordContainerView {
   
   @ViewBuilder
   private func caseFormDestination(for route: CaseFormRoute) -> some View {
-    CreateCaseFormView(
+    CaseFormView(
       caseName: route.prefilledName,
       showCancelButton: false
     )
