@@ -799,8 +799,3 @@ final class RecordContainerViewModel: ObservableObject {
     }
   }
 }
-
-// MARK: - Notification Names
-extension Notification.Name {
-  static let subscriptionExpired = Notification.Name("subscriptionExpired")
-}
