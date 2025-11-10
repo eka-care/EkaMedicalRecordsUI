@@ -426,6 +426,11 @@ extension RecordsGridListView {
     let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
     var predicates: [NSPredicate] = [oidPredicate]
     
+    // Filter out archived records - only show active records
+    let statusPredicate = NSPredicate(format: "isArchived == %@ OR isArchived == nil",
+                                      NSNumber(value: false))
+    predicates.append(statusPredicate)
+    
     if let type {
       let otherTypeId = documentTypesList.first(where: { $0.displayName == "Other" })?.id
       let isKnownType = documentTypesList.contains(where: { $0.id == type }) && type != otherTypeId
