@@ -391,7 +391,8 @@ extension RecordsGridListView {
     recordToBeUpload.syncState = .uploading
     
     DispatchQueue.main.async {
-      recordsRepo.addSingleRecord(record: recordToBeUpload) { _ in
+      recordsRepo.addSingleRecord(record: recordToBeUpload) { _ , errorType in
+        
       }
     }
   }
