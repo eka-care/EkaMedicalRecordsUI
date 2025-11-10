@@ -203,12 +203,12 @@ public struct RecordsGridListView: View {
       Text("Are you sure you want to delete this record?")
     }
     // Subscription expiration alert
-    .alert("Subscription Expired", isPresented: $isSubscriptionExpiredAlertPresented) {
+    .alert("Your storage is full!", isPresented: $isSubscriptionExpiredAlertPresented) {
       Button("OK", role: .cancel) {
         isSubscriptionExpiredAlertPresented = false
       }
     } message: {
-      Text("Your subscription has expired. Please contact our sales team to continue uploading documents.")
+      Text("To continue uploading patient records or prescriptions, please contact support to request a plan upgrade.")
     }
     .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
       selectedDocType = nil

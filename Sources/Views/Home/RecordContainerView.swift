@@ -781,7 +781,6 @@ final class RecordContainerViewModel: ObservableObject {
             if let underlyingErrors = nsError.userInfo["underlyingErrors"] as? [NSError],
                underlyingErrors.contains(where: { $0.code == -14 }) {
               DispatchQueue.main.async {
-                print("failed ==== Subscription expired (error code -14)")
                 NotificationCenter.default.post(name: .subscriptionExpired, object: nil)
               }
             }
