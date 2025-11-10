@@ -10,7 +10,6 @@ import PhotosUI
 import CoreData
 import EkaMedicalRecordsCore
 
-//TODO: - Shekhar: commented blocking unnecessay api calls
 public struct RecordsGridListView: View {
   // MARK: - Properties
   let recordsRepo: RecordsRepo = RecordsRepo.shared
@@ -64,6 +63,8 @@ public struct RecordsGridListView: View {
   
   @State var documentDetailsSheetMode: SheetMode?
   
+  /// Alert to show subscription expiration
+  @State private var isSubscriptionExpiredAlertPresented = false
  
   public init(
     recordPresentationState: RecordPresentationState,
@@ -186,6 +187,9 @@ public struct RecordsGridListView: View {
     .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
       currentCaseID = newValue
     }
+    .onReceive(NotificationCenter.default.publisher(for: .subscriptionExpired)) { _ in
+      isSubscriptionExpiredAlertPresented = true
+    }
     .background(Color(.neutrals50))
     // alert box
     .alert("Confirm Delete", isPresented: $isDeleteAlertPresented) { [itemToBeDeleted] in
@@ -197,6 +201,14 @@ public struct RecordsGridListView: View {
       Button("No", role: .cancel) {}
     } message: {
       Text("Are you sure you want to delete this record?")
+    }
+    // Subscription expiration alert
+    .alert("Subscription Expired", isPresented: $isSubscriptionExpiredAlertPresented) {
+      Button("OK", role: .cancel) {
+        isSubscriptionExpiredAlertPresented = false
+      }
+    } message: {
+      Text("Your subscription has expired. Please contact our sales team to continue uploading documents.")
     }
     .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
       selectedDocType = nil
@@ -288,7 +300,10 @@ extension RecordsGridListView {
   }
   /// On tap retry upload
   private func onTapRetry(record: Record) {
-    recordsRepo.uploadRecord(record: record) { _ in
+    recordsRepo.uploadRecord(record: record) { _ , errorType in
+      if errorType == .uploadLimitReached {
+        isSubscriptionExpiredAlertPresented = true
+      }
     }
   }
   /// Used to delete a grid item

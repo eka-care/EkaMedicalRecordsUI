@@ -772,7 +772,21 @@ final class RecordContainerViewModel: ObservableObject {
 
     Task {
       recordsRepo.syncUnsyncedCases { _ in
-        self.recordsRepo.syncUnuploadedRecords { _ in }
+        self.recordsRepo.syncUnuploadedRecords { result in
+//          switch result {
+//          case .success:
+//            break
+//          case .failure(let error):
+//            let nsError = error as NSError
+//            if let underlyingErrors = nsError.userInfo["underlyingErrors"] as? [NSError],
+//               underlyingErrors.contains(where: { $0.code == -14 }) {
+//              DispatchQueue.main.async {
+//                print("failed ==== Subscription expired (error code -14)")
+//                NotificationCenter.default.post(name: .subscriptionExpired, object: nil)
+//              }
+//            }
+//          }
+        }
       }
     }
   }
@@ -784,4 +798,9 @@ final class RecordContainerViewModel: ObservableObject {
       }
     }
   }
+}
+
+// MARK: - Notification Names
+extension Notification.Name {
+  static let subscriptionExpired = Notification.Name("subscriptionExpired")
 }
