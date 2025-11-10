@@ -392,7 +392,9 @@ extension RecordsGridListView {
     
     DispatchQueue.main.async {
       recordsRepo.addSingleRecord(record: recordToBeUpload) { _ , errorType in
-        
+        if errorType == .uploadLimitReached {
+          isSubscriptionExpiredAlertPresented = true
+        }
       }
     }
   }
