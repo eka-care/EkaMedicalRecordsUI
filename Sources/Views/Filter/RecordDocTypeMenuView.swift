@@ -106,7 +106,8 @@ struct RecordDocTypeMenuView: View {
     .onAppear {
       refreshDocumentTypes()
     }
-    .onChange(of: caseId) { _, _ in
+    .onChange(of: caseId) { oldValue, newValue in
+      guard oldValue != newValue else { return }
       refreshDocumentTypes()
     }
   }
