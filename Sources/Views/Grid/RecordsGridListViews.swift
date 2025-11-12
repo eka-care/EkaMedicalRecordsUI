@@ -54,6 +54,9 @@ public struct RecordsGridListView: View {
   @StateObject private var networkMonitor = NetworkMonitor.shared
   /// Used for callback when picker does select images
   var didSelectPickerDataObjects: RecordItemsCallback
+  
+  var subscriptionActionCallback: SubscriptionActionCallback
+  
   @Binding private var selectedRecord: Record?
   @Binding private var lastSourceRefreshedAt: Date?
   // MARK: - Init
@@ -69,6 +72,7 @@ public struct RecordsGridListView: View {
   public init(
     recordPresentationState: RecordPresentationState,
     didSelectPickerDataObjects: RecordItemsCallback = nil,
+    subscriptionActionCallback: SubscriptionActionCallback = nil,
     title: String,
     pickerSelectedRecords: Binding<[Record]> = .constant([]),
     selectedRecord: Binding<Record?> = .constant(nil),
@@ -77,6 +81,7 @@ public struct RecordsGridListView: View {
     selectedDocType: Binding<String?> = .constant(nil)
     ) {
     self.recordPresentationState = recordPresentationState
+    self.subscriptionActionCallback = subscriptionActionCallback
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self._pickerSelectedRecords = pickerSelectedRecords
     self.title = title
@@ -204,9 +209,9 @@ public struct RecordsGridListView: View {
       Text("Are you sure you want to delete this record?")
     }
     // Subscription expiration alert
-    .alert("Your storage is full!", isPresented: $isSubscriptionExpiredAlertPresented) {
+    .alert("Your cloud storage is full!", isPresented: $isSubscriptionExpiredAlertPresented) {
       Button("OK", role: .cancel) {
-        isSubscriptionExpiredAlertPresented = false
+        subscriptionActionCallback?(true)
       }
     } message: {
       Text("To continue uploading patient records or prescriptions, please contact support to request a plan upgrade.")

@@ -113,6 +113,7 @@ extension RecordPresentationState {
 public typealias RecordItemsCallback = (([RecordPickerDataModel]) -> Void)?
 public typealias CopyVitalsCallback = (([Verified]) -> Void)?
 public typealias ViewTrendsCallback = ((Verified, String, [String] , SmartReportInfo?) -> Void)?
+public typealias SubscriptionActionCallback =  ((Bool) -> Void)?
 
 public enum RecordTab: CaseIterable, Hashable {
   case records
@@ -180,6 +181,7 @@ public struct RecordContainerView: View {
   private let initialRecordPresentationState: RecordPresentationState
   private var selectedFilterInAllRecords: [String] = []
   private var selectedDocTypeInAllRecords: String? = nil
+  private let subscriptionActionCallback: SubscriptionActionCallback
   @StateObject private var networkMonitor = NetworkMonitor.shared
   @State private var refreshProgress: Double = 0.0
   @State private var showProgress = false
@@ -192,7 +194,8 @@ public struct RecordContainerView: View {
     onCopyVitals: CopyVitalsCallback = nil,
     selectedTags: [String] = [],
     selectedRecordType: MRDocumentType? = nil,
-    viewTrendsCallback: ViewTrendsCallback = nil
+    viewTrendsCallback: ViewTrendsCallback = nil,
+    subscriptionActionCallback: SubscriptionActionCallback = nil
   ) {
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
@@ -200,6 +203,7 @@ public struct RecordContainerView: View {
     self.selectedFilterInAllRecords = selectedTags
     self.selectedDocTypeInAllRecords = selectedRecordType?.id
     self.viewTrendsCallback = viewTrendsCallback
+    self.subscriptionActionCallback = subscriptionActionCallback
     EkaUI.registerFonts()
     try? Fonts.registerAllFonts()
   }
@@ -420,6 +424,7 @@ extension RecordContainerView {
     } else {
       RecordsGridListView(
         recordPresentationState: viewModel.recordPresentationState,
+        subscriptionActionCallback:  subscriptionActionCallback,
         title: "Documents",
         pickerSelectedRecords: $viewModel.pickerSelectedRecords,
         selectedRecord: $viewModel.selectedRecord,
@@ -437,6 +442,7 @@ extension RecordContainerView {
     case .records:
       RecordsGridListView(
         recordPresentationState: viewModel.recordPresentationState,
+        subscriptionActionCallback: subscriptionActionCallback,
         title: viewModel.recordPresentationState.title,
         pickerSelectedRecords: $viewModel.pickerSelectedRecords,
         selectFilter: $viewModel.selectedFilterInAllRecords,
@@ -550,6 +556,7 @@ extension RecordContainerView {
   private func caseDestination(for model: CaseModel) -> some View {
     RecordsGridListView(
       recordPresentationState: RecordPresentationState(mode: viewModel.recordPresentationState.mode, filters: RecordFilter(caseID: model.caseID)),
+      subscriptionActionCallback: subscriptionActionCallback,
       title: model.caseName ?? "Documents",
       pickerSelectedRecords: $viewModel.pickerSelectedRecords,
       selectFilter: $viewModel.selectedFilterInEncounters,
