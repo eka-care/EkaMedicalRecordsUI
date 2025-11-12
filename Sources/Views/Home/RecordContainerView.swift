@@ -783,8 +783,8 @@ final class RecordContainerViewModel: ObservableObject {
             let nsError = error as NSError
             if let underlyingErrors = nsError.userInfo["underlyingErrors"] as? [NSError],
                underlyingErrors.contains(where: { $0.code == ErrorHelper.Code.uploadLimitReached.rawValue }) {
-              DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .subscriptionExpired, object: nil)
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
               }
             }
           }

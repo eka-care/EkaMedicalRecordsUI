@@ -10,5 +10,5 @@ import Foundation
 
 // MARK: - Notification Names
 extension Notification.Name {
-  static let subscriptionExpired = Notification.Name("subscriptionExpired")
-} 
+  static let subscriptionStatusChanged = Notification.Name("subscriptionStatusChanged")
+}

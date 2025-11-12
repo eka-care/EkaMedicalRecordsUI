@@ -188,7 +188,7 @@ public struct RecordsGridListView: View {
       guard oldValue != newValue else { return }
       currentCaseID = newValue
     }
-    .onReceive(NotificationCenter.default.publisher(for: .subscriptionExpired)) { _ in
+    .onReceive(NotificationCenter.default.publisher(for: .subscriptionStatusChanged)) { _ in
       isSubscriptionExpiredAlertPresented = true
     }
     .background(Color(.neutrals50))
