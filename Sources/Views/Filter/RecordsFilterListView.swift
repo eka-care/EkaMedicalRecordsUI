@@ -40,7 +40,8 @@ struct RecordsFilterListView: View {
       )) { _ in
         refreshFilters()
       }
-      .onChange(of: caseID) { _, _ in
+      .onChange(of: caseID) { oldValue, newValue in
+        guard oldValue != newValue else { return }
         refreshFilters()
       }
   }
@@ -104,8 +105,11 @@ extension RecordsFilterListView {
 //          }
 //        }
 //      }
-      .onChange(of: selectedDocType) { _, _ in
-        selectedChip.removeAll()
+      .onChange(of: selectedDocType) { oldValue, newValue in
+        guard oldValue != newValue else { return }
+        if !selectedChip.isEmpty {
+          selectedChip.removeAll()
+        }
         updateFiltersCount()
       }
     }
@@ -134,12 +138,14 @@ extension RecordsFilterListView {
     recordsFilter = recordsRepo.getRecordTagCount(caseID: caseID, documentType: selectedDocType)
 
     //  Auto-cleanup: remove chips that no longer exist or are zero
-    selectedChip.removeAll { key in
+    let chipsToRemove = selectedChip.filter { key in
       recordsFilter[key] == nil || recordsFilter[key] == 0
     }
-
-    if selectedChip.isEmpty {
-      selectedChip = []
+    
+    if !chipsToRemove.isEmpty {
+      selectedChip.removeAll { key in
+        chipsToRemove.contains(key)
+      }
     }
   }
 }

@@ -184,10 +184,11 @@ public struct RecordsGridListView: View {
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
     }
-    .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
+    .onChange(of: recordPresentationState.associatedCaseID) { oldValue, newValue in
+      guard oldValue != newValue else { return }
       currentCaseID = newValue
     }
-    .onReceive(NotificationCenter.default.publisher(for: .subscriptionExpired)) { _ in
+    .onReceive(NotificationCenter.default.publisher(for: .subscriptionStatusChanged)) { _ in
       isSubscriptionExpiredAlertPresented = true
     }
     .background(Color(.neutrals50))
@@ -210,9 +211,7 @@ public struct RecordsGridListView: View {
     } message: {
       Text("To continue uploading patient records or prescriptions, please contact support to request a plan upgrade.")
     }
-    .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
-      selectedDocType = nil
-    }) {
+    .sheet(isPresented: $isEditBottomSheetPresented) {
       editBottomSheetContent()
     }
     /// On selection of PDF add a record to the storage
