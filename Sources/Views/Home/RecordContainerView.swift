@@ -227,7 +227,8 @@ public struct RecordContainerView: View {
     .navigationDestination(for: CaseModel.self, destination: caseDestination)
     .navigationDestination(for: CaseFormRoute.self, destination: caseFormDestination)
     .navigationDestination(for: Record.self, destination: recordDestination)
-    .onChange(of: viewModel.isForceRefreshing) { _, newValue in
+    .onChange(of: viewModel.isForceRefreshing) { oldValue, newValue in
+      guard oldValue != newValue else { return }
       if newValue {
         recordsRepo.requestForceRefresh { respnonse, apiCode in
           if apiCode != 202 {
@@ -237,11 +238,12 @@ public struct RecordContainerView: View {
       } else {
         recordsRepo.getUpdatedAtAndStartCases { _ in
           recordsRepo.getUpdatedAtAndStartFetchRecords { _, lastSourceRefreshedTime in
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak viewModel] in
+              guard let viewModel = viewModel else { return }
               if let dateAndTime = lastSourceRefreshedTime {
-                self.viewModel.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
+                viewModel.lastSourceRefreshedAt = Date(timeIntervalSince1970: Double(dateAndTime))
               } else {
-                self.viewModel.lastSourceRefreshedAt = nil
+                viewModel.lastSourceRefreshedAt = nil
               }
             }
           }
@@ -276,13 +278,15 @@ public struct RecordContainerView: View {
       handleTabChange(oldValue, newValue)
     })
     
-    .onChange(of: viewModel.selectedRecord) {oldValue, newValue in
-        if let record = newValue {
-          viewModel.activeModal = .record(record)
-        }
+    .onChange(of: viewModel.selectedRecord) { oldValue, newValue in
+      guard newValue != oldValue else { return }
+      if let record = newValue {
+        viewModel.activeModal = .record(record)
+      }
     }
     
     .onChange(of: viewModel.selectedCase) { oldValue, newValue in
+      guard oldValue?.caseID != newValue?.caseID else { return }
       let currentMode = self.viewModel.recordPresentationState.mode
       let newCaseID = newValue?.caseID
       self.viewModel.recordPresentationState = RecordPresentationState(mode: currentMode, filters: RecordFilter(caseID: newCaseID))
@@ -290,9 +294,8 @@ public struct RecordContainerView: View {
     }
 
     .onChange(of: viewModel.createNewCase) { oldValue, newValue in
-        if let name = newValue {
-          viewModel.activeModal = .newCase(name)
-        }
+      guard oldValue != newValue, let name = newValue else { return }
+      viewModel.activeModal = .newCase(name)
     }
     .onChange(of: networkMonitor.isOnline) { _ , _ in
       recordsRepo.syncUnsyncedCases { _ in
@@ -772,7 +775,20 @@ final class RecordContainerViewModel: ObservableObject {
 
     Task {
       recordsRepo.syncUnsyncedCases { _ in
-        self.recordsRepo.syncUnuploadedRecords { _ in }
+        self.recordsRepo.syncUnuploadedRecords { result in
+          switch result {
+          case .success:
+            break
+          case .failure(let error):
+            let nsError = error as NSError
+            if let underlyingErrors = nsError.userInfo["underlyingErrors"] as? [NSError],
+               underlyingErrors.contains(where: { $0.code == ErrorHelper.Code.uploadLimitReached.rawValue }) {
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
+              }
+            }
+          }
+        }
       }
     }
   }

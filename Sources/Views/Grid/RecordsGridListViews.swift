@@ -10,7 +10,6 @@ import PhotosUI
 import CoreData
 import EkaMedicalRecordsCore
 
-//TODO: - Shekhar: commented blocking unnecessay api calls
 public struct RecordsGridListView: View {
   // MARK: - Properties
   let recordsRepo: RecordsRepo = RecordsRepo.shared
@@ -64,6 +63,8 @@ public struct RecordsGridListView: View {
   
   @State var documentDetailsSheetMode: SheetMode?
   
+  /// Alert to show subscription expiration
+  @State private var isSubscriptionExpiredAlertPresented = false
  
   public init(
     recordPresentationState: RecordPresentationState,
@@ -183,8 +184,12 @@ public struct RecordsGridListView: View {
     .onAppear {
       currentCaseID = recordPresentationState.associatedCaseID
     }
-    .onChange(of: recordPresentationState.associatedCaseID) { _ , newValue in
+    .onChange(of: recordPresentationState.associatedCaseID) { oldValue, newValue in
+      guard oldValue != newValue else { return }
       currentCaseID = newValue
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .subscriptionStatusChanged)) { _ in
+      isSubscriptionExpiredAlertPresented = true
     }
     .background(Color(.neutrals50))
     // alert box
@@ -198,9 +203,15 @@ public struct RecordsGridListView: View {
     } message: {
       Text("Are you sure you want to delete this record?")
     }
-    .sheet(isPresented: $isEditBottomSheetPresented, onDismiss: {
-      selectedDocType = nil
-    }) {
+    // Subscription expiration alert
+    .alert("Your storage is full!", isPresented: $isSubscriptionExpiredAlertPresented) {
+      Button("OK", role: .cancel) {
+        isSubscriptionExpiredAlertPresented = false
+      }
+    } message: {
+      Text("To continue uploading patient records or prescriptions, please contact support to request a plan upgrade.")
+    }
+    .sheet(isPresented: $isEditBottomSheetPresented) {
       editBottomSheetContent()
     }
     /// On selection of PDF add a record to the storage
@@ -288,7 +299,10 @@ extension RecordsGridListView {
   }
   /// On tap retry upload
   private func onTapRetry(record: Record) {
-    recordsRepo.uploadRecord(record: record) { _ in
+    recordsRepo.uploadRecord(record: record) { _ , errorType in
+      if errorType == .uploadLimitReached {
+        isSubscriptionExpiredAlertPresented = true
+      }
     }
   }
   /// Used to delete a grid item
@@ -376,7 +390,10 @@ extension RecordsGridListView {
     recordToBeUpload.syncState = .uploading
     
     DispatchQueue.main.async {
-      recordsRepo.addSingleRecord(record: recordToBeUpload) { _ in
+      recordsRepo.addSingleRecord(record: recordToBeUpload) { _ , errorType in
+        if errorType == .uploadLimitReached {
+          isSubscriptionExpiredAlertPresented = true
+        }
       }
     }
   }
@@ -407,6 +424,11 @@ extension RecordsGridListView {
     guard let filterIDs = CoreInitConfigurations.shared.filterID else { return NSPredicate(value: false) }
     let oidPredicate = NSPredicate(format: "oid IN %@", filterIDs)
     var predicates: [NSPredicate] = [oidPredicate]
+    
+    // Filter out archived records - only show active records
+    let statusPredicate = NSPredicate(format: "isArchived == %@ OR isArchived == nil",
+                                      NSNumber(value: false))
+    predicates.append(statusPredicate)
     
     if let type {
       let otherTypeId = documentTypesList.first(where: { $0.displayName == "Other" })?.id
