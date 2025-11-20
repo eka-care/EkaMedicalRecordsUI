@@ -300,7 +300,7 @@ extension RecordsGridListView {
   /// On tap retry upload
   private func onTapRetry(record: Record) {
     recordsRepo.uploadRecord(record: record) { _ , errorType in
-      if errorType == .uploadLimitReached {
+      if case .uploadLimitReached = errorType {
         isSubscriptionExpiredAlertPresented = true
       }
     }
@@ -391,7 +391,7 @@ extension RecordsGridListView {
     
     DispatchQueue.main.async {
       recordsRepo.addSingleRecord(record: recordToBeUpload) { _ , errorType in
-        if errorType == .uploadLimitReached {
+        if case .uploadLimitReached = errorType {
           isSubscriptionExpiredAlertPresented = true
         }
       }
