@@ -22,7 +22,7 @@
     {
       "identity" : "ekaui",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/eka-care/EkaUI.git",
+      "location" : "git@github.com:eka-care/EkaUI.git",
       "state" : {
         "branch" : "main",
         "revision" : "f46d200e4e17ae0c8b6774258e6581a285ebb89c"
