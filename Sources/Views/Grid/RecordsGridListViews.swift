@@ -255,7 +255,9 @@ extension RecordsGridListView {
       onTapDelete: onTapDelete(record:),
       onTapRetry: onTapRetry(record:),
       onTapDelinkCCase: onTapDelinkCCase(record: delinkCaseId:),
-      onTapRecord: selectedRecordItem(record:)
+      onTapRecord: selectedRecordItem(record:),
+      allowLongPress: !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.uploadRecords),
+      haveMenu: !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.uploadRecords) 
     )
   }
 }
