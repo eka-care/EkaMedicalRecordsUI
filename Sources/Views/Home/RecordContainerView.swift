@@ -187,13 +187,19 @@ public struct RecordContainerView: View {
   
   // MARK: - Initializer
   public init(
+    bID: String,
+    primaryOId: String,
+    allOIds: [String], // all oids includs primary and merged OIDs
     recordPresentationState: RecordPresentationState = RecordPresentationState(mode: .displayAll),
     didSelectPickerDataObjects: RecordItemsCallback = nil,
     onCopyVitals: CopyVitalsCallback = nil,
     selectedTags: [String] = [],
     selectedRecordType: MRDocumentType? = nil,
-    viewTrendsCallback: ViewTrendsCallback = nil
+    viewTrendsCallback: ViewTrendsCallback = nil,
   ) {
+    CoreInitConfigurations.shared.bID = bID
+    CoreInitConfigurations.shared.primaryFilterID = primaryOId
+    CoreInitConfigurations.shared.filterID = allOIds
     self.didSelectPickerDataObjects = didSelectPickerDataObjects
     self.onCopyVitals = onCopyVitals
     self.initialRecordPresentationState = recordPresentationState
