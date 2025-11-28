@@ -85,7 +85,7 @@ struct SearchableCaseListView: View {
           prompt: "Search or add an encounter"
         )
       }
-      if !isSearchActive {
+      if !isSearchActive && !CoreInitConfigurations.shared.blockedFeatureTypes.contains(.createMedicalRecordsCases) {
         EkaButtonView(
           iconImageString: "plus",
           title: "Add Case",
@@ -146,12 +146,12 @@ extension SearchableCaseListView {
               } label: {
                 Text("Edit")
               }
-            }
-
-            Button(role: .destructive) {
-              recordsRepo.deleteCase(caseModel)
-            } label: {
-              Text("Archive")
+              
+              Button(role: .destructive) {
+                recordsRepo.deleteCase(caseModel)
+              } label: {
+                Text("Archive")
+              }
             }
           }
       }

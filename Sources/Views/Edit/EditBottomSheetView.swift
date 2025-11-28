@@ -190,9 +190,10 @@ extension EditBottomSheetView {
       
       Spacer()
       
-      DatePicker("", selection: $documentDate, displayedComponents: .date)
+      DatePicker("", selection: $documentDate, in: ...Date(), displayedComponents: .date)
         .labelsHidden()
         .foregroundColor(.gray)
+        
     }
   }
   

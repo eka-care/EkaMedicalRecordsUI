@@ -148,12 +148,12 @@ extension CasesListView {
               } label: {
                 Text("Edit")
               }
-            }
-            
-            Button(role: .destructive) {
-              recordsRepo.deleteCase(caseModel)
-            } label: {
-              Text("Archive")
+              
+              Button(role: .destructive) {
+                recordsRepo.deleteCase(caseModel)
+              } label: {
+                Text("Archive")
+              }
             }
           }
           .contentShape(Rectangle())
@@ -171,11 +171,11 @@ extension CasesListView {
               } label: {
                 Text("Edit")
               }
-            }
-            Button(role: .destructive) {
-              recordsRepo.deleteCase(caseModel)
-            } label: {
-              Text("Archive")
+              Button(role: .destructive) {
+                recordsRepo.deleteCase(caseModel)
+              } label: {
+                Text("Archive")
+              }
             }
           }
       }
