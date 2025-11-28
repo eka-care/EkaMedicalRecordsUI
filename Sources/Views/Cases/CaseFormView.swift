@@ -213,6 +213,7 @@ extension CaseFormView {
     let caseArguementModel = CaseArguementModel(
       caseType: caseType,
       name: caseName,
+      updatedAt: nil,
       occuredAt: date,
       isRemoteCreated: true,
       isEdited: true

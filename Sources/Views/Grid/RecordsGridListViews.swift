@@ -410,6 +410,7 @@ extension RecordsGridListView {
         documentID: documentID,
         documentDate: documentDate,
         documentType: documentType,
+        updatedAt: nil,
         isEdited: true,
         caseModels: editDetails.cases
       )
