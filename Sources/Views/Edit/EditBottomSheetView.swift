@@ -12,6 +12,7 @@ struct EditFormModel {
   let documentDate: Date?
   let cases: [CaseModel]
   let sheetMode: SheetMode?
+  let isAbhaLinked: Bool
 }
 
 struct EditBottomSheetView: View {
@@ -22,12 +23,23 @@ struct EditBottomSheetView: View {
   @State private var documentDate: Date = Date()
   @State private var showAlert: Bool = false // Alert state
   @State private var showDiscardAlert: Bool = false // Discard confirmation alert
+  @State private var isAbhaLinked: Bool = true
   @Binding var isEditBottomSheetPresented: Bool
   private let recordsRepo = RecordsRepo.shared
   private let recordPresentationState: RecordPresentationState
   private let sheetMode: SheetMode?
   @State private var assignCaseText: String = "Select"
   @State private var selectedCaseModel: CaseModel?
+  
+  var isAbhaToggleEnabled: Bool
+
+  let isprofileLinkedWithAbha: Bool = CoreInitConfigurations.shared.enbleAbha
+  private var shouldDisableAbhaToggle: Bool {
+    if sheetMode == .edit && isAbhaToggleEnabled {
+      return true
+    }
+    return false
+  }
   
   // Completion handler for save action
   private let onSave: (EditFormModel) -> Void
@@ -45,6 +57,8 @@ struct EditBottomSheetView: View {
     _selectedDocumentType = .init(initialValue: initialData.documentType)
     _documentDate = .init(initialValue: initialData.documentDate ?? Date())
     _selectedCaseModel = .init(initialValue: initialData.cases.first)
+    _isAbhaLinked = .init(initialValue: initialData.isAbhaLinked)
+    self.isAbhaToggleEnabled = initialData.isAbhaLinked
     self.onSave = onSave
   }
   
@@ -56,6 +70,10 @@ struct EditBottomSheetView: View {
         List {
           typeOfDocumentPickerView()
           documentDatePickerView()
+          if isprofileLinkedWithAbha {
+            linkWithABHAToggleView()
+          }
+          
           /// If we are showing this outside the case related flow we show this
           if !recordPresentationState.isCaseRelated {
             Section(header:HStack {
@@ -128,7 +146,8 @@ struct EditBottomSheetView: View {
                 documentType: selectedDocumentType,
                 documentDate: documentDate,
                 cases: cases,
-                sheetMode: sheetMode
+                sheetMode: sheetMode,
+                isAbhaLinked: isAbhaLinked
               )
               
               // Call completion handler with result model
@@ -163,6 +182,20 @@ struct EditBottomSheetView: View {
 // MARK: - Subviews
 
 extension EditBottomSheetView {
+
+  private func linkWithABHAToggleView() -> some View {
+    Toggle(isOn: $isAbhaLinked) {
+      Text("Link with your ABHA")
+        .newTextStyle(
+        ekaFont: .bodyRegular,
+        color: UIColor(resource: .labelsPrimary))
+      }
+    .disabled(shouldDisableAbhaToggle ? true : false)
+    .allowsHitTesting(shouldDisableAbhaToggle ? false : true)
+    .opacity(shouldDisableAbhaToggle ? 0.5 : 1.0)
+    .tint(Color(UIColor.systemGreen))
+  }
+    
   private func typeOfDocumentPickerView() -> some View {
     HStack {
       Text("Type of Record")
