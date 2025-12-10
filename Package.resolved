@@ -1,5 +1,5 @@
 {
-  "originHash" : "9fec0ef641f638ba91d7459c1ecfe74792a68ee16bcb69c2136b038c8e0cae9c",
+  "originHash" : "7b23ceb2a826eb22bf12d4e9b52ef155c340b212de1b6716ae2ebc2e774353ce",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/eka-care/EkaMedicalRecordsCore.git",
       "state" : {
-        "branch" : "MOB-79-Updated-attribute-RecordModel",
-        "revision" : "bdde08d07ebae678db57ec24035d3ba33b456109"
+        "branch" : "MOB-95-Passing-Attribute-To-Service",
+        "revision" : "65106c81afb94134a7e304e511a9184c53b31027"
       }
     },
     {

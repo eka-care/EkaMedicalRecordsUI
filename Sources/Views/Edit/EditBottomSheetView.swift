@@ -32,8 +32,13 @@ struct EditBottomSheetView: View {
   @State private var selectedCaseModel: CaseModel?
   
   var isAbhaToggleEnabled: Bool
-
-  let isprofileLinkedWithAbha: Bool = CoreInitConfigurations.shared.enbleAbha
+  
+  var enabledFeatures: Set<Features> = CoreInitConfigurations.shared.enabledFeatures
+  
+  var shouldLinkWithAbhaToggleAppear: Bool {
+    enabledFeatures.contains(.abha)
+  }
+  
   private var shouldDisableAbhaToggle: Bool {
     if sheetMode == .edit && isAbhaToggleEnabled {
       return true
@@ -70,7 +75,7 @@ struct EditBottomSheetView: View {
         List {
           typeOfDocumentPickerView()
           documentDatePickerView()
-          if isprofileLinkedWithAbha {
+          if shouldLinkWithAbhaToggleAppear {
             linkWithABHAToggleView()
           }
           
