@@ -33,17 +33,12 @@ struct EditBottomSheetView: View {
   
   let isAbhaToggleEnabled: Bool
   
-  var enabledFeatures: Set<Features> = CoreInitConfigurations.shared.enabledFeatures
-  
   var shouldLinkWithAbhaToggleAppear: Bool {
-    enabledFeatures.contains(.abha)
+    CoreInitConfigurations.shared.enabledFeatures.contains(.abha)
   }
   
   private var shouldDisableAbhaToggle: Bool {
-    if sheetMode == .edit && isAbhaToggleEnabled {
-      return true
-    }
-    return false
+    return sheetMode == .edit && isAbhaToggleEnabled
   }
   
   // Completion handler for save action
