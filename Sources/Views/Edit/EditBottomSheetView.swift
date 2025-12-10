@@ -31,7 +31,7 @@ struct EditBottomSheetView: View {
   @State private var assignCaseText: String = "Select"
   @State private var selectedCaseModel: CaseModel?
   
-  var isAbhaToggleEnabled: Bool
+  let isAbhaToggleEnabled: Bool
   
   var enabledFeatures: Set<Features> = CoreInitConfigurations.shared.enabledFeatures
   
