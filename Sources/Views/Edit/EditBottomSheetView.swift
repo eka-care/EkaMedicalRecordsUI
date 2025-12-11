@@ -37,10 +37,6 @@ struct EditBottomSheetView: View {
     CoreInitConfigurations.shared.enabledFeatures.contains(.abha)
   }
   
-  private var shouldDisableAbhaToggle: Bool {
-    return sheetMode == .edit && isAbhaToggleEnabled
-  }
-  
   // Completion handler for save action
   private let onSave: (EditFormModel) -> Void
   // MARK: - Init
@@ -190,9 +186,9 @@ extension EditBottomSheetView {
         ekaFont: .bodyRegular,
         color: UIColor(resource: .labelsPrimary))
       }
-    .disabled(shouldDisableAbhaToggle ? true : false)
-    .allowsHitTesting(shouldDisableAbhaToggle ? false : true)
-    .opacity(shouldDisableAbhaToggle ? 0.5 : 1.0)
+    .disabled(sheetMode == .edit && isAbhaToggleEnabled)
+    .allowsHitTesting(!(sheetMode == .edit && isAbhaToggleEnabled))
+    .opacity((sheetMode == .edit && isAbhaToggleEnabled) ? 0.5 : 1.0)
     .tint(Color(UIColor.systemGreen))
   }
     
