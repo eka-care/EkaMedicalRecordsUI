@@ -338,7 +338,7 @@ extension RecordsGridListView {
         documentDate: nil,
         cases: recordToBeUpload?.caseModels ?? [],
         sheetMode: documentDetailsSheetMode,
-        isAbhaLinked: recordToBeUpload?.isAbhaLinked ?? true
+        isAbhaLinked: recordToBeUpload?.isAbhaLinked ?? false
       )
     }
     

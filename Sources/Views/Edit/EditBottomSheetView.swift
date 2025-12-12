@@ -53,8 +53,7 @@ struct EditBottomSheetView: View {
     _selectedDocumentType = .init(initialValue: initialData.documentType)
     _documentDate = .init(initialValue: initialData.documentDate ?? Date())
     _selectedCaseModel = .init(initialValue: initialData.cases.first)
-    _isAbhaLinked = .init(initialValue: initialData.isAbhaLinked)
-    self.isAbhaToggleEnabled = initialData.isAbhaLinked
+    self.isAbhaToggleEnabled = !initialData.isAbhaLinked
     self.onSave = onSave
   }
   
@@ -181,14 +180,13 @@ extension EditBottomSheetView {
 
   private func linkWithABHAToggleView() -> some View {
     Toggle(isOn: $isAbhaLinked) {
-      Text("Link with your ABHA")
+      Text("Link record with my ABHA account")
         .newTextStyle(
         ekaFont: .bodyRegular,
         color: UIColor(resource: .labelsPrimary))
       }
-    .disabled(sheetMode == .edit && isAbhaToggleEnabled)
-    .allowsHitTesting(!(sheetMode == .edit && isAbhaToggleEnabled))
-    .opacity((sheetMode == .edit && isAbhaToggleEnabled) ? 0.5 : 1.0)
+    .disabled(!isAbhaToggleEnabled)
+    .opacity(isAbhaToggleEnabled ? 1 : 0.3)
     .tint(Color(UIColor.systemGreen))
   }
     
