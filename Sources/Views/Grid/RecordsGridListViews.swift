@@ -337,7 +337,8 @@ extension RecordsGridListView {
         documentType: nil,
         documentDate: nil,
         cases: recordToBeUpload?.caseModels ?? [],
-        sheetMode: documentDetailsSheetMode
+        sheetMode: documentDetailsSheetMode,
+        isAbhaLinked: recordToBeUpload?.isAbhaLinked ?? false
       )
     }
     
@@ -351,7 +352,8 @@ extension RecordsGridListView {
       documentType: selectedDocType,
       documentDate: documentDate,
       cases: cases,
-      sheetMode: documentDetailsSheetMode
+      sheetMode: documentDetailsSheetMode,
+      isAbhaLinked: recordSelectedForEdit?.isAbhaLinked ?? true
     )
   }
   
@@ -390,6 +392,7 @@ extension RecordsGridListView {
     recordToBeUpload.documentDate = documentDate
     recordToBeUpload.isEdited = false
     recordToBeUpload.syncState = .uploading
+    recordToBeUpload.isAbhaLinked = editDetails.isAbhaLinked
     
     DispatchQueue.main.async {
       recordsRepo.addSingleRecord(record: recordToBeUpload) { _ , errorType in
@@ -412,7 +415,8 @@ extension RecordsGridListView {
         documentType: documentType,
         updatedAt: nil,
         isEdited: true,
-        caseModels: editDetails.cases
+        caseModels: editDetails.cases,
+        isAbhaLinked: editDetails.isAbhaLinked
       )
     }
 }

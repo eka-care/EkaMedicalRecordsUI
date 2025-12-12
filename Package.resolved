@@ -1,5 +1,5 @@
 {
-  "originHash" : "bd1aebca5728e3553e7ddec3e8bd35778f36aaf077f38dcfbd4ced1436cad3a0",
+  "originHash" : "7b23ceb2a826eb22bf12d4e9b52ef155c340b212de1b6716ae2ebc2e774353ce",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/eka-care/EkaMedicalRecordsCore.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "8072909f550dd463c2e8056332e24ae760485a6d"
+        "branch" : "MOB-95-Passing-Attribute-To-Service",
+        "revision" : "65106c81afb94134a7e304e511a9184c53b31027"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/eka-care/EkaUI.git",
       "state" : {
         "branch" : "main",
-        "revision" : "f46d200e4e17ae0c8b6774258e6581a285ebb89c"
+        "revision" : "e5b339627c618bd575c9a540e25ba88f6ac70af0"
       }
     },
     {
