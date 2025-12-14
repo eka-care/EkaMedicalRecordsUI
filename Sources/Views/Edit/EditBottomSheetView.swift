@@ -142,7 +142,7 @@ struct EditBottomSheetView: View {
                 documentDate: documentDate,
                 cases: cases,
                 sheetMode: sheetMode,
-                isAbhaLinked: isAbhaLinked
+                isAbhaLinked:  shouldLinkWithAbhaToggleAppear ? isAbhaLinked : false
               )
               
               // Call completion handler with result model
