@@ -24,7 +24,6 @@ struct EditBottomSheetView: View {
   @State private var showAlert: Bool = false // Alert state
   @State private var showDiscardAlert: Bool = false // Discard confirmation alert
   @State private var isAbhaLinked: Bool = true
-  @Binding var isEditBottomSheetPresented: Bool
   @Environment(\.dismiss) private var dismiss
   private let recordsRepo = RecordsRepo.shared
   private let recordPresentationState: RecordPresentationState
@@ -43,12 +42,10 @@ struct EditBottomSheetView: View {
   // MARK: - Init
   
   init(
-    isEditBottomSheetPresented: Binding<Bool>,
     recordPresentationState: RecordPresentationState,
     initialData: EditFormModel,
     onSave: @escaping (EditFormModel) -> Void
   ) {
-    _isEditBottomSheetPresented = isEditBottomSheetPresented
     self.recordPresentationState = recordPresentationState
     sheetMode = initialData.sheetMode
     _selectedDocumentType = .init(initialValue: initialData.documentType)

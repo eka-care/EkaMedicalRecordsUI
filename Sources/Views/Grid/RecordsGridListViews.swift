@@ -362,7 +362,6 @@ extension RecordsGridListView {
     let initialData = getEditFormData()
     
     EditBottomSheetView(
-      isEditBottomSheetPresented: $isEditBottomSheetPresented,
       recordPresentationState: recordPresentationState,
       initialData: initialData,
       onSave: { result in
