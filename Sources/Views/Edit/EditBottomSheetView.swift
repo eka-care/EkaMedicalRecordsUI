@@ -25,6 +25,7 @@ struct EditBottomSheetView: View {
   @State private var showDiscardAlert: Bool = false // Discard confirmation alert
   @State private var isAbhaLinked: Bool = true
   @Binding var isEditBottomSheetPresented: Bool
+  @Environment(\.dismiss) private var dismiss
   private let recordsRepo = RecordsRepo.shared
   private let recordPresentationState: RecordPresentationState
   private let sheetMode: SheetMode?
@@ -149,7 +150,7 @@ struct EditBottomSheetView: View {
               onSave(result)
               
               // Close the sheet
-              isEditBottomSheetPresented = false
+              dismiss()
             }
           }
         }
@@ -164,7 +165,7 @@ struct EditBottomSheetView: View {
     .alert("Discard Changes", isPresented: $showDiscardAlert) {
       Button("Cancel", role: .cancel) { }
       Button("Discard", role: .destructive) {
-        isEditBottomSheetPresented = false
+        dismiss()
       }
     } message: {
       Text(sheetMode == .add ? 
