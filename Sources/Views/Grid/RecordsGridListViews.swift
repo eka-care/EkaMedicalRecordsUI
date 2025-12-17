@@ -270,6 +270,7 @@ extension RecordsGridListView {
     data: [Data],
     contentType: FileType
   ) {
+    guard CoreInitConfigurations.shared.primaryFilterID?.isEmpty == false else { return }
     recordsRepo.databaseManager.fetchCase(
       fetchRequest: QueryHelper.fetchCase(
         caseID: recordPresentationState.associatedCaseID
@@ -280,8 +281,8 @@ extension RecordsGridListView {
         contentType: contentType,
         caseModels: cases
       )
-      isEditBottomSheetPresented = true /// Show edit bottom sheet
       documentDetailsSheetMode = .add
+      isEditBottomSheetPresented = true
     }
   }
   /// To sync unuploaded records
@@ -318,8 +319,8 @@ extension RecordsGridListView {
   /// Used to edit an item
   private func editItem(record: Record) {
     recordSelectedForEdit = record
-    isEditBottomSheetPresented = true
     documentDetailsSheetMode = .edit
+    isEditBottomSheetPresented = true
   }
   /// Used to delink case an item
   private func onTapDelinkCCase(record: Record, delinkCaseId: String) {
@@ -404,7 +405,8 @@ extension RecordsGridListView {
   }
   
   private func saveDocumentDetails(_ editDetails: EditFormModel) {
-    guard let recordSelectedForEdit , let documentID = recordSelectedForEdit.documentID, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate else {
+    let oid = recordSelectedForEdit?.oid ?? CoreInitConfigurations.shared.primaryFilterID
+    guard let recordSelectedForEdit, let documentID = recordSelectedForEdit.documentID, let documentType = editDetails.documentType?.id, let documentDate = editDetails.documentDate, let oid else {
         debugPrint("Record being uploaded not found for edit")
         return
       }
@@ -414,6 +416,7 @@ extension RecordsGridListView {
         documentDate: documentDate,
         documentType: documentType,
         updatedAt: nil,
+        documentOid: oid,
         isEdited: true,
         caseModels: editDetails.cases,
         isAbhaLinked: editDetails.isAbhaLinked
