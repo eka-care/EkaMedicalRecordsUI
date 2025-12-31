@@ -229,13 +229,16 @@ public struct RecordsGridListView: View {
     .onChange(of: uploadedImages) { _,newValue in
       if !newValue.isEmpty {
         let data = GalleryHelper.convertImagesToData(images: newValue)
-        addRecord(
-          data: data,
-          contentType: .image
-        )
+        // Add a small delay to ensure camera sheet is fully dismissed before opening bottom sheet
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+          addRecord(
+            data: data,
+            contentType: .image
+          )
+        }
         // Reset uploadedImages to prevent duplicate uploads
         uploadedImages = []
-      }
+       }
     }
   }
 }
