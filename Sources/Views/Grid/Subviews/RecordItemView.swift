@@ -37,6 +37,9 @@ public struct RecordItemView: View {
   @State var cancellable: AnyCancellable?
   var allowLongPress: Bool = true
   var haveMenu: Bool = true
+  var tags: [String] {
+    (itemData.record?.toTags as? Set<Tags>)?.compactMap { $0.name }.sorted() ?? []
+  }
   // MARK: - Init
   public init(
     itemData: RecordItemViewData,
@@ -68,7 +71,7 @@ public struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        thumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
+        thumbnailImageView(thumbnailImageUrl: nil)
           .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
           .blur(radius: isThumbnailBlurred() ? 2 : 0)
           .frame(width: RecordsDocumentSize.itemWidth)
@@ -109,6 +112,13 @@ public struct RecordItemView: View {
                 .padding(.trailing, EkaSpacing.spacingM)
             }
             Spacer()
+          }
+        }
+        
+        if !tags.isEmpty {
+          VStack {
+            Spacer()
+            tagsView()
           }
         }
       }
@@ -184,6 +194,29 @@ public struct RecordItemView: View {
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
         .assign(to: \.isNetworkAvailable, on: self)
+      
+      
+//      DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+//        // Test code: Add a tag to this record
+//        guard let record = itemData.record,
+//              let context = record.managedObjectContext else { return }
+//        
+//        // Create a new Tags entity
+//        let newTag = Tags(context: context)
+//        newTag.name = "Test Tag \(Int.random(in: 1...100))"
+//        
+//        // Add the tag to the record's relationship
+//        record.addToToTags(newTag)
+//        
+//        // Save the context
+//        do {
+//          try context.save()
+//          print("✅ Tag added successfully to record")
+//        } catch {
+//          print("❌ Failed to save tag: \(error)")
+//        }
+//      }
+      
     }
     .onDisappear {
       cancellable?.cancel()
@@ -344,6 +377,22 @@ extension RecordItemView {
           .stroke(Color.white, lineWidth: 2) // Customize the border color and width
           .frame(width: 18, height: 18)
       }
+    }
+  }
+  
+  private func tagsView() -> some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: EkaSpacing.spacingXxs) {
+        ForEach(tags, id: \.self) { tagName in
+          Text(tagName)
+            .textStyle(ekaFont: .label1Regular, color: .black)
+            .padding(.horizontal, EkaSpacing.spacingXs)
+            .padding(.vertical, 4)
+            .background(Color(UIColor(resource: .neutrals100)))
+            .cornerRadius(12)
+        }
+      }
+      .padding([.leading, .top, .bottom], 8)
     }
   }
   
