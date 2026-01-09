@@ -342,7 +342,8 @@ extension RecordItemView {
             Image(uiImage: UIImage(resource: .docWithPlus))
               .resizable()
               .scaledToFit()
-              .frame(width: 40, height: 40)
+              .frame(width: tags.count > 0 ? 30 : 40, height: tags.count > 0 ? 30 : 40)
+              .offset(y: tags.count > 0 ? -10: 0)
           }
         }
       }
