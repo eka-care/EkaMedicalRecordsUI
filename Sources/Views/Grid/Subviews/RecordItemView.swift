@@ -71,7 +71,7 @@ public struct RecordItemView: View {
     VStack(spacing: 0) {
       ZStack {
         /// Thumbnail Image
-        thumbnailImageView(thumbnailImageUrl: nil)
+        thumbnailImageView(thumbnailImageUrl: FileHelper.getDocumentDirectoryURL().appendingPathComponent(itemData.record?.thumbnail ?? ""))
           .background(.black.opacity(isThumbnailBlurred() ? 2 : 0))
           .blur(radius: isThumbnailBlurred() ? 2 : 0)
           .frame(width: RecordsDocumentSize.itemWidth)
@@ -162,34 +162,6 @@ public struct RecordItemView: View {
         }
       }
     }
-//    .contextMenu {
-//      Button {
-//        if let record = itemData.record {
-//          onTapEdit(record)
-//        }
-//      } label: {
-//        Text("Edit")
-//      }
-//      
-//      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
-//        Button {
-//          onTapDelinkCCase(record , caseId)
-//        } label: {
-//          Text("Unassign encounter")
-//        }
-//      }
-//      
-//      Button(role: .destructive) {
-//        if let record = itemData.record {
-//          onTapDelete(record)
-//        }
-//      } label: {
-//        Text("Delete")
-//      }
-//    }
-//    .simultaneousGesture(TapGesture().onEnded {
-//      onTapRecord()
-//    })
     .onAppear {
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
@@ -389,8 +361,12 @@ extension RecordItemView {
             .textStyle(ekaFont: .label1Regular, color: .black)
             .padding(.horizontal, EkaSpacing.spacingXs)
             .padding(.vertical, 4)
-            .background(Color(UIColor(resource: .neutrals100)))
-            .cornerRadius(12)
+            .background(Color(UIColor(resource: .neutrals100)),
+                        in: RoundedRectangle(cornerRadius: 8))
+            .overlay(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(UIColor(resource: .neutrals200)), lineWidth: 1)
+            )
         }
       }
       .padding([.leading, .top, .bottom], 8)
