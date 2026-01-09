@@ -14,7 +14,7 @@ public typealias Record = EkaMedicalRecordsCore.Record
 
 public enum RecordsDocumentSize {
   static let thumbnailHeight: CGFloat = 110
-  static let bottomMetaDataHeight: CGFloat = 75
+  static let bottomMetaDataHeight: CGFloat = 50
   static let itemWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 180 : 170
   static let itemHorizontalSpacing: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? EkaSpacing.spacingS : EkaSpacing.spacingXxxs
   static func getItemHeight() -> CGFloat {
@@ -37,7 +37,6 @@ public struct RecordItemView: View {
   @State var cancellable: AnyCancellable?
   var allowLongPress: Bool = true
   var haveMenu: Bool = true
-  @State var tagNames: [String] = []
   // MARK: - Init
   public init(
     itemData: RecordItemViewData,
@@ -153,16 +152,35 @@ public struct RecordItemView: View {
         }
       }
     }
+//    .contextMenu {
+//      Button {
+//        if let record = itemData.record {
+//          onTapEdit(record)
+//        }
+//      } label: {
+//        Text("Edit")
+//      }
+//      
+//      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
+//        Button {
+//          onTapDelinkCCase(record , caseId)
+//        } label: {
+//          Text("Unassign encounter")
+//        }
+//      }
+//      
+//      Button(role: .destructive) {
+//        if let record = itemData.record {
+//          onTapDelete(record)
+//        }
+//      } label: {
+//        Text("Delete")
+//      }
+//    }
+//    .simultaneousGesture(TapGesture().onEnded {
+//      onTapRecord()
+//    })
     .onAppear {
-      tagNames =  {
-          guard
-              let record = itemData.record,
-              let tags = record.toTags as? Set<Tags>
-          else {
-              return []
-          }
-        return tags.compactMap { $0.name }.sorted()
-      }()
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
         .assign(to: \.isNetworkAvailable, on: self)
@@ -177,54 +195,35 @@ public struct RecordItemView: View {
 
 extension RecordItemView {
   private func bottomMetaDataView() -> some View {
-    VStack {
-      HStack {
-        VStack(alignment: .leading) {
-          /// Document type
-          if let record = itemData.record,
-             let recordType = record.documentType  {
-            Text(documentTypesList.first(where: { data in
-              data.id == recordType
-            })?.filterName ?? "Other")
+    HStack {
+      VStack(alignment: .leading) {
+        /// Document type
+        if let record = itemData.record,
+           let recordType = record.documentType  {
+          Text(documentTypesList.first(where: { data in
+            data.id == recordType
+          })?.filterName ?? "Other")
             .textStyle(
               ekaFont: .calloutBold,
               color: .black
             )
-          }
-          /// Date
-          if let record = itemData.record {
-            let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
-            let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy, hh:mm a") ?? "NA"
-            Text(date)
-              .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
-          }
         }
-        Spacer()
-        if haveMenu {
-          menuView()
+        /// Date
+        if let record = itemData.record {
+          let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
+          let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy, hh:mm a") ?? "NA"
+          Text(date)
+            .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
         }
       }
-      .padding(.horizontal, EkaSpacing.spacingXs)
-      
-      if !tagNames.isEmpty {
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: EkaSpacing.spacingXxs) {
-            ForEach(tagNames, id: \.self) { tagName in
-              Text(tagName)
-                .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals700))
-                .padding(.horizontal, EkaSpacing.spacingXs)
-                .padding(.vertical, 4)
-                .background(Color(UIColor(resource: .neutrals100)))
-                .cornerRadius(12)
-            }
-          }
-        }
-        .padding(.top, 2)
+      Spacer()
+      if haveMenu {
+        menuView()
       }
     }
+    .padding(.horizontal, EkaSpacing.spacingXs)
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)
   }
-  
   private func topLeftStateTileView(syncState: RecordSyncState) -> some View {
     HStack {
       if !isNetworkAvailable {
