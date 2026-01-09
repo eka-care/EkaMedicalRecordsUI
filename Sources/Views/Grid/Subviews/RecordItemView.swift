@@ -9,6 +9,7 @@ import SwiftUI
 import EkaMedicalRecordsCore
 import Combine
 import SDWebImageSwiftUI
+import EkaUI
 
 public typealias Record = EkaMedicalRecordsCore.Record
 
@@ -166,29 +167,6 @@ public struct RecordItemView: View {
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
         .assign(to: \.isNetworkAvailable, on: self)
-      
-      
-//      DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-//        // Test code: Add a tag to this record
-//        guard let record = itemData.record,
-//              let context = record.managedObjectContext else { return }
-//        
-//        // Create a new Tags entity
-//        let newTag = Tags(context: context)
-//        newTag.name = "Test Tag \(Int.random(in: 1...100))"
-//        
-//        // Add the tag to the record's relationship
-//        record.addToToTags(newTag)
-//        
-//        // Save the context
-//        do {
-//          try context.save()
-//          print("✅ Tag added successfully to record")
-//        } catch {
-//          print("❌ Failed to save tag: \(error)")
-//        }
-//      }
-      
     }
     .onDisappear {
       cancellable?.cancel()
