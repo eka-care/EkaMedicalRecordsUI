@@ -9,6 +9,7 @@ import SwiftUI
 import EkaMedicalRecordsCore
 import Combine
 import SDWebImageSwiftUI
+import EkaUI
 
 public typealias Record = EkaMedicalRecordsCore.Record
 
@@ -37,6 +38,9 @@ public struct RecordItemView: View {
   @State var cancellable: AnyCancellable?
   var allowLongPress: Bool = true
   var haveMenu: Bool = true
+  var tags: [String] {
+    (itemData.record?.toTags as? Set<Tags>)?.compactMap { $0.name }.sorted() ?? []
+  }
   // MARK: - Init
   public init(
     itemData: RecordItemViewData,
@@ -111,6 +115,13 @@ public struct RecordItemView: View {
             Spacer()
           }
         }
+        
+        if !tags.isEmpty {
+          VStack {
+            Spacer()
+            tagsView()
+          }
+        }
       }
       /// Bottom Meta Data View 
       bottomMetaDataView()
@@ -152,34 +163,6 @@ public struct RecordItemView: View {
         }
       }
     }
-//    .contextMenu {
-//      Button {
-//        if let record = itemData.record {
-//          onTapEdit(record)
-//        }
-//      } label: {
-//        Text("Edit")
-//      }
-//      
-//      if let record = itemData.record, let caseId = recordPresentationState.associatedCaseID {
-//        Button {
-//          onTapDelinkCCase(record , caseId)
-//        } label: {
-//          Text("Unassign encounter")
-//        }
-//      }
-//      
-//      Button(role: .destructive) {
-//        if let record = itemData.record {
-//          onTapDelete(record)
-//        }
-//      } label: {
-//        Text("Delete")
-//      }
-//    }
-//    .simultaneousGesture(TapGesture().onEnded {
-//      onTapRecord()
-//    })
     .onAppear {
       cancellable = NetworkMonitor.shared.publisher
         .receive(on: DispatchQueue.main)
@@ -309,7 +292,8 @@ extension RecordItemView {
             Image(uiImage: UIImage(resource: .docWithPlus))
               .resizable()
               .scaledToFit()
-              .frame(width: 40, height: 40)
+              .frame(width: tags.count > 0 ? 30 : 40, height: tags.count > 0 ? 30 : 40)
+              .offset(y: tags.count > 0 ? -10: 0)
           }
         }
       }
@@ -344,6 +328,26 @@ extension RecordItemView {
           .stroke(Color.white, lineWidth: 2) // Customize the border color and width
           .frame(width: 18, height: 18)
       }
+    }
+  }
+  
+  private func tagsView() -> some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: EkaSpacing.spacingXxs) {
+        ForEach(tags, id: \.self) { tagName in
+          Text(tagName)
+            .textStyle(ekaFont: .label1Regular, color: .black)
+            .padding(.horizontal, EkaSpacing.spacingXs)
+            .padding(.vertical, 4)
+            .background(Color(UIColor(resource: .neutrals100)),
+                        in: RoundedRectangle(cornerRadius: 8))
+            .overlay(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(UIColor(resource: .neutrals200)), lineWidth: 1)
+            )
+        }
+      }
+      .padding([.leading, .top, .bottom], 8)
     }
   }
   
