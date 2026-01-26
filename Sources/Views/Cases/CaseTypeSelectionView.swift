@@ -49,39 +49,14 @@ struct CaseTypeSelectionView: View {
               }
             }
           }
-          
-          // Create new case type row
-          HStack {
-            ZStack {
-              Circle()
-                .fill(Color(hex: "#6B5CE0") ?? .purple)
-                .frame(width: 36, height: 36)
-              Image(systemName: "plus")
-                .foregroundColor(.white)
-            }
-            Text("Create an encounter type")
-              .foregroundColor(Color(hex: "#6B5CE0") ?? .purple)
-          }
-          .contentShape(Rectangle())
-          .onTapGesture {
-            showingAlert = true
-          }
         }
       }
-      .navigationTitle("All Case Types")
+      .navigationTitle("All Encounters")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           Button("Back") {
             dismiss()
-          }
-        }
-
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button {
-            showingAlert = true
-          } label: {
-            Image(systemName: "plus")
           }
         }
       }
