@@ -313,7 +313,8 @@ extension RecordsGridListView {
   }
   /// Used to delete a grid item
   private func deleteItem(record: Record) {
-    recordsRepo.deleteRecord(record: record)
+    let isRecordLinked = record.syncState == RecordSyncState.upload(success: true).stringValue
+    recordsRepo.deleteRecord(record: record, deleteFromServer: isRecordLinked)
   }
   
   private func selectedRecordItem(record: Record) {
@@ -481,14 +482,14 @@ extension RecordsGridListView {
       }
 
       switch sortType {
-      case .dateOfUpload(let order):
+      case .dateOfUpload:
           return [
-              NSSortDescriptor(keyPath: \Record.uploadDate, ascending: order == .oldToNew),
+              NSSortDescriptor(keyPath: \Record.uploadDate, ascending: false),
               objectIDSort
           ]
-      case .documentDate(let order):
+      case .documentDate:
           return [
-              NSSortDescriptor(keyPath: \Record.documentDate, ascending: order == .oldToNew),
+              NSSortDescriptor(keyPath: \Record.documentDate, ascending: false),
               objectIDSort
           ]
       }
