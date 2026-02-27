@@ -19,7 +19,7 @@ public enum RecordSortOptions: Hashable {
    public var title: String {
      switch self {
      case .dateOfUpload:
-       return "Upload Date (Default)"
+       return "Upload Date"
      case .documentDate:
        return "Document Date"
      }
@@ -36,5 +36,9 @@ public enum RecordSortOptions: Hashable {
   
   public var isDefault: Bool {
     self == .dateOfUpload
+  }
+  
+  public var displayTitle: String {
+    isDefault ? "\(title) (Default)" : title
   }
 }

@@ -17,7 +17,7 @@ struct RecordSortMenuView: View {
           selectedOption = option
         } label: {
           HStack {
-            Text(option.title)
+            Text(option.displayTitle)
               .textStyle(ekaFont: .bodyRegular, color: .black)
             if option == selectedOption ?? .dateOfUpload {
                 checkMarkView()
@@ -54,10 +54,6 @@ extension RecordSortMenuView {
 
 extension RecordSortMenuView {
   func getChipTitle() -> String {
-    if let currentOption = selectedOption, !currentOption.isDefault   {
-      "Sort by: \(currentOption.title)"
-    } else {
-      "Sort"
-    }
+    "Sort by: \(selectedOption?.title ?? RecordSortOptions.dateOfUpload.title)"
   }
 }
