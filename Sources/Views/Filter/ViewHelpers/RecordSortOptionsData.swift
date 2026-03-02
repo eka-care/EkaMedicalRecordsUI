@@ -8,13 +8,9 @@
 import Foundation
 import EkaMedicalRecordsCore
 
-public enum RecordSortOptions: Hashable {
+public enum RecordSortOptions: Hashable, CaseIterable {
   case dateOfUpload
   case documentDate
-  
-  public static var allCases: [RecordSortOptions] {
-    [.dateOfUpload, .documentDate]
-  }
   
    public var title: String {
      switch self {
