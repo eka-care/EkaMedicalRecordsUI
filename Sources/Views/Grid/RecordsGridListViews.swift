@@ -313,7 +313,6 @@ extension RecordsGridListView {
   }
   /// Used to delete a grid item
   private func deleteItem(record: Record) {
-    let isRecordLinked = record.syncState == RecordSyncState.upload(success: true).stringValue
     recordsRepo.deleteRecord(record: record)
   }
   
