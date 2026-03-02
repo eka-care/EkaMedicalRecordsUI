@@ -154,7 +154,7 @@ extension RecordsFilterListView {
   RecordsFilterListView(
     selectedChip: .constant([]),
     selectedSortFilter: .constant(
-      .dateOfUpload(sortingOrder: .newToOld)
+      .dateOfUpload
     ),
     caseID: .constant(nil),
     selectedDocType: .constant(nil)

@@ -193,7 +193,7 @@ extension RecordItemView {
         }
         /// Date
         if let record = itemData.record {
-          let filterOption = selectedFilterOption ?? .dateOfUpload(sortingOrder: .newToOld)
+          let filterOption = selectedFilterOption ?? .dateOfUpload
           let date = record[keyPath: filterOption.keyPath]?.formatted(as: "dd MMM ‘yy, hh:mm a") ?? "NA"
           Text(date)
             .textStyle(ekaFont: .labelRegular, color: UIColor(resource: .neutrals600))
@@ -455,7 +455,7 @@ extension RecordItemView {
     itemData: RecordItemViewData.formRecordItemPreviewData(),
     recordPresentationState: RecordPresentationState(mode: .displayAll),
     pickerSelectedRecords: .constant([]),
-    selectedFilterOption: .constant(.documentDate(sortingOrder: .newToOld)),
+    selectedFilterOption: .constant(.documentDate),
     onTapEdit: {_ in},
     onTapDelete: {_ in},
     onTapRetry: {_ in},

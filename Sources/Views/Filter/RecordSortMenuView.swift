@@ -17,15 +17,10 @@ struct RecordSortMenuView: View {
           selectedOption = option
         } label: {
           HStack {
-            Text(option.title)
+            Text(option.displayTitle)
               .textStyle(ekaFont: .bodyRegular, color: .black)
-            /// If no option is selected show checkmark on upload date new to old
-            if selectedOption == nil, option == .dateOfUpload(sortingOrder: .newToOld) {
-              checkMarkView()
-            }
-            /// If option is selected show that
-            if option == selectedOption {
-              checkMarkView()
+            if option == selectedOption ?? .dateOfUpload {
+                checkMarkView()
             }
           }
         }
@@ -38,9 +33,9 @@ struct RecordSortMenuView: View {
         imageConfig: ImageConfig(
           width: 12,
           height: 12,
-          color: UIColor(resource: selectedOption == nil ? .neutrals500 : .neutrals0)
+          color: UIColor(resource: (selectedOption?.isDefault ?? true) ? .neutrals500 : .neutrals0)
         ),
-        isSelected: selectedOption != nil
+        isSelected: !(selectedOption?.isDefault ?? true)
       ) {_ in}
     }
   }
@@ -59,6 +54,6 @@ extension RecordSortMenuView {
 
 extension RecordSortMenuView {
   func getChipTitle() -> String {
-    selectedOption?.title ?? "Sort"
+    "Sort by: \(selectedOption?.title ?? RecordSortOptions.dateOfUpload.title)"
   }
 }
