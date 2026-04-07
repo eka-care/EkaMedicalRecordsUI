@@ -23,6 +23,11 @@ public enum RecordsDocumentSize {
   }
 }
 
+public enum TopLeftTileState {
+  case sync(RecordSyncState)
+  case analysing
+}
+
 public struct RecordItemView: View {
   // MARK: - Properties
   let recordPresentationState: RecordPresentationState
@@ -91,9 +96,11 @@ public struct RecordItemView: View {
           VStack {
             HStack {
               /// Sync State
-              if let syncState = RecordSyncState(from: record.syncState ?? ""),
-                 syncState != .upload(success: true) {
-                topLeftStateTileView(syncState: syncState)
+              if record.isAnalyzing {
+                topLeftStateTileView(state: .analysing)
+              } else if let syncState = RecordSyncState(from: record.syncState ?? ""),
+                        syncState != .upload(success: true) {
+                topLeftStateTileView(state: .sync(syncState))
               } else if record.isSmart {
                 smartReportView()
               }
@@ -207,14 +214,30 @@ extension RecordItemView {
     .padding(.horizontal, EkaSpacing.spacingXs)
     .frame(width: RecordsDocumentSize.itemWidth, height: RecordsDocumentSize.bottomMetaDataHeight)
   }
-  private func topLeftStateTileView(syncState: RecordSyncState) -> some View {
+
+  private func topLeftStateTileView(state: TopLeftTileState) -> some View {
     HStack {
-      if !isNetworkAvailable {
+      if case .analysing = state {
+        analysingStateView()
+      } else if !isNetworkAvailable {
         noNetworkStateView()
-      } else if syncState == .uploading {
+      } else if case .sync(let syncState) = state, syncState == .uploading {
         uploadingStateView()
       }
     }
+  }
+  private func analysingStateView() -> some View {
+    HStack(alignment: .bottom) {
+      ProgressView()
+        .frame(width: 10, height: 10)
+        .tint(Color(.yellow500))
+      Text("Analysing")
+        .textStyle(ekaFont: .labelBold, color: UIColor(resource: .neutrals800))
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, EkaSpacing.spacingXxs)
+    .background(.white)
+    .cornerRadiusModifier(6, corners: [.bottomRight])
   }
   private func uploadingStateView() -> some View {
     HStack(alignment: .bottom) {
