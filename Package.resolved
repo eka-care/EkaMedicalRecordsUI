@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "git@github.com:eka-care/EkaMedicalRecordsCore.git",
       "state" : {
-        "revision" : "01a38d98df523171c1562d5a6a5d4108f8bb55f4",
-        "version" : "1.3.5"
+        "revision" : "2f272836d0961d1aae3a45c5e26680d9b8635f3c",
+        "version" : "1.3.6"
       }
     },
     {
