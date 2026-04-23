@@ -54,7 +54,7 @@ final class FileHelper {
       let fullPath = FileHelper.getDocumentDirectoryURL().appendingPathComponent(path).path
       let url = URL(fileURLWithPath: fullPath)
       
-      // Check if the file is a PDF or image based on its file extension
+      // Check if the file is a PDF, image, or HTML based on its file extension
       if path.lowercased().hasSuffix(FileType.pdf.fileExtension) {
         if let pdfData = try? Data(contentsOf: url) {
           documentTypes.append(.pdf(data: pdfData))
@@ -63,6 +63,8 @@ final class FileHelper {
         if let image = UIImage(contentsOfFile: fullPath) {
           documentTypes.append(.image(uiImage: image))
         }
+      } else if path.lowercased().hasSuffix(FileType.html.fileExtension) {
+        documentTypes.append(.html(url: url))
       }
     }
     return documentTypes
