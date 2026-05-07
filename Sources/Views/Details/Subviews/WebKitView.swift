@@ -11,12 +11,16 @@ struct WebKitView: UIViewRepresentable {
 
   func makeUIView(context: Context) -> WKWebView {
     let config = WKWebViewConfiguration()
+    // Treat loaded HTML as untrusted by default and disable script execution.
+    config.defaultWebpagePreferences.allowsContentJavaScript = false
+    
     // Apply pre-compiled content rules if already available from a prior call
     if let rules = WebKitView.cachedContentRules {
       config.userContentController.add(rules)
     }
     let webView = WKWebView(frame: .zero, configuration: config)
     webView.navigationDelegate = context.coordinator
+    webView.allowsLinkPreview = false
     // Prevent swipe gestures from navigating the web view's history
     webView.allowsBackForwardNavigationGestures = false
     // Kick off content-rule compilation so future instances are fully protected
