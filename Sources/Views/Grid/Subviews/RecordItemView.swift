@@ -96,11 +96,11 @@ public struct RecordItemView: View {
           VStack {
             HStack {
               /// Sync State
-              if record.isAnalyzing {
-                topLeftStateTileView(state: .analysing)
-              } else if let syncState = RecordSyncState(from: record.syncState ?? ""),
-                        syncState != .upload(success: true) {
+              if let syncState = RecordSyncState(from: record.syncState ?? ""),
+                 syncState != .upload(success: true) {
                 topLeftStateTileView(state: .sync(syncState))
+              } else if record.isAnalyzing {
+                topLeftStateTileView(state: .analysing)
               } else if record.isSmart {
                 smartReportView()
               }
