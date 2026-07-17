@@ -297,6 +297,9 @@ extension RecordsGridListView {
     recordsRepo.getUpdatedAtAndStartCases { _ in
       recordsRepo.getUpdatedAtAndStartFetchRecords { _, _ in }
     }
+    recordsRepo.syncUnuploadedRecords {_ in 
+      recordsRepo.syncUnsyncedCases{_ in }
+    }
   }
   /// On tap delete open
   private func onTapDelete(record: Record) {
